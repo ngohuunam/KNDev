@@ -6,7 +6,9 @@ body .p-datatable .p-datatable-tbody > tr.p-info:hover,
 body .p-datatable .p-datatable-tbody > tr:nth-child(even).p-info:hover {
   background-color: #38a8fd !important;
 }
-
+.p-fluid .p-dropdown {
+  text-align: left;
+}
 body .p-dropdown .p-dropdown-trigger,
 body .p-multiselect .p-multiselect-trigger {
   background-color: transparent;

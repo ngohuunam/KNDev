@@ -3,48 +3,63 @@
  *
  * Documentation: https://github.com/winstonjs/winston
  */
-
+const appRoot = require('app-root-path')
 const { createLogger, format, transports } = require('winston')
+const { combine, timestamp, prettyPrint } = format
 
 // Import Functions
 const { File, Console } = transports
 
-// Init Logger
-const logger = createLogger({
-  level: 'info',
-})
+// const timezoned = () => {
+//   const _opt = { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }
+//   return new Date().toLocaleString('vi', _opt)
+// }
 
-/**
- * For production write to all logs with level `info` and below
- * to `combined.log. Write all logs error (and below) to `error.log`.
- * For development, print to the console.
- */
-if (process.env.NODE_ENV === 'production') {
-  const fileFormat = format.combine(format.timestamp(), format.json())
-  const errTransport = new File({
-    filename: './logs/error.log',
-    format: fileFormat,
-    level: 'error',
+const initLogger = fileName => {
+  const options = {
+    file_combined: {
+      level: 'info',
+      filename: `${appRoot}/logs/${fileName}-combined.log`,
+      handleExceptions: false,
+      json: true,
+      maxsize: 5242880, // 5MB
+      maxFiles: 5,
+      colorize: false,
+    },
+    file_error: {
+      level: 'error',
+      filename: `${appRoot}/logs/${fileName}-error.log`,
+      handleExceptions: false,
+      json: true,
+      maxsize: 5242880, // 5MB
+      maxFiles: 5,
+      colorize: false,
+    },
+    console: {
+      level: 'error',
+      handleExceptions: false,
+      json: false,
+      colorize: true,
+    },
+  }
+
+  const logger = createLogger({
+    format: combine(
+      timestamp({
+        format: 'DD-MM-YYYY HH:mm',
+      }),
+      prettyPrint(),
+    ),
+    transports: [new File(options.file_combined), new File(options.file_error), new Console(options.console)],
+    exitOnError: false, // do not exit on handled exceptions
   })
-  const infoTransport = new File({
-    filename: './logs/combined.log',
-    format: fileFormat,
-  })
-  logger.add(errTransport)
-  logger.add(infoTransport)
-} else {
-  const errorStackFormat = format(info => {
-    if (info.stack) {
-      // tslint:disable-next-line:no-console
-      console.log(info.stack)
-      return false
-    }
-    return info
-  })
-  const consoleTransport = new Console({
-    format: format.combine(format.colorize(), format.simple(), errorStackFormat()),
-  })
-  logger.add(consoleTransport)
+
+  logger.stream = {
+    write: function(message) {
+      logger.info(message)
+    },
+  }
+  return logger
 }
 
-module.exports = logger
+module.exports = { initLogger }

@@ -164,9 +164,15 @@ Vue.config.productionTip = false
 Vue.config.devtools = true
 Vue.config.performance = true
 
-import defaultState from '@/assets/defaultState'
+// import defaultState from '@/assets/defaultState'
 
-const socket = io(defaultState.host)
+let info = window.localStorage.getItem('info')
+info = JSON.parse(info)
+const token = info.token
+const url = `${window.location.origin}/${info.dept}/${info.page}?token=${token}`
+console.log('url', url)
+
+const socket = io(url)
 Vue.use(VueSocketIOExt, socket, { store })
 Vue.use(globalInstance)
 

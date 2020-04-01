@@ -1,7 +1,5 @@
-const logger = require('./logger')
-
-const nextErr = (err, next) => {
-  logger.error(err)
+const nextErr = (err, logger, next) => {
+  logger.debug(err)
   return next(err)
 }
 

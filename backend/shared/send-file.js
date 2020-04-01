@@ -1,17 +1,19 @@
 const { resolve } = require('path')
 const { lookup } = require('mime-types')
-const logger = require('./logger')
 const { doGzip } = require('./stream')
+const { initLogger } = require('./logger')
+
+const sendFileLogger = initLogger('shared/send-file')
 
 const handleErr = (info, err, next) => {
-  logger.error(info || 'ERROR: ', err)
+  sendFileLogger.debug(info || 'ERROR: ', err)
   return next(err)
 }
 
 const sendFile = (req, res, next, path, options) => {
   res.sendFile(resolve(path), options, error => {
     if (error) return handleErr(`(sendFile) ERROR:`, error, next)
-    logger.info('(sendFile) OK: ' + path)
+    sendFileLogger.info('(sendFile) OK: ' + path)
   })
 }
 
@@ -41,7 +43,7 @@ const sendGzip = (input, req, res, next, contentType) => {
             handleErr('PROMISE (do_gzip) ERROR: ', e)
           }
         } else handleErr('(sendFile) ERROR: ', err)
-      } else logger.info('(sendFile) OK: ' + output)
+      } else sendFileLogger.info('(sendFile) OK: ' + output)
     })
   } else sendFile(req, res, next, input)
 }

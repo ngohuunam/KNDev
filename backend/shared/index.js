@@ -1,12 +1,17 @@
+const { staffs, secret, dbOpt, dbLog, initDB, getDb, attachDB } = require('./database')
 const { encrypt, decrypt } = require('./crypto')
 const { sendGzip, sendLogin } = require('./send-file')
 const { streamRender, redirectToLogin, readReplaceRes, doGzip } = require('./stream')
-const { nano, db, uuids, secret, dbName, dbLog, Database, attachDB } = require('./database')
 const socket = require('./socket')
-const logger = require('./logger')
+const { initLogger } = require('./logger')
 const { nextErr } = require('./error')
+const attachHeaderBearer = require('./headers')
 
 module.exports = {
+  staffs,
+  initDB,
+  getDb,
+  attachDB,
   encrypt,
   decrypt,
   sendGzip,
@@ -15,15 +20,11 @@ module.exports = {
   redirectToLogin,
   readReplaceRes,
   doGzip,
-  nano,
-  db,
-  uuids,
   secret,
-  dbName,
-  socket,
-  logger,
-  nextErr,
+  dbOpt,
   dbLog,
-  Database,
-  attachDB,
+  socket,
+  initLogger,
+  nextErr,
+  attachHeaderBearer,
 }

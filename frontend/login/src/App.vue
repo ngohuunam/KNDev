@@ -2,7 +2,7 @@
   <div id="app">
     <Loading v-if="isLoading" />
     <HelloWorld v-else />
-    <div class="version">V.112</div>
+    <div class="version">V.120</div>
   </div>
 </template>
 
@@ -20,31 +20,36 @@ export default {
     isLoading: true,
     info: window.localStorage.getItem('info'),
     serverCmd: 'this place for cmd',
+    count: 0,
   }),
   methods: {
     handleState() {
-      const localInfo = window.localStorage.getItem('info')
-      console.log(localInfo)
-      if (localInfo) {
-        const info = JSON.parse(localInfo)
-        if (info.auth && info.token) {
-          window.location.href = `${window.location.href}${info.dept}/${info.page}/${info.token}`
-          this.info = info
+      if (this.info) {
+        const info = JSON.parse(this.info)
+        console.log(info)
+        if (info.token) {
+          const url = `${window.location.origin}/${info.dept}/${info.page}/${info.token}`
+          fetch(url, { method: 'get' }).then(res => {
+            if (res.status === 200) {
+              window.location.href = url
+            } else this.count++
+          })
         } else this.isLoading = false
       } else this.isLoading = false
     },
   },
+  watch: {
+    count(value) {
+      if (value < 4) this.handleState()
+      else {
+        window.localStorage.removeItem('info')
+        this.isLoading = false
+        setTimeout(() => (this.$children[0].msg = 'Expired, re-login'), 500)
+      }
+    },
+  },
   mounted() {
-    if (this.info) {
-      const info = JSON.parse(this.info)
-      console.log(info)
-      if (info.token) {
-        window.location.href = `${window.location.href}${info.dept}/${info.page}/${info.token}`
-      } else this.isLoading = false
-    } else this.isLoading = false
-    // this.$nextTick(() => {
-    //   setTimeout(() => this.handleState(), 1000)
-    // })
+    this.handleState()
   },
 }
 </script>

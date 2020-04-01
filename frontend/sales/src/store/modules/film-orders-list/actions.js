@@ -15,16 +15,18 @@ const fetchOp = (method, bearer) => {
 
 export const deleteOrders = async ({ commit, rootState }, body) => {
   rootState.dialog.loading = true
-  const _fetchOp = fetchOp('post')
+  const bearer = 'Bearer ' + rootState.user.token
+  const _fetchOp = fetchOp('delete', bearer)
   _fetchOp.body = JSON.stringify(body)
-  const _resource = 'delete'
+  const _resource = ''
   const _url = host + _resource
   console.log('body', _fetchOp.body)
   try {
     const _res = await fetch(_url, _fetchOp)
+    console.log(`FETCH_DELETE response: `, _res)
     if (_res.status === 200) {
       const _json = await _res.json()
-      console.log(`FETCH_POST ${_resource} response json: `, _json)
+      console.log(`FETCH_DELETE response json: `, _json)
       const _idsOk = []
       const _idsErr = []
       const _idsUnknow = []
@@ -33,8 +35,8 @@ export const deleteOrders = async ({ commit, rootState }, body) => {
       if (_json.length) {
         _json.map(js => {
           if (js.ok) _idsOk.push(js.id)
-          else if (js.error) _idsErr.push(js)
-          else _idsUnknow.push(js)
+          else if (js.error) _idsErr.push(JSON.stringify(js))
+          else _idsUnknow.push(JSON.stringify(js))
         })
         if (_idsOk.length) {
           commit('filterSome', { state: 'list', _ids: _idsOk })

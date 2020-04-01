@@ -11,9 +11,11 @@
     "@host": "host/app",
     "@api": "api/app",
     "@web": "web/app",
-    "@errors": "errors/app"
+    "@errors": "errors/app",
+    "@logs": "logs"
   },
   "dependencies": {
+    "app-root-path": "^3.0.0",
     "bcrypt": "^4.0.1",
     "compression": "^1.7.4",
     "cookie-parser": "~1.4.5",

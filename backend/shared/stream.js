@@ -4,6 +4,9 @@ const { createReadStream, createWriteStream } = require('fs')
 const { promisify } = require('util')
 const { pipeline } = require('stream')
 const { createGzip } = require('zlib')
+const { initLogger } = require('./logger')
+
+const streamLogger = initLogger('shared/stream')
 
 // var appendTransform = new Transform({
 //   transform(chunk, encoding, callback) {
@@ -87,15 +90,20 @@ const streamRender = async (path, keys_values, res, isSingle) => {
 }
 
 const redirectToLogin = (res, code, mess, cmd) => {
-  console.error(`Response ${code}: ${mess}`)
-  streamRender(
-    'login',
-    [
-      { key: 'Type Email & Password and Login', value: `Response ${code}: ${mess}` },
-      { key: 'cmd:"this place for cmd"', value: cmd },
-    ],
-    res,
-  )
+  res.status(code)
+  streamLogger.debug(`Response ${code}: ${mess}`)
+  if (cmd) {
+    streamRender(
+      'login',
+      [
+        { key: 'Type Email & Password and Login', value: `Res ${code}: ${mess}` },
+        { key: 'cmd:"this place for cmd"', value: cmd },
+      ],
+      res,
+    )
+  } else {
+    streamRender('login', [{ key: 'Type Email & Password and Login', value: `Res ${code}: ${mess}` }], res)
+  }
 }
 
 module.exports = {

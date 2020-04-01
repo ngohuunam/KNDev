@@ -59,7 +59,8 @@ export const push = (state, payload) => {
 export const splice = (state, payload) => {
   const _state = state[payload.state]
   const _idx = _state.findIndex(v => v._id === payload._id)
-  if (_idx > -1) _state.splice(_idx)
+  console.log('splice _idx: ', _idx)
+  if (_idx > -1) _state.splice(_idx, 0)
 }
 
 export const filterOne = (state, payload) => {
@@ -80,6 +81,11 @@ export const sort = (state, payload) => {
   _state.sort((a, b) => (a[_key] > b[_key] ? 1 : b[_key] > a[_key] ? -1 : 0))
 }
 
+export const push_sort = (state, payload) => {
+  push(state, payload)
+  sort(state, payload)
+}
+
 export const setState = (state, payload) => {
   state[payload.state] = payload.value
 }
@@ -92,7 +98,7 @@ export const setMess = (state, value) => {
   state.message = value
 }
 
-const sortBy_id = (a, b) => a._id > b._id
+const sortBy_id = (a, b) => (a._id > b._id ? 1 : b._id > a._id ? -1 : 0)
 
 export const SOCKET_ORDER_UPDATE = (state, { newDoc, newSeq }) => {
   console.log('SOCKET_ORDER_UPDATE this', this)
@@ -129,42 +135,27 @@ export const SOCKET_ORDER_UPDATE = (state, { newDoc, newSeq }) => {
 export const SOCKET_ORDER_DELETE = (state, { newDoc, newSeq }) => {
   console.log('SOCKET_ORDER_DELETE', newDoc)
   const _id = newDoc._id
-  splice({ state: 'list', _id: _id })
-  splice({ state: 'selected', _id: _id })
+  filterOne(state, { state: 'list', _id: _id })
+  filterOne(state, { state: 'selected', _id: _id })
   state.seq = newSeq
 }
 
 export const SOCKET_ORDER_NEW = (state, { newDoc, newSeq }) => {
+  console.log('SOCKET_ORDER_NEW', newDoc)
   const _orderQuery = findBy_id(newDoc._id, state.list)
+  console.log(_orderQuery)
   if (_orderQuery.doc) Vue.set(state.list, _orderQuery.index, newDoc)
-  else state.list.pushSorted(newDoc, sortBy_id)
-  checkPushNewChange(state.changes, newDoc._id)
+  else push_sort(state, { state: 'list', data: newDoc, key: '_id' })
+  checkPushNewChange(state, newDoc._id)
   state.seq = newSeq
 }
 
-export const checkPushNewChange = (changes, id) => {
-  const _new = { _id: id, keys: [], new: true }
-  const _query = findBy_id(id, changes)
-  if (_query.doc) Vue.set(changes, _query.index, _new)
-  else changes.pushSorted(_new, sortBy_id)
-  // checkPushChange(changes, id, _new)
+export const checkPushNewChange = (state, _id) => {
+  const _new = { _id: _id, keys: [], new: true }
+  const _query = findBy_id(_id, state.changes)
+  if (_query.doc) Vue.set(state.changes, _query.index, _new)
+  else push_sort(state, { state: 'changes', data: _new, key: '_id' })
 }
-
-// export const checkPushChange = (changes, id, change) => {
-//   const _query = findBy_id(id, changes)
-//   if (_query.doc) Vue.set(changes, _query.index, change)
-//   else changes.pushSorted(change, sortBy_id)
-// }
-
-// export const checkConcatChange = (changes, id, keys) => {
-//   const _query = findBy_id(id, changes)
-//   const _change = _query.doc
-//   if (_change) {
-//     const _concatKeys = _change.keys.concat(keys)
-//     _change.keys = [...new Set(_concatKeys)]
-//     Vue.set(changes, _query.index, change)
-//   } else changes.pushSorted(change, sortBy_id)
-// }
 
 const findBy_id = (id, source) => {
   let _idx

@@ -35,6 +35,6 @@ export default {
     keyHasChanged: [],
     logs: [],
   },
-  host: 'https://localhost:3003/',
+  host: 'https://localhost:3003',
   seq: '1',
 }

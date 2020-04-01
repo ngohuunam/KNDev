@@ -1,20 +1,25 @@
 const express = require('express')
 const router = express.Router()
-const home = require('./home')
 const login = require('./login')
+const signup = require('./signup')
 const userPage = require('./user-page')
-const userPageAssets = require('./user-page-assets')
+const { attachHeaderBearer, sendLogin, initLogger } = require('../../shared')
+const { handleAuthJwt } = require('../auth')
+
+const webJwtAuthLogger = initLogger('auth/jwt/web')
+
+const authJwt = (req, res, next) => handleAuthJwt(req, res, next, webJwtAuthLogger)
 
 /* GET Login as home page. */
-router.get('/', home)
+router.get('/', sendLogin)
 
-/* POST login page. */
+/* POST login info page. */
 router.post('/', login)
 
-/* GET home page. */
-router.get('/:dept/:page/:token', userPage)
+/* POST sign up. */
+router.post('/signup', signup)
 
-/* GET page's assets. */
-router.get(['/:dept/:page/:token/:file', '/:dept/:page/:token/:folder/:file'], userPageAssets)
+/* GET user page. */
+router.get(['/:dept/:page/:token', '/:dept/:page/:token/:file', '/:dept/:page/:token/:folder/:file'], attachHeaderBearer, authJwt, userPage)
 
 module.exports = router

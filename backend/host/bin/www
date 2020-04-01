@@ -6,8 +6,7 @@
 require('dotenv').config({ path: `../../env/development.env` })
 require('module-alias/register')
 const app = require('@host')
-const { logger, socket } = require('@shared')
-// const debug = require('debug')('kn-sv-0001:server')
+const { initLogger, socket } = require('../../shared')
 const http = require('http')
 const https = require('https')
 const { readFileSync } = require('fs')
@@ -16,6 +15,7 @@ const isHttps = true
 const httpPort = '3000'
 const httpsPort = '3003'
 
+const wwwLogger = initLogger('www')
 /**
  * Get port from environment and store in Express.
  */
@@ -53,7 +53,7 @@ server.on('listening', onListening)
  */
 
 socket.io.attach(server)
-setTimeout(() => socket.io.sockets.emit('reload'), 2000)
+setTimeout(() => socket.reloadWindow(), 2000)
 
 /**
  * Init ws instance.
@@ -95,11 +95,11 @@ function onError(error) {
   // handle specific listen errors with friendly messages
   switch (error.code) {
     case 'EACCES':
-      logger.error(bind + ' requires elevated privileges', error)
+      wwwLogger.debug(bind + ' requires elevated privileges', error)
       process.exit(1)
       break
     case 'EADDRINUSE':
-      logger.error(bind + ' is already in use', error)
+      wwwLogger.debug(bind + ' is already in use', error)
       process.exit(1)
       break
     default:
@@ -114,5 +114,5 @@ function onError(error) {
 function onListening() {
   const addr = server.address()
   const bind = typeof addr === 'string' ? 'pipe ' + addr : 'port ' + addr.port
-  logger.info('Listening on ' + bind)
+  wwwLogger.info('Listening on ' + bind)
 }

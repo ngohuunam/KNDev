@@ -23,7 +23,7 @@ export default {
   }),
   methods: {
     submit() {
-      const host = `${window.location.href}`
+      const host = `${window.location.origin}`
       const opttion = {
         method: 'post',
         headers: {
@@ -41,7 +41,7 @@ export default {
             window.localStorage.setItem('info', JSON.stringify(json))
             this.$root.isLoading = false
             this.msg = `${json._id} login success, wait for redirect`
-            setTimeout(() => (window.location.href = `${window.location.href}${json.dept}/${json.page}/${json.token}`), 1500)
+            setTimeout(() => (window.location.href = `${window.location.origin}/${json.dept}/${json.page}/${json.token}`), 1000)
           } else {
             this.$root.isLoading = false
             this.msg = `Response ${res.status}: ${json}`

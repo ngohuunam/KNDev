@@ -2,6 +2,8 @@
 node_modules
 express-ts
 express
+logs
+socketio-client-tool-gh-pages
 
 # local env files
 .env.local

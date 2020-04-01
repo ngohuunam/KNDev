@@ -2,9 +2,7 @@ const passport = require('passport')
 const jwt = require('jsonwebtoken')
 const localStrategy = require('passport-local').Strategy
 const bcrypt = require('bcrypt')
-const { secret, nano, logger } = require('../shared/index')
-const staffs = nano.use('staffs')
-// const { encrypt } = require('./crypto')
+const { secret, staffs, redirectToLogin } = require('../shared/index')
 
 const isValidPassword = async (password, user) => {
   const compare = await bcrypt.compare(password, user.password)
@@ -23,13 +21,22 @@ passport.use(
       try {
         //Save the information provided by the user to the the database
         const hash = await bcrypt.hash(password, 10)
-        const user = await staffs.insert({ _id: email, password: hash, email: email })
+        const user = await staffs.insert({
+          _id: email,
+          password: hash,
+          name: '',
+          phone: '',
+          email: email,
+          department: '',
+          dept: '',
+          page: '',
+          param: '',
+          token: '',
+        })
         //Send the user information to the next middleware
         return done(null, user)
       } catch (error) {
-        if (error.message.indexOf('conflict.')) return done(null, false, { message: 'User Existed' })
-        console.error(error)
-        return done(null, false, { message: error.message })
+        return done(error)
       }
     },
   ),
@@ -49,10 +56,10 @@ passport.use(
         const user = await staffs.get(email)
         //Check Password
         const validate = await isValidPassword(password, user)
-        if (!validate) return done(null, false, { code: 401, message: 'Wrong Password' })
+        if (!validate) return done(new Error({ name: 401, message: 'Wrong Password' }))
 
         //Sign the JWT token expire in 1 hour
-        const token = jwt.sign({ user: user._id }, secret, { expiresIn: '1h', noTimestamp: true })
+        const token = jwt.sign({ user: user._id }, secret.web, { expiresIn: '30d', noTimestamp: true })
         //Assign token to user and populate
         user.token = token
         await staffs.insert(user)
@@ -60,10 +67,7 @@ passport.use(
         //Populate to next middleware
         return done(null, user)
       } catch (error) {
-        //User not exist
-        if (error.message === 'missing') return done(null, false, { code: 401, message: 'User not found' })
-        logger.error(error)
-        return done(null, false, { code: 403, message: error.message })
+        return done(error)
       }
     },
   ),
@@ -78,19 +82,32 @@ passport.use(
   new JWTstrategy(
     {
       //secret we used to sign our JWT
-      secretOrKey: secret,
+      secretOrKey: secret.web,
       //we expect the user to send the token as a query parameter with the name 'secret_token'
       jwtFromRequest: ExtractJWT.fromAuthHeaderAsBearerToken(),
     },
     async (token, done) => {
-      // console.log('jwt token:', token)
+      // console.log('web jwt token:', token)
       try {
         //Pass the user details to the next middleware
         const user = await staffs.get(token.user)
         return done(null, user)
       } catch (error) {
-        done(error)
+        return done(error)
       }
     },
   ),
 )
+
+const handleAuthJwt = (req, res, next, logger) => {
+  passport.authenticate('jwt', { session: false }, (err, user) => {
+    if (err) {
+      logger.debug(err)
+      return redirectToLogin(res, 401, `${err.message}, re-login`, `cmd:window.localStorage.removeItem('info')`)
+    }
+    req.user = user
+    return next()
+  })(req, res, next)
+}
+
+module.exports = { passport, handleAuthJwt }
