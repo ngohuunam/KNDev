@@ -1,22 +1,22 @@
 import tools from '@/tools'
 
-const host = `${window.location.origin}/api/orders/film/`
-const fetchOp = (method, bearer) => {
+const host = `${window.location.origin}/api/orders/film`
+const fetchOp = (method, token) => {
   return {
     method: method,
     withCredentials: true,
     credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: bearer,
+      Authorization: 'Bearer ' + token,
     },
   }
 }
 
 export const deleteOrders = async ({ commit, rootState }, body) => {
   rootState.dialog.loading = true
-  const bearer = 'Bearer ' + rootState.user.token
-  const _fetchOp = fetchOp('delete', bearer)
+  const token = rootState.user.token
+  const _fetchOp = fetchOp('delete', token)
   _fetchOp.body = JSON.stringify(body)
   const _resource = ''
   const _url = host + _resource
@@ -173,8 +173,8 @@ export const newOrder = async ({ state, commit, rootState }) => {
 // eslint-disable-next-line no-unused-vars
 export const sync = async ({ state, commit, rootState }) => {
   state.loading = true
-  const bearer = 'Bearer ' + rootState.user.token
-  const _fetchOp = fetchOp('get', bearer)
+  const token = token
+  const _fetchOp = fetchOp('get', token)
   const _resource = 'sync/'
   const _query = state.seq
   const _url = host + _resource + _query
@@ -196,8 +196,8 @@ export const sync = async ({ state, commit, rootState }) => {
 
 export const getAll = async ({ state, commit, rootState }) => {
   state.loading = true
-  const bearer = 'Bearer ' + rootState.user.token
-  const _fetchOp = fetchOp('get', bearer)
+  const token = rootState.user.token
+  const _fetchOp = fetchOp('get', token)
   console.log(_fetchOp)
   const _url = host
   console.log(_url)

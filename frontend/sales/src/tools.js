@@ -1,3 +1,5 @@
+const unixTime = time => (time !== null ? (typeof time === 'number' ? time : time.toProperCase()) : null)
+
 export default {
   tToString: function(timestamp, addTime, nullString, yFormat) {
     // console.log(timestamp)
@@ -13,15 +15,11 @@ export default {
     return doc.body.textContent || ''
   },
   newOrder: (order, _id, user) => {
-    const _newOrder = { ...order }
-    _newOrder._id = _id
-    _newOrder.shortTitle = _newOrder.shortTitle.toProperCase()
-    _newOrder.foreignTitle = _newOrder.foreignTitle.toProperCase()
-    _newOrder.vietnameseTitle = _newOrder.vietnameseTitle.toProperCase()
-    _newOrder.createdBy = user
-    _newOrder.premiereDate = _newOrder.premiereDate ? _newOrder.premiereDate.getTime() : null
-    _newOrder.endAt = _newOrder.endAt ? _newOrder.endAt.getTime() : null
-    _newOrder.status = 'Created'
+    const _newOrder = { ...order, ...{ _id: _id, status: 'Created', createdBy: user } }
+    _newOrder.foreignTitle = order.foreignTitle.toProperCase()
+    _newOrder.vietnameseTitle = order.vietnameseTitle.toProperCase()
+    _newOrder.premiereDate = unixTime(order.premiereDate)
+    _newOrder.endAt = unixTime(order.endAt)
     return _newOrder
   },
   dateToUnix: (dateStr, hasTime) => {
@@ -40,7 +38,7 @@ export default {
         }
       }
     }
-    return NaN
+    return null
   },
 }
 

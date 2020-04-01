@@ -214,7 +214,7 @@ export default {
       this.$emit('open-dialog', 'newOrderForm', 'Create', 'Add new film')
     },
     addNewOrders() {
-      this.$emit('open-dialog', 'newOrdersForm', 'Create', 'Add some new films', null, '100%', true)
+      this.$emit('open-dialog', 'newOrdersForm', 'Create', 'Add some new films', null, '1200px', true)
     },
     confirmDelOrder() {
       this.$emit('open-dialog', 'deleteConfirm', this.selected.length > 1 ? 'Delete All' : 'Delete', 'Confirm Delete - This action is undone')
