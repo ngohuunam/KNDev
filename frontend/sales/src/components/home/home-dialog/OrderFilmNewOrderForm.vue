@@ -48,7 +48,7 @@ import defaultState from '@/assets/defaultState'
 // Object.freeze(defaultState.newOrder)
 
 export default {
-  name: 'FilmOrdersNewOrderForm',
+  name: 'OrderFilmNewOrderForm',
   components: {},
   data: () => ({
     log: '',
@@ -70,11 +70,12 @@ export default {
       else if (!_idExistedMess && _requiredMess) _validateMess = _requiredMess
       else if (_idExistedMess && _requiredMess) _validateMess = `${_idExistedMess} - ${_requiredMess}`
       if (_validateMess) this.dialogMess = { text: _validateMess, severity: 'error' }
-      else {
-        this.$store.commit('filmOrdersList/createNewOrder', { _id: _newId, user: this.$store.state.user, log: this.log })
-        this.$emit('switch-comp', 'newOrderConfirm', 'Save', 'Save new order confirm')
-        if (this.dialogMess.text) this.dialogMess = { text: '', severity: '' }
-      }
+      else this.doCreate()
+    },
+    doCreate() {
+      this.$store.commit('OrderFilm/createNewOrder', { _user: this.$store.state.user, log: this.log })
+      this.$emit('switch-comp', 'newOrderConfirm', 'Save', 'Save new order confirm')
+      this.dialogMess = { text: '', severity: '' }
     },
   },
   computed: {
@@ -86,7 +87,7 @@ export default {
         return this.$store.state.dialog.message
       },
       set(value) {
-        this.$store.commit('dialog/setMess', value)
+        this.$store.commit('Dialog/setMess', value)
       },
     },
     newOrder: {
@@ -94,7 +95,7 @@ export default {
         return this.$store.state.filmOrdersList.newOrder
       },
       set(value) {
-        this.$store.commit('filmOrdersList/setState', { state: 'newOrder', value: value })
+        this.$store.commit('OrderFilm/setState', { state: 'newOrder', value: value })
       },
     },
   },

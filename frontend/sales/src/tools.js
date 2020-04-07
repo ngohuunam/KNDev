@@ -1,4 +1,23 @@
-const unixTime = time => (time !== null ? (typeof time === 'number' ? time : time.toProperCase()) : null)
+const dateToUnix = (dateStr, hasTime) => {
+  if (dateStr) {
+    const _dateTimeRegexCheck = hasTime ? /(\d{2})\/(\d{2})\/(\d{4}) (\d{2}):(\d{2})/ : /(\d{2})\/(\d{2})\/(\d{4})/
+    const _regexCheck = new RegExp(_dateTimeRegexCheck)
+    if (_regexCheck.test(dateStr)) {
+      const parts = dateStr.match(_dateTimeRegexCheck)
+      const _dStr = parts[1]
+      const _mStr = parts[2]
+      const _yStr = parts[3]
+      if (dateIsValid(_dStr, _mStr, _yStr)) {
+        const _fitTimeZoneMs = 7 * 3600 * 1000
+        const _dt = (hasTime ? Date.UTC(+_yStr, _mStr - 1, +_dStr, +parts[4], +parts[5]) : Date.UTC(+_yStr, _mStr - 1, +_dStr)) - _fitTimeZoneMs
+        return _dt
+      }
+    }
+  }
+  return null
+}
+
+const unixTime = time => (time ? (typeof time === 'string' ? dateToUnix(time) : time.getTime()) : null)
 
 export default {
   tToString: function(timestamp, addTime, nullString, yFormat) {
@@ -14,32 +33,18 @@ export default {
     const doc = new DOMParser().parseFromString(html, 'text/html')
     return doc.body.textContent || ''
   },
-  newOrder: (order, _id, user) => {
-    const _newOrder = { ...order, ...{ _id: _id, status: 'Created', createdBy: user } }
+  newOrder: (order, user) => {
+    const _newOrder = { ...order, ...{ status: 'Created', createdBy: user } }
     _newOrder.foreignTitle = order.foreignTitle.toProperCase()
+    _newOrder._id = _newOrder.foreignTitle.replace(/\s/g, '')
     _newOrder.vietnameseTitle = order.vietnameseTitle.toProperCase()
     _newOrder.premiereDate = unixTime(order.premiereDate)
     _newOrder.endAt = unixTime(order.endAt)
     return _newOrder
   },
-  dateToUnix: (dateStr, hasTime) => {
-    if (dateStr) {
-      const _dateTimeRegexCheck = hasTime ? /(\d{2})\/(\d{2})\/(\d{4}) (\d{2}):(\d{2})/ : /(\d{2})\/(\d{2})\/(\d{4})/
-      const _regexCheck = new RegExp(_dateTimeRegexCheck)
-      if (_regexCheck.test(dateStr)) {
-        const parts = dateStr.match(_dateTimeRegexCheck)
-        const _dStr = parts[1]
-        const _mStr = parts[2]
-        const _yStr = parts[3]
-        if (dateIsValid(_dStr, _mStr, _yStr)) {
-          const _fitTimeZoneMs = 7 * 3600 * 1000
-          const _dt = (hasTime ? Date.UTC(+_yStr, _mStr - 1, +_dStr, +parts[4], +parts[5]) : Date.UTC(+_yStr, _mStr - 1, +_dStr)) - _fitTimeZoneMs
-          return _dt
-        }
-      }
-    }
-    return null
-  },
+  dateToUnix,
+  daysInMonth,
+  dateIsValid,
 }
 
 const daysInMonth = (m, y) => {
@@ -61,9 +66,9 @@ const dateIsValid = (dStr, mStr, yStr) => {
   const d = parseInt(dStr)
   const m = parseInt(mStr) - 1
   const y = parseInt(yStr)
-  console.log(d)
-  console.log(m)
-  console.log(y)
+  // console.log(d)
+  // console.log(m)
+  // console.log(y)
   return m >= 0 && m < 12 && d > 0 && d <= daysInMonth(m, y)
 }
 

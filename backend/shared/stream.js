@@ -74,6 +74,12 @@ const readReplaceRes = async (input, regex, replace, res) => {
   await pipe(source, replaceStream, res)
 }
 
+const readReplaceMultiRes = async (input, regexs_replaces, res) => {
+  const source = createReadStream(input)
+  const replaceStream = new ReplaceStringsStream(null, regexs_replaces)
+  await pipe(source, replaceStream, res)
+}
+
 const streamRender = async (path, keys_values, res, isSingle) => {
   let regexs_replaces = []
   keys_values.map(({ key, value }) => {
@@ -91,7 +97,7 @@ const streamRender = async (path, keys_values, res, isSingle) => {
 
 const redirectToLogin = (res, code, mess, cmd) => {
   res.status(code)
-  streamLogger.debug(`Response ${code}: ${mess}`)
+  streamLogger.error(`Response ${code}: ${mess}`)
   if (cmd) {
     streamRender(
       'login',
@@ -112,4 +118,5 @@ module.exports = {
   doGzip,
   streamRender,
   redirectToLogin,
+  readReplaceMultiRes,
 }

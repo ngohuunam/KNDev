@@ -1,11 +1,11 @@
-const { streamRender } = require('../../shared/index')
+const { streamRender } = require('../../shared')
 
 /* GET user page. */
 const userPageGetHtml = async (req, res) => {
   // console.log('GET / next param', req.params)
   const token = req.params.token
   const _user = req.user
-  return streamRender(
+  return await streamRender(
     `/${_user.dept}/${_user.page}`,
     [
       { key: '{{title}}', value: _user._id },

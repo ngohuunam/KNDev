@@ -87,7 +87,7 @@ const randomOrderId = () => Date.now() + Math.floor(Math.random() * 100 + 1)
 const randomNewOrder = () => ({ ...defaultState.newOrder, ...{ _id: randomOrderId(), note: '' } })
 
 export default {
-  name: 'FilmOrdersNewOrdersForm',
+  name: 'OrderFilmNewOrderSForm',
   components: {},
   props: {},
   data: () => ({
@@ -123,7 +123,7 @@ export default {
         } else {
           v._id = v.foreignTitle.toDataId()
           this.errors[i].rowId = v._id
-          if (this.$store.getters['filmOrdersList/isExisted'](v._id)) {
+          if (this.$store.getters['OrderFilm/isExisted'](v._id)) {
             this.errors[i]._id = true
             _existedIds.push(v._id)
           }
@@ -143,7 +143,10 @@ export default {
       else if (_requiredErr && _existedIds.length) _mess = _existedIds.join(', ') + ' Existed && Orange Field Required'
 
       if (_mess) this.dialogMess = { text: _mess, severity: 'error' }
-      else this.$store.dispatch('filmOrdersList/newOrders', this.orders)
+      else this.doCreate()
+    },
+    doCreate() {
+      this.$store.dispatch('OrderFilm/newOrdersSave', this.orders)
     },
   },
   computed: {
@@ -152,14 +155,21 @@ export default {
         return this.$store.state.dialog.message
       },
       set(value) {
-        this.$store.commit('dialog/setMess', value)
+        this.$store.commit('Dialog/setMess', value)
       },
     },
   },
   created: function() {
+    this.orders = []
+    this.errors = []
+    this.log = ''
     this.add()
   },
-  beforeDestroy: function() {},
+  beforeDestroy: function() {
+    this.orders = []
+    this.errors = []
+    this.log = ''
+  },
 }
 </script>
 

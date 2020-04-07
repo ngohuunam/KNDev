@@ -31,21 +31,17 @@ export default {
         },
         body: JSON.stringify({ email: this.email, password: this.password }),
       }
-      this.$root.isLoading = true
+      this.$root.$children[0].isLoading = true
       fetch(host, opttion).then(res => {
         console.log(res)
-        res.json().then(json => {
+        res.json().then(async json => {
           console.log(json)
           if (res.status === 200) {
-            console.log('window.location.href', window.location.href)
-            window.localStorage.setItem('info', JSON.stringify(json))
-            this.$root.isLoading = false
-            this.msg = `${json._id} login success, wait for redirect`
+            await this.$idbSet('info', json, this.$idbStore)
+            this.msg = `${this.email} login success, wait for redirect`
             setTimeout(() => (window.location.href = `${window.location.origin}/${json.dept}/${json.page}/${json.token}`), 1000)
-          } else {
-            this.$root.isLoading = false
-            this.msg = `Response ${res.status}: ${json}`
-          }
+          } else this.msg = `Response ${res.status}: ${json}`
+          this.$root.$children[0].isLoading = false
         })
       })
     },

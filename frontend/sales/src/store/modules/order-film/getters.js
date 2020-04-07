@@ -4,12 +4,20 @@ export const openDialog = state => {
   return state.createNewOrder || state.wantDelOrder
 }
 
-export const hasNewOrder = state => {
-  return state.list.some(o => o.new)
+export const newOrders = state => {
+  return state.changes.filter(o => o.new)
+}
+
+export const hasNewOrder = (state, getters) => {
+  return getters.newOrders.length > 0
+}
+
+export const isNewOrder = (state, getters) => _id => {
+  return getters.newOrders.some(o => o.new && o._id === _id)
 }
 
 export const hasOrderChanged = state => {
-  return state.list.some(o => o.hasChanged)
+  return state.changes.length > 0
 }
 
 export const isExisted = state => _id => {

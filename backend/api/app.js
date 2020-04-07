@@ -60,10 +60,13 @@ app.use(function(req, res) {
 app.use(function(err, req, res, next) {
   res.locals.message = err.message
   res.locals.error = req.app.get('env') === 'development' ? err : {}
+  const _status = err.statusCode || err.status || 500
+  const _errInfo = `${_status} - ${err.message} - ${req.originalUrl} - ${req.method} - ${req.ip}`
+  apiLogger.error(_errInfo)
+  // console.log('Api Error Info: ', err)
+  // console.log('Api Error Info.info: ', err.info)
 
-  apiLogger.error(`${err.status || 500} - ${err.message} - ${req.originalUrl} - ${req.method} - ${req.ip}`)
-
-  res.status(err.status || 500)
+  res.status(_status)
   res.json(err.message)
 })
 

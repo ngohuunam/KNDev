@@ -5,6 +5,7 @@
       <router-link to="/about">About</router-link>
     </div>
     <keep-alive><router-view /></keep-alive>
+    <NewToast @close="toastClose" />
   </div>
 </template>
 
@@ -14,12 +15,24 @@ export default {
   components: {},
   data: () => ({}),
   mounted: function() {
-    const info = window.localStorage.getItem('info')
-    this.$store.commit('setState', { state: 'user', value: JSON.parse(info) })
+    // const info = window.localStorage.getItem('info')
+    // this.$store.commit('setState', { state: 'user', value: JSON.parse(info) })
   },
-  methods: {},
-  watch: {},
-  computed: {},
+  methods: {
+    toastClose(detail) {
+      this.$store.commit('filterToasts', detail)
+    },
+  },
+  watch: {
+    'toasts.length': function(newLen, oldLen) {
+      if (newLen > oldLen) this.$toast.add(this.toasts[newLen - 1])
+    },
+  },
+  computed: {
+    toasts() {
+      return this.$store.state.toasts
+    },
+  },
 }
 </script>
 

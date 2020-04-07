@@ -2,9 +2,6 @@ import Vue from 'vue'
 import App from './App.vue'
 import router from './router'
 import store from './store'
-import VueSocketIOExt from 'vue-socket.io-extended'
-import io from 'socket.io-client'
-import * as globalInstance from './globalInstance'
 
 import DataTable from 'primevue/datatable'
 Vue.component('DataTable', DataTable)
@@ -24,8 +21,27 @@ Vue.component('Calendar', Calendar)
 import MultiSelect from 'primevue/multiselect'
 Vue.component('MultiSelect', MultiSelect)
 
+import ToastService from 'primevue/toastservice'
+Vue.use(ToastService)
 import Toast from 'primevue/toast'
 Vue.component('Toast', Toast)
+const NewToast = Vue.component('Toast').extend({
+  name: 'NewToast',
+  methods: {
+    remove(message) {
+      let index = -1
+      for (let i = 0; i < this.messages.length; i++) {
+        if (this.messages[i] === message) {
+          index = i
+          break
+        }
+      }
+      this.messages.splice(index, 1)
+      this.$emit('close', message.detail)
+    },
+  },
+})
+Vue.component('NewToast', NewToast)
 
 import Button from 'primevue/button'
 Vue.component('Button', Button)
@@ -98,29 +114,11 @@ import Message from 'primevue/message'
 Vue.component('Message', Message)
 const NewMessage = Vue.component('Message').extend({
   name: 'NewMessage',
-  documentClickListener: null,
-  methods: {
-    onClick() {
-      this.$emit('close-message')
+  props: ['index'],
+  watch: {
+    visible: function(v) {
+      if (v === false) this.$emit('close-message', this.index)
     },
-    bindDocumentClickListener() {
-      if (!this.documentClickListener) {
-        this.documentClickListener = this.onClick.bind(this)
-        document.querySelector('.p-messages-close.p-link').addEventListener('click', this.documentClickListener)
-      }
-    },
-    unbindDocumentClickListener() {
-      if (this.documentClickListener) {
-        document.querySelector('.p-messages-close.p-link').removeEventListener('click', this.documentClickListener)
-        this.documentClickListener = null
-      }
-    },
-  },
-  mounted() {
-    this.bindDocumentClickListener()
-  },
-  beforeDestroy() {
-    this.unbindDocumentClickListener()
   },
 })
 Vue.component('NewMessage', NewMessage)
@@ -157,19 +155,20 @@ import 'primeicons/primeicons.css'
 import 'primeflex/primeflex.css'
 import '@/assets/myCss.css'
 
-import ToastService from 'primevue/toastservice'
-Vue.use(ToastService)
-
 Vue.config.productionTip = false
 Vue.config.devtools = true
 Vue.config.performance = true
 
 // import defaultState from '@/assets/defaultState'
+import VueSocketIOExt from 'vue-socket.io-extended'
+import io from 'socket.io-client'
+import * as globalInstance from './globalInstance'
 
-let info = window.localStorage.getItem('info')
-info = JSON.parse(info)
-const token = info.token
-const url = `${window.location.origin}/${info.dept}/${info.page}?token=${token}`
+// let info = window.localStorage.getItem('info')
+// info = JSON.parse(info)
+// const token = info.token
+// const url = `${window.location.origin}/${info.dept}/${info.page}?token=${token}`
+const url = `${window.location.origin}`
 console.log('url', url)
 
 const socket = io(url)

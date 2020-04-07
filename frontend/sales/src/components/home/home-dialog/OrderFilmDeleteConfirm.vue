@@ -34,7 +34,7 @@
 
 <script>
 export default {
-  name: 'FilmOrdersDeleteConfirm',
+  name: 'OrderFilmDeleteConfirm',
   components: {},
   data: () => ({
     willDelete: [],
@@ -43,9 +43,9 @@ export default {
   methods: {
     confirm() {
       if (this.willDelete.length === this.selected.length) {
-        const _delList = this.willDelete.map(fo => ({ _id: fo._id, _rev: fo._rev, _deleted: true }))
-        this.$store.dispatch('filmOrdersList/deleteOrders', _delList)
-      } else this.$store.commit('dialog/setMess', { text: 'Select All to Confirm', severity: 'error' })
+        const _delList = this.willDelete.map(fo => ({ _id: fo._id, _rev: fo._rev, deleted: true }))
+        this.$store.dispatch('OrderFilm/deleteOrders', _delList)
+      } else this.$store.commit('Dialog/setMess', { text: 'Select All to Confirm', severity: 'error' })
     },
   },
   computed: {

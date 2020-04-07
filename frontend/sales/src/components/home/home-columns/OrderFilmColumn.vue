@@ -19,8 +19,13 @@
       <template #header>
         <div class="table-header-container">
           <div style="text-align: left">
-            <Button :label="enlarge ? 'Create New Order' : ''" icon="pi pi-plus" @click="addNewOrder" class="margin-right" />
-            <Button :label="enlarge ? 'Create Some New Order' : ''" icon="pi pi-plus" @click="addNewOrders" class="margin-right" />
+            <Button :label="enlarge ? 'New Order' : ''" icon="pi pi-plus" @click="addNewOrder" class="margin-right" />
+            <Button :label="enlarge ? 'Some New Order' : ''" icon="pi pi-bars" @click="addNewOrders" class="margin-right" />
+            <Button
+              :label="enlarge ? ($socket.connected ? 'Connected' : socketError || 'Disconnected') : ''"
+              :icon="'pi ' + ($socket.connected ? 'pi-wifi' : 'pi-ban')"
+              :class="'margin-right ' + ($socket.connected ? 'p-button-success' : 'p-button-danger')"
+            />
             <Button v-if="selected.length" :label="loadBtnProp.label" :icon="loadBtnProp.icon" @click="loadOrderDetail" :disabled="loadBtnProp.disabled" class="margin-right" />
             <Button v-if="selected.length" :label="enlarge ? 'Delete Orders' : ''" icon="pi pi-minus" @click="confirmDelOrder" class="p-button-danger margin-right" />
             <!-- <ToggleButton v-if="!enlarge" v-model="enlarge" @change="onToggleEnlarge" onIcon="pi pi-angle-left" offIcon="pi pi-angle-right" /> -->
@@ -37,21 +42,21 @@
         <div class="text-center">Loading records...</div>
         <ProgressBar mode="indeterminate" />
       </template>
-      <!-------------------- < Column Add Prod > --------------------->
+      <!-------------------- < Column: Add Prod > --------------------->
       <Column headerStyle="width: 2.6em; text-align: center" bodyStyle="text-align: center; overflow: visible; padding: 4px 0">
         <template #body="slotProps">
           <Button type="button" icon="pi pi-plus" @click="addSimpleProd(slotProps.data)"></Button>
         </template>
       </Column>
-      <!-------------------- < Column Edit Order > --------------------->
+      <!-------------------- < Column: Edit Order > --------------------->
       <Column headerStyle="width: 2.6em; text-align: center" bodyStyle="text-align: center; overflow: visible; padding: 4px 0">
         <template #body="slotProps">
           <Button type="button" icon="pi pi-pencil" @click="editOrder(slotProps.data._id)"></Button>
         </template>
       </Column>
-      <!-------------------- < Column Selection > --------------------->
+      <!-------------------- < Column: Selection > --------------------->
       <Column selectionMode="multiple" bodyStyle="padding: 0" headerStyle="width: 2.5em" :sortable="true" sortField="selected"></Column>
-      <!-------------------- < Column > --------------------->
+      <!-------------------- < Column: Foreign Title > --------------------->
       <Column field="foreignTitle" header="Foreign Title" bodyStyle="padding: 0 8px" :headerStyle="enlarge ? 'width: 18%' : ''" filterMatchMode="contains" :sortable="true">
         <template #filter>
           <InputText type="text" v-model="filters['foreignTitle']" class="p-column-filter" />
@@ -61,7 +66,7 @@
           <span v-else> {{ slotProps.data.foreignTitle }} </span>
         </template>
       </Column>
-      <!-------------------- < Column > --------------------->
+      <!-------------------- < Column: NKC > --------------------->
       <Column v-if="enlarge" field="premiereDate" header="NKC" bodyStyle="padding: 0 8px" filterMatchMode="contains" :sortable="true">
         <template #filter>
           <InputText type="text" v-model="filters['premiereDate']" class="p-column-filter" />
@@ -75,7 +80,7 @@
           <span v-else> {{ $tToString(slotProps.data.premiereDate, false, '') }} </span>
         </template>
       </Column>
-      <!-------------------- < Column > --------------------->
+      <!-------------------- < Column: Status > --------------------->
       <Column v-if="enlarge" field="status" header="Status" bodyStyle="padding: 0 8px" filterMatchMode="in" :sortable="true">
         <template #filter>
           <InputText type="text" v-model="filters['status']" class="p-column-filter" />
@@ -86,7 +91,7 @@
           <span v-else> {{ slotProps.data.status }} </span>
         </template>
       </Column>
-      <!-------------------- < Column > --------------------->
+      <!-------------------- < Column: Products > --------------------->
       <Column v-if="enlarge" field="productNames" header="Products" bodyStyle="padding: 0 8px" filterMatchMode="in" :sortable="true">
         <template #filter>
           <InputText type="text" v-model="filters['productNames']" class="p-column-filter" />
@@ -96,7 +101,7 @@
           <span v-else> {{ slotProps.data.productNames }} </span>
         </template>
       </Column>
-      <!-------------------- < Column > --------------------->
+      <!-------------------- < Column: Create At > --------------------->
       <Column v-if="enlarge" field="createdAt" header="Create" bodyStyle="padding: 0 8px" headerStyle="width: 10%" filterMatchMode="contains" :sortable="true">
         <template #filter>
           <InputText type="text" v-model="filters['createdAt']" class="p-column-filter" />
@@ -110,7 +115,7 @@
           <span v-else> {{ $tToString(slotProps.data.createdAt, true, '') }} </span>
         </template>
       </Column>
-      <!-------------------- < Column > --------------------->
+      <!-------------------- < Column: End At > --------------------->
       <Column v-if="enlarge" field="endAt" header="End" bodyStyle="padding: 0 8px" headerStyle="width: 10%" filterMatchMode="contains" :sortable="true">
         <template #filter>
           <InputText type="text" v-model="filters['endAt']" class="p-column-filter" />
@@ -120,7 +125,7 @@
           <span v-else> {{ $tToString(slotProps.data.endAt, true, '') }} </span>
         </template>
       </Column>
-      <!-------------------- < Column > --------------------->
+      <!-------------------- < Column: Finish At > --------------------->
       <Column v-if="enlarge" field="finishAt" header="Finish" bodyStyle="padding: 0 8px" headerStyle="width: 10%" filterMatchMode="contains" :sortable="true">
         <template #filter>
           <InputText type="text" v-model="filters['finishAt']" class="p-column-filter" />
@@ -134,7 +139,7 @@
           <span v-else> {{ $tToString(slotProps.data.finishAt, true, '') }} </span>
         </template>
       </Column>
-      <!-------------------- < Column > --------------------->
+      <!-------------------- < Column: Vietnamese Title > --------------------->
       <Column v-if="enlarge" field="vietnameseTitle" header="Vietnamese Title" bodyStyle="padding: 0 8px" headerStyle="width: 18%" filterMatchMode="contains" :sortable="true">
         <template #filter>
           <InputText type="text" v-model="filters['vietnameseTitle']" class="p-column-filter" />
@@ -149,8 +154,8 @@
         </template>
       </Column>
       <!-------------------- < Footer > --------------------->
-      <template v-if="message.text" #footer>
-        <Message @close-message="closeMessage" :severity="message.severity">{{ message.text }}</Message>
+      <template v-if="messages.length" #footer>
+        <NewMessage v-for="(message, i) in messages" :key="i" @close-message="closeMessage" :index="i" :severity="message.severity">{{ message.text }}</NewMessage>
       </template>
       <template #empty><div class="text-center">No records found.</div></template>
     </DataTable>
@@ -162,12 +167,13 @@
 import { mapState } from 'vuex'
 
 export default {
-  name: 'OrderColumn',
+  name: 'OrderFilmColumn',
   components: {},
   data: () => ({
     filters: {},
     sectedOrdersHasProd: false,
     enlarge: true,
+    socketError: 'Disconnected',
   }),
   methods: {
     addSimpleProd(order) {
@@ -178,14 +184,14 @@ export default {
       console.log(_id)
     },
     allNewOrderAccept() {
-      this.$store.commit('filmOrdersList/allNewOrderAccept')
+      this.$store.commit('OrderFilm/allNewOrderAccept')
     },
     allChangedAccept() {
-      this.$store.commit('filmOrdersList/allChangedAccept')
+      this.$store.commit('OrderFilm/allChangedAccept')
     },
     changedAccept(e, _id, key) {
       e.preventDefault()
-      this.$store.commit('filmOrdersList/changedAccept', { _id: _id, key: key })
+      this.$store.commit('OrderFilm/changedAccept', { _id: _id, key: key })
     },
     cellHasChanged(slotProps, key) {
       return slotProps.data.keyHasChanged.indexOf(key) > -1
@@ -197,15 +203,16 @@ export default {
       console.log(order)
     },
     loadOrderDetail() {
-      // this.$store.dispatch('filmOrdersList/getOrderDetail')
+      // this.$store.dispatch('OrderFilm/getOrderDetail')
       let _prodList = []
       this.selected.map(fo => {
         _prodList = [..._prodList, ...fo.products]
       })
-      this.$store.commit('filmOrdersList/setState', { state: 'prodList', value: _prodList })
+      this.$store.commit('OrderFilm/setState', { state: 'prodList', value: _prodList })
     },
-    closeMessage() {
-      this.message = { text: '', severity: '' }
+    closeMessage(idx) {
+      console.log('idx', idx)
+      this.$store.commit('OrderFilm/spliceMess', idx)
     },
     onToggleEnlarge() {
       this.$emit('toggle-enlarge')
@@ -221,13 +228,13 @@ export default {
     },
     onRowSelect() {},
     onRowUnselect(e) {
-      if (this.prodList.length) this.$store.commit('filmOrdersList/filterSomeByIndexOf', { state: 'prodList', _id: e.data._id })
+      if (this.prodList.length) this.$store.commit('OrderFilm/filterSomeByIndexOf', { state: 'prodList', _id: e.data._id })
     },
     onRowUnselectAll() {
-      if (this.prodList.length) this.$store.commit('filmOrdersList/setState', { state: 'prodList', value: [] })
+      if (this.prodList.length) this.$store.commit('OrderFilm/setState', { state: 'prodList', value: [] })
     },
     rowClass(data) {
-      return data.new ? 'p-info' : ''
+      return this.$store.getters['OrderFilm/isNewOrder'](data._id) ? 'p-info' : ''
     },
   },
   computed: {
@@ -241,37 +248,41 @@ export default {
     },
     selected: {
       get() {
-        return this.$store.state.filmOrdersList.selected
+        return this.$store.state.OrderFilm.selected
       },
       set(value) {
-        this.$store.commit('filmOrdersList/setState', { state: 'selected', value: value })
+        this.$store.commit('OrderFilm/setState', { state: 'selected', value: value })
         this.sectedOrdersHasProd = value.some(v => v.products.length > 0)
       },
     },
     hasNewOrder() {
-      return this.$store.getters['filmOrdersList/hasNewOrder']
+      return this.$store.getters['OrderFilm/hasNewOrder']
     },
     hasOrderChanged() {
-      return this.$store.getters['filmOrdersList/hasOrderChanged']
+      return this.$store.getters['OrderFilm/hasOrderChanged']
     },
-    message: {
+    messages: {
       get() {
-        return this.$store.state.filmOrdersList.message
+        return this.$store.state.OrderFilm.messages
       },
       set(value) {
-        this.$store.commit('filmOrdersList/setState', { state: 'message', value: value })
+        this.$store.commit('OrderFilm/pushMess', value)
       },
     },
     ...mapState({
-      list: state => state.filmOrdersList.list,
-      loading: state => state.filmOrdersList.loading,
-      prodList: state => state.filmOrdersList.prodList,
+      list: state => state.OrderFilm.list,
+      loading: state => state.OrderFilm.loading,
+      prodList: state => state.OrderFilm.prodList,
     }),
   },
   created: function() {},
   mounted: function() {
-    if (this.$store.state.filmOrdersList.seq) this.$store.dispatch('filmOrdersList/sync')
-    else this.$store.dispatch('filmOrdersList/getAll')
+    // if (this.$store.state.OrderFilm.seq) this.$store.dispatch('OrderFilm/sync')
+    // else this.$store.dispatch('OrderFilm/getAll')
+    // this.$socket.$subscribe('error', payload => {
+    //   console.log(payload)
+    //   this.socketError = payload
+    // })
   },
 }
 </script>

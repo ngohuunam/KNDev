@@ -1,6 +1,11 @@
 const nextErr = (err, logger, next) => {
-  logger.debug(err)
+  logger.error(err)
   return next(err)
 }
 
-module.exports = { nextErr }
+const throwErr = (err, logger) => {
+  logger.error(err)
+  throw new Error(err)
+}
+
+module.exports = { nextErr, throwErr }

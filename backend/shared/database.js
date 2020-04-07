@@ -3,6 +3,7 @@ const nano = require('nano')(couchdb)
 const { encrypt } = require('./crypto')
 const socket = require('./socket')
 const { initLogger } = require('./logger')
+const { throwErr } = require('./error')
 
 const dbLogger = initLogger('shared/database')
 
@@ -23,8 +24,7 @@ class Database {
       const _dbinfo = await this.db.info()
       this.seq = encrypt(_dbinfo.update_seq)
     } catch (e) {
-      dbLogger.error(e)
-      throw new Error(e)
+      throwErr(e, dbLogger)
     }
   }
   async init(opt) {
@@ -36,12 +36,11 @@ class Database {
     this.getSeq()
     this.feed = this.db.follow({ since: 'now', include_docs: true })
     this.feed.on('change', async change => {
-      console.log(`feed ${this.name} change`, change)
+      dbLogger.info(`feed ${this.name} - db: ${this.name} - change: ${JSON.stringify(change)}`)
       try {
         await this.getSeq()
       } catch (e) {
-        dbLogger.error(e)
-        throw new Error(e)
+        throwErr(e, dbLogger)
       }
       const _doc = change.doc
       let _skEvent = this.eventUpdate
@@ -51,16 +50,23 @@ class Database {
     })
     this.feed.follow()
   }
-  async new(doc, user) {
-    dbLogger.info(`${user._id} new doc db: ${this.name} - req: ${JSON.stringify(doc)}`)
-    const res = await this.db.insert(doc)
-    dbLogger.info(`${user._id} new doc db: ${this.name} - res: ${JSON.stringify(res)}`)
+  async bulk(ops, user, text) {
+    dbLogger.info(`${user._id} - func: ${text} - db: ${this.name} - req: ${JSON.stringify(ops)}`)
+    const res = await this.db.bulk(ops)
+    dbLogger.info(`${user._id} - func: ${text} - db: ${this.name} - res: ${JSON.stringify(res)}`)
+    await this.getSeq()
     return res
   }
+  async news(ops, user) {
+    return await this.bulk(ops, user, 'new docs')
+  }
   async delete(ops, user) {
-    dbLogger.info(`${user._id} delete db: ${this.name} - req: ${JSON.stringify(ops)}`)
-    const res = await this.db.bulk(ops)
-    dbLogger.info(`${user._id} delete db: ${this.name} - res: ${JSON.stringify(res)}`)
+    return await this.bulk(ops, user, 'delete')
+  }
+  async new(doc, user) {
+    dbLogger.info(`${user._id} - func: new doc - db: ${this.name} - req: ${JSON.stringify(doc)}`)
+    const res = await this.db.insert(doc)
+    dbLogger.info(`${user._id} - func: new doc - db: ${this.name} - res: ${JSON.stringify(doc)}`)
     return res
   }
   async all(user) {
@@ -69,15 +75,15 @@ class Database {
     const _rows = _body.rows
     const _docs = _rows.map(row => row.doc)
     const res = _docs
+    await this.getSeq()
     return res
   }
   async sync(seq, user) {
     dbLogger.info(`${user._id} sync db: ${this.name} -seq: ${seq}`)
     const changes = await this.db.changes({ include_docs: true, since: seq })
-    console.log(`${user._id} sync db: ${this.name} -seq: ${seq} - changes: `, changes)
-    await this.getSeq()
     const res = changes.results.map(r => r.doc)
-    dbLogger.info(`${user._id} delete db: ${this.name} - res: ${JSON.stringify(res)}`)
+    dbLogger.info(`${user._id} sync db: ${this.name} - res: ${JSON.stringify(res)}`)
+    await this.getSeq()
     return res
   }
   isRunning(key) {
@@ -99,7 +105,7 @@ const initDB = async opt => {
     await _db.init(opt)
     return _db
   } catch (err) {
-    dbLogger.error(err)
+    throwErr(err, dbLogger)
   }
 }
 

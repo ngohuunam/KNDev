@@ -1,10 +1,11 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 // import createPersistedState from 'vuex-persistedstate'
+import OrderFilmPlugin from './plugin/order-film'
 
-import filmOrdersListModule from './modules/filmOrdersList'
-import homeModule from './modules/home'
-import dialogModule from './modules/dialog'
+import OrderFilmModule from './modules/order-film'
+import HomeModule from './modules/home'
+import DialogModule from './modules/dialog'
 
 Vue.use(Vuex)
 
@@ -14,15 +15,16 @@ import * as getters from './getters'
 import * as actions from './actions'
 
 const store = new Vuex.Store({
-  modules: { filmOrdersList: filmOrdersListModule, home: homeModule, dialog: dialogModule },
+  modules: { OrderFilm: OrderFilmModule, Home: HomeModule, Dialog: DialogModule },
   state,
   mutations,
   getters,
   actions,
-  // plugins: [createPersistedState({ paths: ['filmOrdersList.list', 'filmOrdersList.seq'], fetchBeforeUse: true })],
+  plugins: [OrderFilmPlugin],
+  // plugins: [createPersistedState({ paths: ['OrderFilm.list', 'OrderFilm.seq'], fetchBeforeUse: true })],
 })
 
-const hotReloadElements = ['./state', './mutations', './getters', './actions', './modules/filmOrdersList', './modules/home', './modules/dialog']
+const hotReloadElements = ['./state', './mutations', './getters', './actions', './modules/order-film', './modules/Home', './modules/Dialog']
 
 if (module.hot) {
   module.hot.accept(hotReloadElements, () => {
@@ -30,7 +32,7 @@ if (module.hot) {
     const newGetters = require('./getters').default
     const newActions = require('./actions').default
     const newState = require('./state').default
-    const newFilmOrdersListModule = require('./modules/filmOrdersList').default
+    const newOrderFilmModule = require('./modules/order-film').default
     const newHomeModule = require('./modules/home').default
     const newDialogModule = require('./modules/dialog').default
     store.hotUpdate({
@@ -39,9 +41,9 @@ if (module.hot) {
       getters: newGetters,
       actions: newActions,
       modules: {
-        filmOrdersList: newFilmOrdersListModule,
-        home: newHomeModule,
-        dialog: newDialogModule,
+        OrderFilm: newOrderFilmModule,
+        Home: newHomeModule,
+        Dialog: newDialogModule,
       },
     })
   })

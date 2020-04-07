@@ -13,6 +13,15 @@ module.exports = {
       .rule('images')
       .use('url-loader')
       .tap(options => Object.assign({}, options, { name: '[name].[ext]' }))
+    // config.module
+    //   .rule('worker')
+    //   .test(/\.worker\.js$/)
+    //   .use('worker-loader')
+    //   .loader('worker-loader')
+    //   .tap(options => Object.assign({}, options, { name: '[name].[ext]' }))
+    //   .end()
+
+    // config.module.rule('js').exclude.add(/\.worker\.js$/)
   },
   css: {
     sourceMap: false,
@@ -32,6 +41,14 @@ module.exports = {
       chunkFilename: '[name].js',
       globalObject: 'this',
     },
+    // module: {
+    //   rules: [
+    //     {
+    //       test: /\.worker\.js$/,
+    //       use: { loader: 'worker-loader', options: { name: '[name].[ext]' } },
+    //     },
+    //   ],
+    // },
     performance: {
       hints: false,
     },

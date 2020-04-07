@@ -1,5 +1,5 @@
 <template>
-  <DataTable :value="value" data-key="_id">
+  <DataTable :value="value" dataKey="_id">
     <Column field="name" header="Field"> </Column>
     <Column field="value" header="Detail"> </Column>
     <template #empty><div class="text-center">No records found.</div></template>
@@ -8,25 +8,25 @@
 
 <script>
 export default {
-  name: 'FilmOrdersNewProdConfirm',
+  name: 'OrderFilmNewOrderConfirm',
   components: {},
   data: () => ({}),
   methods: {
     confirm() {
-      this.$store.dispatch('filmOrdersList/newProdSave')
+      this.$store.dispatch('OrderFilm/newOrder')
     },
   },
   computed: {
     value() {
-      return this.$store.getters['filmOrdersList/newProdConfirmTableProperties']
+      return this.$store.getters['OrderFilm/newOrderConfirmTableProperties']
     },
-    newProdLabels() {
-      return this.$store.state.filmOrdersList.newProdLabels
+    newOrderLabels() {
+      return this.$store.state.filmOrdersList.newOrderLabels
     },
   },
   mounted: function() {},
   beforeDestroy: function() {
-    this.$store.commit('filmOrdersList/setState', { state: 'newProdConverted', value: null })
+    this.$store.commit('OrderFilm/setState', { state: 'newOrderConverted', value: null })
   },
 }
 </script>

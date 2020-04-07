@@ -4,11 +4,8 @@
 
     <div class="p-grid">
       <div :class="orderColumnClass">
-        <keep-alive> <FilmOrdersListColumn @toggle-enlarge="toggleOrderColumnEnlarge" @open-dialog="openDialog" /> </keep-alive>
+        <keep-alive> <OrderFilmColumn @toggle-enlarge="toggleOrderColumnEnlarge" @open-dialog="openDialog" /> </keep-alive>
       </div>
-      <!-- <div :class="productSimpleColumnClass">
-        <FilmProductSimpleColumn @toggle-enlarge="toggleProductSimpleColumnEnlarge" />
-      </div> -->
     </div>
     <NewDialog
       v-if="dialogComponent"
@@ -28,6 +25,7 @@
       </BlockUI>
 
       <template #footer>
+        <Button v-if="confirmBtnLabel === 'Create'" label="Force Create" icon="pi pi-angle-double-up" @click="forceCreate" />
         <Button v-if="confirmBtnLabel === 'Save'" label="Back" icon="pi pi-angle-double-left" @click="backDialog" />
         <Button :label="confirmBtnLabel" :icon="buttonIcon" @click="dialogConfirm" class="p-button-success" />
         <Button label="Cancel" icon="pi pi-times" @click="closeDialog" class="p-button-danger" />
@@ -38,26 +36,24 @@
 
 <script>
 // @ is an alias to /src
-import FilmOrdersListColumn from '@/components/home/home-columns/FilmOrdersListColumn.vue'
-import FilmProductSimpleColumn from '@/components/FilmProductSimpleColumn.vue'
-import FilmOrdersDeleteConfirm from '@/components/home/home-dialog/FilmOrdersDeleteConfirm.vue'
-import FilmOrdersNewOrderForm from '@/components/home/home-dialog/FilmOrdersNewOrderForm.vue'
-import FilmOrdersNewOrderConfirm from '@/components/home/home-dialog/FilmOrdersNewOrderConfirm.vue'
-import FilmOrdersNewOrdersForm from '@/components/home/home-dialog/FilmOrdersNewOrdersForm.vue'
-import FilmOrdersNewProdForm from '@/components/home/home-dialog/FilmOrdersNewProdForm.vue'
-import FilmOrdersNewProdConfirm from '@/components/home/home-dialog/FilmOrdersNewProdConfirm.vue'
+import OrderFilmColumn from '@/components/home/home-columns/OrderFilmColumn.vue'
+import OrderFilmDeleteConfirm from '@/components/home/home-dialog/OrderFilmDeleteConfirm.vue'
+import OrderFilmNewOrderForm from '@/components/home/home-dialog/OrderFilmNewOrderForm.vue'
+import OrderFilmNewOrderConfirm from '@/components/home/home-dialog/OrderFilmNewOrderConfirm.vue'
+import OrderFilmNewOrderSForm from '@/components/home/home-dialog/OrderFilmNewOrderSForm.vue'
+import OrderFilmNewProdForm from '@/components/home/home-dialog/OrderFilmNewProdForm.vue'
+import OrderFilmNewProdConfirm from '@/components/home/home-dialog/OrderFilmNewProdConfirm.vue'
 
 export default {
   name: 'Home',
   components: {
-    FilmOrdersListColumn,
-    FilmProductSimpleColumn,
-    deleteConfirm: FilmOrdersDeleteConfirm,
-    newOrderForm: FilmOrdersNewOrderForm,
-    newOrderConfirm: FilmOrdersNewOrderConfirm,
-    newOrdersForm: FilmOrdersNewOrdersForm,
-    newProdForm: FilmOrdersNewProdForm,
-    newProdConfirm: FilmOrdersNewProdConfirm,
+    OrderFilmColumn,
+    deleteConfirm: OrderFilmDeleteConfirm,
+    newOrderForm: OrderFilmNewOrderForm,
+    newOrderConfirm: OrderFilmNewOrderConfirm,
+    newOrdersForm: OrderFilmNewOrderSForm,
+    newProdForm: OrderFilmNewProdForm,
+    newProdConfirm: OrderFilmNewProdConfirm,
   },
   data: () => ({
     dialogComponent: null,
@@ -75,9 +71,7 @@ export default {
     // this.$store.dispatch('auth')
   },
   methods: {
-    unblock(e) {
-      console.log(e)
-    },
+    unblock() {},
     closeMessage() {
       this.dialogMess = { text: '', severity: '' }
     },
@@ -106,6 +100,9 @@ export default {
       // console.log(e)
       if (e.target.type !== 'textarea' && e.target.className !== 'ql-editor') this.$refs[this.compRef].confirm()
     },
+    forceCreate() {
+      this.$refs[this.compRef].doCreate()
+    },
     toggleOrderColumnEnlarge() {
       this.orderColumnEnlarge = !this.orderColumnEnlarge
     },
@@ -128,7 +125,7 @@ export default {
   computed: {
     isOpenDialog: {
       get() {
-        return this.$store.state.dialog.isOpen
+        return this.$store.state.Dialog.isOpen
       },
       set(value) {
         this.$store.commit('dialog/setState', { state: 'isOpen', value: value })
@@ -147,7 +144,7 @@ export default {
         return this.$store.state.filmOrdersList.newOrder
       },
       set(value) {
-        this.$store.commit('filmOrdersList/setState', { state: 'newOrder', value: value })
+        this.$store.commit('OrderFilm/setState', { state: 'newOrder', value: value })
       },
     },
     buttonIcon() {

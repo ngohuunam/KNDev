@@ -2,7 +2,7 @@ const passport = require('passport')
 const jwt = require('jsonwebtoken')
 const localStrategy = require('passport-local').Strategy
 const bcrypt = require('bcrypt')
-const { secret, staffs, redirectToLogin } = require('../shared/index')
+const { secret, staffs, redirectToLogin, nextErr } = require('../shared')
 
 const isValidPassword = async (password, user) => {
   const compare = await bcrypt.compare(password, user.password)
@@ -36,6 +36,7 @@ passport.use(
         //Send the user information to the next middleware
         return done(null, user)
       } catch (error) {
+        console.error(error)
         return done(error)
       }
     },
@@ -56,7 +57,7 @@ passport.use(
         const user = await staffs.get(email)
         //Check Password
         const validate = await isValidPassword(password, user)
-        if (!validate) return done(new Error({ name: 401, message: 'Wrong Password' }))
+        if (!validate) return done(null, false, { message: 'Wrong Password' })
 
         //Sign the JWT token expire in 1 hour
         const token = jwt.sign({ user: user._id }, secret.web, { expiresIn: '30d', noTimestamp: true })
@@ -74,22 +75,17 @@ passport.use(
 )
 
 const JWTstrategy = require('passport-jwt').Strategy
-//We use this to extract the JWT sent by the user
 const ExtractJWT = require('passport-jwt').ExtractJwt
 
-//This verifies that the token sent by the user is valid
 passport.use(
   new JWTstrategy(
     {
-      //secret we used to sign our JWT
       secretOrKey: secret.web,
-      //we expect the user to send the token as a query parameter with the name 'secret_token'
       jwtFromRequest: ExtractJWT.fromAuthHeaderAsBearerToken(),
     },
     async (token, done) => {
       // console.log('web jwt token:', token)
       try {
-        //Pass the user details to the next middleware
         const user = await staffs.get(token.user)
         return done(null, user)
       } catch (error) {
@@ -100,14 +96,15 @@ passport.use(
 )
 
 const handleAuthJwt = (req, res, next, logger) => {
-  passport.authenticate('jwt', { session: false }, (err, user) => {
-    if (err) {
-      logger.debug(err)
-      return redirectToLogin(res, 401, `${err.message}, re-login`, `cmd:window.localStorage.removeItem('info')`)
+  passport.authenticate('jwt', { session: false }, (err, user, info) => {
+    if (err) nextErr(err, logger)
+    if (info) {
+      logger.error(info)
+      return redirectToLogin(res, 401, `${info.message}, re-login`, `cmd:window.localStorage.removeItem('info')`)
     }
     req.user = user
     return next()
   })(req, res, next)
 }
 
-module.exports = { passport, handleAuthJwt }
+module.exports = { handleAuthJwt }

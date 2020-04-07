@@ -23,10 +23,7 @@ export default {
     { label: 'End at:', inputType: 'calendar', key: 'endAt', dateFormat: 'dd/mm/yy', showTime: true },
   ],
   newProdConverted: null,
-  message: {
-    text: '',
-    severity: '',
-  },
+  messages: [],
   prodList: [],
   prodListSelected: [],
 }

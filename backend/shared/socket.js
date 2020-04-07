@@ -12,14 +12,18 @@ skApi.io = io
 
 const auth = async (socket, next) => {
   const token = socket.handshake.query.token
-  if (!token) return next(new Error('authentication error'))
+  if (!token) {
+    skLogger.error(`Token missed: ${token}`)
+    return next(new Error(`Token err: ${token}`))
+  }
   try {
     const decoded = verify(token, secret.web)
     const user = await staffs.get(decoded.user)
     socket.user = user
     return next()
   } catch (err) {
-    return next(new Error('authentication error'))
+    console.log('err: ', err)
+    return next(new Error(err.message))
   }
 }
 
@@ -37,10 +41,18 @@ const sales_home = io.of('/sales/home')
 sales_home.use(auth)
 sales_home.on('connect', socket => {
   skLogger.info(`${socket.id} - ip: ${socket.handshake.address} - user: ${socket.user._id} connected'`)
+  console.log(`${socket.id} - ip: ${socket.handshake.address} - user: ${socket.user._id} connected'`)
+  socket.join(socket.user._id, () => {
+    let rooms = Object.keys(socket.rooms)
+    console.log(rooms)
+  })
   const newNamespace = socket.nsp // newNamespace.name === '/sales'
   // console.log(socket)
   // broadcast to all clients in the given sub-namespace
   newNamespace.emit('message', socket.id)
+})
+sales_home.on('error', err => {
+  console.error(err)
 })
 
 skApi.sendNotification = (EVENT, data) => {

@@ -18,15 +18,17 @@ module.exports = {
     url: 'http://163.172.176.57:5984/',
     // eslint-disable-next-line no-unused-vars
     log: (id, args) => {
-      // console.log(args)
-      if (id.method) couchdbLogger.info(`${id.method} ${id.uri}`)
-      else if (id.err) couchdbLogger.debug(`ERR: ${id.err}`)
+      if (args) couchdbLogger.info(JSON.stringify({ args }))
+      if (id.method) couchdbLogger.info(JSON.stringify(id))
+      else if (id.err) couchdbLogger.error(JSON.stringify(id))
     },
   },
   // couchdb: 'http://localhost:5984',
   secret: { web: 'NgoHuuNam', api: 'NgoHuuNam' },
   dbOpt: {
-    orders: { film: { name: 'orders_film_2020', eventNew: 'ORDER_NEW', eventUpdate: 'ORDER_UPDATE', eventDelete: 'ORDER_DELETE' } },
+    orders: {
+      film: { name: 'orders_film_2020', eventNew: 'ORDER_FILM_NEW', eventUpdate: 'ORDER_FILM_UPDATE', eventDelete: 'ORDER_FILM_DELETE' },
+    },
   },
   dbLog: { orders: { film: 'orders_film_2020' } },
 }
