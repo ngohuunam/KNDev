@@ -13,12 +13,12 @@ export default {
   data: () => ({}),
   methods: {
     confirm() {
-      this.$store.dispatch('OrderFilm/newProdSave')
+      this.$store.dispatch('Order/Film/newProdSave')
     },
   },
   computed: {
     value() {
-      return this.$store.getters['OrderFilm/newProdConfirmTableProperties']
+      return this.$store.getters['Order/Film/newProdConfirmTableProperties']
     },
     newProdLabels() {
       return this.$store.state.filmOrdersList.newProdLabels
@@ -26,7 +26,7 @@ export default {
   },
   mounted: function() {},
   beforeDestroy: function() {
-    this.$store.commit('OrderFilm/setState', { state: 'newProdConverted', value: null })
+    this.$store.commit('Order/Film/setState', { key: 'newProdConverted', data: null })
   },
 }
 </script>

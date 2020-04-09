@@ -37,7 +37,7 @@ export default {
         res.json().then(async json => {
           console.log(json)
           if (res.status === 200) {
-            await this.$idbSet('info', json, this.$idbStore)
+            await this.$idbSet('user', json, this.$idbStore)
             this.msg = `${this.email} login success, wait for redirect`
             setTimeout(() => (window.location.href = `${window.location.origin}/${json.dept}/${json.page}/${json.token}`), 1000)
           } else this.msg = `Response ${res.status}: ${json}`

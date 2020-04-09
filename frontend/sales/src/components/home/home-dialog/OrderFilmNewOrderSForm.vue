@@ -123,7 +123,7 @@ export default {
         } else {
           v._id = v.foreignTitle.toDataId()
           this.errors[i].rowId = v._id
-          if (this.$store.getters['OrderFilm/isExisted'](v._id)) {
+          if (this.$store.getters['Order/Film/isExisted'](v._id)) {
             this.errors[i]._id = true
             _existedIds.push(v._id)
           }
@@ -146,7 +146,8 @@ export default {
       else this.doCreate()
     },
     doCreate() {
-      this.$store.dispatch('OrderFilm/newOrdersSave', this.orders)
+      // this.$store.dispatch('Order/Film/newOrdersSave', this.orders)
+      this.$store.dispatch('Order/Film/Worker', { name: 'newOrders', payload: this.orders })
     },
   },
   computed: {

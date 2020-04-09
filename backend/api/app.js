@@ -4,6 +4,9 @@ const cookieParser = require('cookie-parser')
 const bodyParser = require('body-parser')
 const { dbOpt, initDB, initLogger } = require('../shared')
 const { handleAuthJwt } = require('./auth')
+// const PouchDB = require('pouchdb')
+// const TempPouchDB = require('http-pouchdb')(PouchDB, 'http://163.172.176.57:5984/')
+const proxy = require('express-http-proxy')
 
 const apiLogger = initLogger('api')
 
@@ -26,9 +29,7 @@ if (!app.locals.dbs) app.locals.dbs = {}
 const dbOpts = [dbOpt.orders.film]
 dbOpts.map(async opt => {
   try {
-    app.locals.dbs[opt.name] = null
-    const _db = await initDB(opt)
-    app.locals.dbs[opt.name] = _db
+    app.locals.dbs[opt.name] = await initDB(opt)
   } catch (err) {
     apiLogger.error(err)
   }
@@ -41,6 +42,8 @@ const apiJwtAuthLogger = initLogger('auth/jwt/api', 'debug', 'debug')
 
 const authJwt = (req, res, next) => handleAuthJwt(req, res, next, apiJwtAuthLogger)
 
+app.use('/pouch', authJwt, proxy('http://163.172.176.57:5984/'))
+// app.use('/pouchdb', authJwt, require('express-pouchdb')(TempPouchDB, { configPath: './pouchdb-config.json', logPath: './logs/pouchdb.log' }))
 app.use('/', authJwt, routes)
 
 // API Specific 404

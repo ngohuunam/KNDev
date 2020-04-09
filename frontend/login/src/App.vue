@@ -2,7 +2,7 @@
   <div id="app">
     <Loading v-if="isLoading" />
     <HelloWorld v-else />
-    <div class="version">V.131</div>
+    <div class="version">V.133</div>
   </div>
 </template>
 
@@ -18,12 +18,11 @@ export default {
   },
   data: () => ({
     isLoading: true,
-    serverCmd: 'this place for cmd',
     count: 0,
   }),
   methods: {
-    handleState() {
-      this.$idbGet('info', this.$idbStore)
+    getLocalInfo() {
+      this.$idbGet('user', this.$idbStore)
         .then(info => {
           // const info = this.info
           console.log(info)
@@ -47,7 +46,7 @@ export default {
     count(value) {
       if (value < 4) setTimeout(() => this.handleState(), 500)
       else {
-        this.$idbDel('info', this.$idbStore)
+        this.$idbDel('user', this.$idbStore)
           .then(() => {
             this.isLoading = false
             setTimeout(() => (this.$children[0].msg = 'Expired, re-login'), 500)
@@ -61,7 +60,7 @@ export default {
   },
   created() {},
   mounted() {
-    this.handleState()
+    this.getLocalInfo()
   },
 }
 </script>

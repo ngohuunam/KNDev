@@ -9,4 +9,8 @@ export default {
   month: date.getMonth() + 1,
   day: date.getDate(),
   toasts: [],
+  loading: true,
+  worker: [],
+  socket: null,
+  broadcast: [],
 }

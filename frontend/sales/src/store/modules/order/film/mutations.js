@@ -1,5 +1,6 @@
 import Vue from 'vue'
 import tools from '@/tools'
+import { pushAtSortPosition } from 'array-push-at-sort-position'
 
 export const createNewProd = (state, payload) => {
   const _newProd = { ...state.newProd }
@@ -13,9 +14,11 @@ export const createNewProd = (state, payload) => {
   state.newProdConverted = _newProd
 }
 
-export const createNewOrder = (state, payload) => {
-  const _newOrder = { ...state.newOrder }
-  state.newOrderConverted = tools.newOrder(_newOrder, payload.user)
+export const createNewOrder = (state, note) => {
+  const _newOrder = { ...state.newOrder, ...note }
+  console.log('_newOrder: ', _newOrder)
+  state.newOrderConverted = tools.newOrder(_newOrder)
+  console.log(' state.newOrderConverted: ', state.newOrderConverted)
 }
 
 export const allNewOrderAccept = state => {
@@ -35,9 +38,9 @@ export const changedAccept = (state, payload) => {
   Vue.set(state.list, _idx, _newOrder)
 }
 
-export const push = (state, payload) => {
-  const _state = state[payload.state]
-  const _data = payload.data
+export const push = (state, { key, data }) => {
+  const _state = state[key]
+  const _data = data
   const _idx = _state.findIndex(v => v._id === _data._id)
   if (_idx < 0) {
     _state.push(_data)
@@ -69,31 +72,35 @@ export const sort = (state, payload) => {
   _state.sort((a, b) => (a[_key] > b[_key] ? 1 : b[_key] > a[_key] ? -1 : 0))
 }
 
-export const push_sort = (state, payload) => {
-  const _state = state[payload.state]
-  const _data = payload.data
-  const _idx = _state.findIndex(v => v._id === _data._id)
-  if (_idx < 0) {
-    _state.push(_data)
-  } else if (_state[_idx]._rev !== _data._rev) Vue.set(_state, _idx, _data)
-  const _key = payload.key
-  _state.sort((a, b) => (a[_key] > b[_key] ? 1 : b[_key] > a[_key] ? -1 : 0))
+export const push_sort = (state, { key, data, sortKey }) => {
+  const _state = state[key]
+  const _idx = _state.findIndex(v => v._id === data._id)
+  if (_idx < 0) pushAtSortPosition(_state, data, (a, b) => (a[sortKey] > b[sortKey] ? 1 : b[sortKey] > a[sortKey] ? -1 : 0), true)
+  else if (_state[_idx]._rev !== data._rev) Vue.set(_state, _idx, data)
+  // _state.sort((a, b) => (a[sortKey] > b[sortKey] ? 1 : b[sortKey] > a[sortKey] ? -1 : 0))
 }
 
-export const setState = (state, payload) => {
-  state[payload.state] = payload.value
+export const setState = (state, { key, data }) => {
+  state[key] = data
 }
 
-export const setStates = (state, payload) => {
-  payload.states.map((st, idx) => (state[st] = payload.values[idx]))
+export const setStates = (state, { keys, datas }) => {
+  keys.map((key, idx) => (state[key] = datas[idx]))
 }
 
 export const pushMess = (state, value) => {
   state.messages.push(value)
 }
 
+export const replace = (state, { key, data }) => {
+  const _state = state[key]
+  const { index, doc } = findBy_id(data._id, state[key])
+  if (doc) _state.splice(index, 1, data)
+  else push_sort(state, { key, data, sortKey: '_id' })
+}
+
 export const setDeleted = (state, payload) => {
-  payload.res.map(_r => {
+  payload.map(_r => {
     const _order = state.list.find(o => o._id === _r.id)
     _order.deleted = true
     _order._rev = _r.rev
@@ -106,47 +113,6 @@ export const spliceMess = (state, idx) => {
 
 export const setSeq = (state, seq) => {
   state.seq = seq
-}
-
-export const SOCKET_ORDER_FILMUPDATE = (state, { newDoc, newSeq }) => {
-  console.log('SOCKET_ORDER_UPDATE', newDoc)
-  const _docId = newDoc._id
-  const _orderQuery = findBy_id(_docId, state.list)
-  const _changeQuery = findBy_id(_docId, state.changes)
-  const _change = _changeQuery.doc
-  const _oldDoc = _orderQuery.doc
-  if (_oldDoc) {
-    if (_oldDoc._rev !== newDoc._rev) {
-      const _checkKeys = ['team', 'endAt', 'finishAt', 'foreignTitle', 'vietnameseTitle', 'premiereDate', 'status', 'productNames']
-      const _keysChanged = _checkKeys.map(key => _oldDoc[key] !== newDoc[key])
-      if (_change) {
-        const _allChangeKeys = _change.keys.concat(_keysChanged)
-        _change.keys = [...new Set(_allChangeKeys)]
-        // _keyHasChanged.map(k => {
-        //   if (_change.keys.indexOf(k) < -1) _change.keys.push(k)
-        // })
-        // _change.keys.sort()
-        Vue.set(state.changes, _changeQuery.index, _change)
-      } else push_sort(state, { state: 'changes', data: { _id: _docId, keys: _keysChanged }, key: '_id' })
-      Vue.set(state.list, _orderQuery.index, newDoc)
-    }
-  } else {
-    const _changeTypeNew = { _id: _docId, keys: [], new: true }
-    if (_change) Vue.set(state.changes, _changeQuery.index, _changeTypeNew)
-    else push_sort(state, { state: 'changes', data: _changeTypeNew, key: '_id' })
-    push_sort(state, { state: 'list', data: newDoc, key: '_id' })
-  }
-  state.seq = newSeq
-}
-
-export const SOCKET_ORDER_FILM_DELETE = (state, { newDoc, newSeq }) => {
-  console.log('SOCKET_ORDER_DELETE', newDoc)
-  const _id = newDoc._id
-  filterOne(state, { state: 'list', _id: _id })
-  filterOne(state, { state: 'selected', _id: _id })
-  filterOne(state, { state: 'changes', _id: _id })
-  state.seq = newSeq
-  pushMess(state, { text: `${_id} deleted`, severity: 'warn' })
 }
 
 export const SOCKET_ORDER_FILM_NEW = (state, { newDoc, newSeq }) => {
@@ -172,4 +138,13 @@ const findBy_id = (id, source) => {
     return _id === id
   })
   return { index: _idx, doc: _doc }
+}
+
+export const Worker = () => {}
+
+export const deleteOrdersOk = (state, _ids) => {
+  _ids.sort()
+  state.list.map(fo => {
+    if (_ids.includes(fo._id)) fo.dropped = Date.now()
+  })
 }

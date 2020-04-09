@@ -17,7 +17,7 @@
       </div>
       <div class="p-col-8"></div> -->
     <!-- <div class="p-col-12"> -->
-    <Editor v-model="log" editorStyle="height: 60px">
+    <Editor v-model="note" editorStyle="height: 60px">
       <template slot="toolbar">
         <span class="ql-formats">
           <button class="ql-bold"></button>
@@ -51,7 +51,7 @@ export default {
   name: 'OrderFilmNewOrderForm',
   components: {},
   data: () => ({
-    log: '',
+    note: '',
   }),
   methods: {
     confirm() {
@@ -61,7 +61,7 @@ export default {
       let _validateMess = ''
       if (this.newOrder.foreignTitle) {
         _newId = this.newOrder.foreignTitle.toDataId()
-        if (this.$store.state.filmOrdersList.list.some(fo => fo._id === _newId)) _idExistedMess = _newId + ' EXISTED'
+        if (this.$store.state.Order.Film.list.some(fo => fo._id === _newId)) _idExistedMess = _newId + ' EXISTED'
       } else _requiredMess = 'Short Title'
       if (!this.newOrder.team) _requiredMess += _requiredMess ? ' + Team ' : 'Team'
       if (!this.newOrder.foreignTitle) _requiredMess += _requiredMess ? ' + Foreign Title' : 'Foreign Title'
@@ -73,18 +73,18 @@ export default {
       else this.doCreate()
     },
     doCreate() {
-      this.$store.commit('OrderFilm/createNewOrder', { _user: this.$store.state.user, log: this.log })
+      this.$store.commit('Order/Film/createNewOrder', { note: this.note })
       this.$emit('switch-comp', 'newOrderConfirm', 'Save', 'Save new order confirm')
       this.dialogMess = { text: '', severity: '' }
     },
   },
   computed: {
     newOrderLabels() {
-      return this.$store.state.filmOrdersList.newOrderLabels
+      return this.$store.state.Order.Film.newOrderLabels
     },
     dialogMess: {
       get() {
-        return this.$store.state.dialog.message
+        return this.$store.state.Dialog.message
       },
       set(value) {
         this.$store.commit('Dialog/setMess', value)
@@ -92,15 +92,16 @@ export default {
     },
     newOrder: {
       get() {
-        return this.$store.state.filmOrdersList.newOrder
+        return this.$store.state.Order.Film.newOrder
       },
       set(value) {
-        this.$store.commit('OrderFilm/setState', { state: 'newOrder', value: value })
+        this.$store.commit('Order/Film/setState', { key: 'newOrder', data: value })
       },
     },
   },
   created: function() {
-    this.newOrder = defaultState.newOrder
+    console.log(defaultState)
+    this.newOrder = defaultState.order.film.new
   },
   beforeDestroy: function() {},
 }

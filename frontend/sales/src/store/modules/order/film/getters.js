@@ -13,7 +13,15 @@ export const hasNewOrder = (state, getters) => {
 }
 
 export const isNewOrder = (state, getters) => _id => {
-  return getters.newOrders.some(o => o.new && o._id === _id)
+  return getters.newOrders.some(o => o._id === _id)
+}
+
+export const droppedOrders = state => {
+  return state.list.filter(o => o.dropped)
+}
+
+export const isDroppedOrder = (state, getters) => _id => {
+  return getters.droppedOrders.some(o => o._id === _id)
 }
 
 export const hasOrderChanged = state => {

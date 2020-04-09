@@ -4,6 +4,9 @@ express-ts
 express
 logs
 socketio-client-tool-gh-pages
+_replicator
+_users
+pouch__all_dbs__
 
 # local env files
 .env.local

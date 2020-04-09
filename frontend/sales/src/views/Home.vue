@@ -128,30 +128,30 @@ export default {
         return this.$store.state.Dialog.isOpen
       },
       set(value) {
-        this.$store.commit('dialog/setState', { state: 'isOpen', value: value })
+        this.$store.commit('Dialog/setState', { key: 'isOpen', data: value })
       },
     },
     dialogMess: {
       get() {
-        return this.$store.state.dialog.message
+        return this.$store.state.Dialog.message
       },
       set(value) {
-        this.$store.commit('dialog/setMess', value)
+        this.$store.commit('Dialog/setMess', value)
       },
     },
     newOrder: {
       get() {
-        return this.$store.state.filmOrdersList.newOrder
+        return this.$store.state.Order.Film.newOrder
       },
       set(value) {
-        this.$store.commit('OrderFilm/setState', { state: 'newOrder', value: value })
+        this.$store.commit('OrderFilm/setState', { key: 'newOrder', data: value })
       },
     },
     buttonIcon() {
       return this.loading ? 'pi pi-spin pi-spinner' : 'pi pi-check'
     },
     loading() {
-      return this.$store.state.dialog.loading
+      return this.$store.state.Dialog.loading
     },
     orderColumnClass: function() {
       return this.orderColumnEnlarge ? 'p-col-12' : 'p-col-2'

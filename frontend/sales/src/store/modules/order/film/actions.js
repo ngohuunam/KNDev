@@ -13,8 +13,8 @@ const fetchOp = (method, token) => {
   }
 }
 
-export const deleteOrders = async ({ commit, rootState }, body) => {
-  rootState.dialog.loading = true
+export const deleteOrdersHttp = async ({ commit, rootState }, body) => {
+  rootState.Dialog.loading = true
   const token = rootState.user.token
   const _fetchOp = fetchOp('delete', token)
   _fetchOp.body = JSON.stringify(body)
@@ -26,7 +26,7 @@ export const deleteOrders = async ({ commit, rootState }, body) => {
     console.log(`FETCH_DELETE response: `, _res)
     const _json = await _res.json()
     if (_res.status === 200) {
-      console.log(`newOrdersSave response json: `, _json)
+      console.log(`deleteOrders response json: `, _json)
       let _mess = ''
       let _severity = ''
       if (_json.ok.length) {
@@ -48,18 +48,18 @@ export const deleteOrders = async ({ commit, rootState }, body) => {
         commit('pushToasts', { severity: _severity, summary: _severity.toUpperCase(), detail: _mess, life: 10000 }, { root: true })
       }
       commit('setSeq', _json.seq)
-      setTimeout(() => commit('dialog/setState', { state: 'isOpen', value: false }, { root: true }), 500)
-    } else commit('dialog/setMess', { text: `${_res.status} - ${_json}`, severity: 'error' }, { root: true })
+      setTimeout(() => commit('Dialog/setState', { state: 'isOpen', value: false }, { root: true }), 500)
+    } else commit('Dialog/setMess', { text: `${_res.status} - ${_json}`, severity: 'error' }, { root: true })
   } catch (e) {
     console.error(e)
-    commit('dialog/setMess', { text: 'Promise Error: ' + e, severity: 'error' }, { root: true })
+    commit('Dialog/setMess', { text: 'Promise Error: ' + e, severity: 'error' }, { root: true })
   }
-  setTimeout(() => (rootState.dialog.loading = false), 100)
+  setTimeout(() => (rootState.Dialog.loading = false), 100)
 }
 
 export const newProdSave = async ({ state, commit, rootState }) => {
   if (state.newProdConverted._id) {
-    rootState.dialog.loading = true
+    rootState.Dialog.loading = true
     const _fetchOp = fetchOp('post')
     _fetchOp.body = JSON.stringify(state.newProdConverted)
     const _resource = 'product'
@@ -73,29 +73,29 @@ export const newProdSave = async ({ state, commit, rootState }) => {
         if (_json.id === state.newProdConverted.orderId) {
           state.newProdConverted._rev = _json.rev
           commit('setStates', { states: ['newProd', 'newProdConverted'], values: [null, null] })
-          commit('dialog/setMess', { text: 'Create New Product Successfully', severity: 'success' }, { root: true })
+          commit('Dialog/setMess', { text: 'Create New Product Successfully', severity: 'success' }, { root: true })
           setTimeout(() => {
-            commit('dialog/setMess', { text: '', severity: '' }, { root: true })
-            commit('dialog/setState', { state: 'isOpen', value: false }, { root: true })
+            commit('Dialog/setMess', { text: '', severity: '' }, { root: true })
+            commit('Dialog/setState', { state: 'isOpen', value: false }, { root: true })
           }, 2000)
-        } else commit('dialog/setMess', { text: 'Response ID Error', severity: 'error' }, { root: true })
+        } else commit('Dialog/setMess', { text: 'Response ID Error', severity: 'error' }, { root: true })
       } else if (_res.status === 409) {
-        commit('dialog/setMess', { text: 'Product Existed', severity: 'error' }, { root: true })
-      } else commit('dialog/setMess', { text: 'Response Error: ' + _res.status, severity: 'error' }, { root: true })
+        commit('Dialog/setMess', { text: 'Product Existed', severity: 'error' }, { root: true })
+      } else commit('Dialog/setMess', { text: 'Response Error: ' + _res.status, severity: 'error' }, { root: true })
     } catch (e) {
       console.error(e)
-      commit('dialog/setMess', { text: 'Promise Error: ' + e, severity: 'error' }, { root: true })
+      commit('Dialog/setMess', { text: 'Promise Error: ' + e, severity: 'error' }, { root: true })
     }
     setTimeout(() => {
-      rootState.dialog.loading = false
+      rootState.Dialog.loading = false
     }, 100)
   }
 }
 
 // eslint-disable-next-line no-unused-vars
 export const newOrdersSave = async ({ state, commit, rootState }, orders) => {
-  rootState.dialog.loading = true
-  const _newOrders = orders.map(o => tools.newOrder(o, rootState.user))
+  rootState.Dialog.loading = true
+  const _newOrders = orders.map(o => tools.newOrder(o))
   const token = rootState.user.token
   const _fetchOp = fetchOp('post', token)
   _fetchOp.body = JSON.stringify(_newOrders)
@@ -150,19 +150,19 @@ export const newOrdersSave = async ({ state, commit, rootState }, orders) => {
       }
       commit('setSeq', _json.seq)
       setTimeout(() => {
-        commit('dialog/setState', { state: 'isOpen', value: false }, { root: true })
+        commit('Dialog/setState', { state: 'isOpen', value: false }, { root: true })
       }, 500)
-    } else commit('dialog/setMess', { text: `${_res.status} - ${_json}`, severity: 'error' }, { root: true })
+    } else commit('Dialog/setMess', { text: `${_res.status} - ${_json}`, severity: 'error' }, { root: true })
   } catch (e) {
     console.error(e)
-    commit('dialog/setMess', { text: 'Promise Error: ' + e, severity: 'error' }, { root: true })
+    commit('Dialog/setMess', { text: 'Promise Error: ' + e, severity: 'error' }, { root: true })
   }
-  setTimeout(() => (rootState.dialog.loading = false), 100)
+  setTimeout(() => (rootState.Dialog.loading = false), 100)
 }
 
-export const newOrder = async ({ state, commit, rootState }) => {
+export const newOrderHttp = async ({ state, commit, rootState }) => {
   if (state.newOrderConverted._id) {
-    rootState.dialog.loading = true
+    rootState.Dialog.loading = true
     const token = rootState.user.token
     const _fetchOp = fetchOp('post', token)
     _fetchOp.body = JSON.stringify(state.newOrderConverted)
@@ -177,21 +177,20 @@ export const newOrder = async ({ state, commit, rootState }) => {
         const _resDoc = _json.doc
         if (_resDoc.id === state.newOrderConverted._id) {
           state.newOrderConverted._rev = _resDoc.rev
-          commit('push', { state: 'list', data: state.newOrderConverted })
-          commit('sort', { state: 'list', key: '_id' })
+          commit('push_sort', { state: 'list', data: state.newOrderConverted, key: '_id' })
           commit('setStates', { states: ['newOrder', 'newOrderConverted', 'seq'], values: [null, null, _json.seq] })
-          commit('dialog/setMess', { text: 'Create New Order Successfully', severity: 'success' }, { root: true })
+          commit('Dialog/setMess', { text: 'Create New Order Successfully', severity: 'success' }, { root: true })
           setTimeout(() => {
-            commit('dialog/setMess', { text: '', severity: '' }, { root: true })
-            commit('dialog/setState', { state: 'isOpen', value: false }, { root: true })
+            commit('Dialog/setMess', { text: '', severity: '' }, { root: true })
+            commit('Dialog/setState', { state: 'isOpen', value: false }, { root: true })
           }, 1500)
-        } else commit('dialog/setMess', { text: 'Response ID Error', severity: 'error' }, { root: true })
-      } else commit('dialog/setMess', { text: `${_res.status} - ${_json}`, severity: 'error' }, { root: true })
+        } else commit('Dialog/setMess', { text: 'Response ID Error', severity: 'error' }, { root: true })
+      } else commit('Dialog/setMess', { text: `${_res.status} - ${_json}`, severity: 'error' }, { root: true })
     } catch (e) {
       console.error(e)
-      commit('dialog/setMess', { text: 'Promise Error: ' + e, severity: 'error' }, { root: true })
+      commit('Dialog/setMess', { text: 'Promise Error: ' + e, severity: 'error' }, { root: true })
     }
-    rootState.dialog.loading = false
+    rootState.Dialog.loading = false
   }
 }
 
@@ -200,7 +199,7 @@ export const sync = async ({ state, commit, rootState }) => {
   state.loading = true
   const token = rootState.user.token
   const _fetchOp = fetchOp('get', token)
-  const _resource = '/sync'
+  const _resource = '/sync/'
   const _query = state.seq
   const _url = host + _resource + _query
   console.log(_url)
@@ -209,7 +208,36 @@ export const sync = async ({ state, commit, rootState }) => {
     if (_res.status === 200) {
       const _json = await _res.json()
       console.log(`sync response: `, _json)
-      // commit('setStates', { states: ['list', 'seq'], values: [_json.docs, _json.seq] })
+      const { news, deleted, changes, seq } = _json
+      const _severity = 'info'
+      if (news.length) {
+        let _newsIds = ''
+        news.map(_order => {
+          _newsIds = _newsIds.concat(', ', _order._id)
+          commit('push_sort', { state: 'list', data: _order, key: '_id' })
+        })
+        const _mess = `${_newsIds} created`
+        commit('pushToasts', { severity: _severity, summary: _severity.toUpperCase(), detail: _mess, life: 10000 }, { root: true })
+      }
+      if (deleted.length) {
+        let _deletedIds = ''
+        deleted.map(_order => {
+          _deletedIds = _deletedIds.concat(', ', _order._id)
+          commit('replace', { key: 'list', value: _order })
+        })
+        const _mess = `${_deletedIds} deleted`
+        commit('pushToasts', { severity: _severity, summary: _severity.toUpperCase(), detail: _mess, life: 10000 }, { root: true })
+      }
+      if (changes.length) {
+        let _Ids = ''
+        deleted.map(_order => {
+          _Ids = _Ids.concat(', ', _order._id)
+          commit('replace', { key: 'list', value: _order })
+        })
+        const _mess = `${_Ids} changed`
+        commit('pushToasts', { severity: _severity, summary: _severity.toUpperCase(), detail: _mess, life: 10000 }, { root: true })
+      }
+      commit('setSeq', seq)
     } else if (_res.status === 204) {
       console.log(_res.status)
     } else console.error(_res.status)
@@ -239,4 +267,9 @@ export const getAll = async ({ state, commit, rootState }) => {
     console.error(e)
   }
   state.loading = false
+}
+
+export const Worker = async ({ commit, rootState }, payload) => {
+  rootState.Dialog.loading = true
+  commit('Worker', payload)
 }

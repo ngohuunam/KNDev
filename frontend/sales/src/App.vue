@@ -1,18 +1,24 @@
 <template>
   <div id="app">
-    <div id="nav">
-      <router-link to="/">Home</router-link> |
-      <router-link to="/about">About</router-link>
+    <Loading v-if="isLoading" />
+    <div v-else>
+      <div id="nav">
+        <router-link to="/">Home</router-link> |
+        <router-link to="/about">About</router-link>
+      </div>
+      <keep-alive><router-view /></keep-alive>
     </div>
-    <keep-alive><router-view /></keep-alive>
     <NewToast @close="toastClose" />
+    <div class="version">V.132</div>
   </div>
 </template>
 
 <script>
+import Loading from './components/Loading.vue'
+
 export default {
   name: 'App',
-  components: {},
+  components: { Loading },
   data: () => ({}),
   mounted: function() {
     // const info = window.localStorage.getItem('info')
@@ -31,6 +37,9 @@ export default {
   computed: {
     toasts() {
       return this.$store.state.toasts
+    },
+    isLoading() {
+      return this.$store.state.loading
     },
   },
 }

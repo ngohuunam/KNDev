@@ -27,7 +27,7 @@ const auth = async (socket, next) => {
   }
 }
 
-// io.use(auth)
+io.use(auth)
 // io.on('connection', socket => {
 //   skLogger.info(`${socket.id} - ip: ${socket.handshake.address} connected'`)
 //   console.log(socket)
@@ -42,14 +42,14 @@ sales_home.use(auth)
 sales_home.on('connect', socket => {
   skLogger.info(`${socket.id} - ip: ${socket.handshake.address} - user: ${socket.user._id} connected'`)
   console.log(`${socket.id} - ip: ${socket.handshake.address} - user: ${socket.user._id} connected'`)
-  socket.join(socket.user._id, () => {
-    let rooms = Object.keys(socket.rooms)
-    console.log(rooms)
+  socket.join('order.film', () => {
+    // let rooms = Object.keys(socket.rooms)
+    // console.log('rooms: ', rooms)
   })
-  const newNamespace = socket.nsp // newNamespace.name === '/sales'
-  // console.log(socket)
+  const newNamespace = socket.nsp
   // broadcast to all clients in the given sub-namespace
   newNamespace.emit('message', socket.id)
+  // console.log('newNamespace: ', newNamespace)
 })
 sales_home.on('error', err => {
   console.error(err)
@@ -64,5 +64,5 @@ skApi.sendNotification = (EVENT, data) => {
 skApi.reloadWindow = () => {
   sales_home.emit('reload')
 }
-
+skApi.sales_home = sales_home
 module.exports = skApi

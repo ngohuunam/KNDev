@@ -32,6 +32,7 @@ passport.use(
           page: '',
           param: '',
           token: '',
+          room: '',
         })
         //Send the user information to the next middleware
         return done(null, user)
@@ -100,7 +101,7 @@ const handleAuthJwt = (req, res, next, logger) => {
     if (err) nextErr(err, logger)
     if (info) {
       logger.error(info)
-      return redirectToLogin(res, 401, `${info.message}, re-login`, `cmd:window.localStorage.removeItem('info')`)
+      return redirectToLogin(res, 401, `${info.message}, re-login`)
     }
     req.user = user
     return next()

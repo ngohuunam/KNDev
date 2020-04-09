@@ -169,22 +169,22 @@ import * as globalInstance from './globalInstance'
 // const token = info.token
 // const url = `${window.location.origin}/${info.dept}/${info.page}?token=${token}`
 const url = `${window.location.origin}`
-console.log('url', url)
+// console.log('url', url)
 
 const socket = io(url)
 Vue.use(VueSocketIOExt, socket, { store })
 Vue.use(globalInstance)
 
-const toProperCase = function() {
-  return this.replace(/([^\W_]+[^\s-]*) */g, function(txt) {
-    return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()
-  })
-}
+// const toProperCase = function() {
+//   return this.replace(/([^\W_]+[^\s-]*) */g, function(txt) {
+//     return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()
+//   })
+// }
 
-String.prototype.toProperCase = toProperCase
-String.prototype.toDataId = function() {
-  return this.toProperCase().replace(/\s/g, '')
-}
+// String.prototype.toProperCase = toProperCase
+// String.prototype.toDataId = function() {
+//   return this.toProperCase().replace(/\s/g, '')
+// }
 
 new Vue({
   router,

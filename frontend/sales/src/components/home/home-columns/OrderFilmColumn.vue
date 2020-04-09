@@ -184,18 +184,16 @@ export default {
       console.log(_id)
     },
     allNewOrderAccept() {
-      this.$store.commit('OrderFilm/allNewOrderAccept')
+      this.$store.commit('Order/Film/allNewOrderAccept')
     },
     allChangedAccept() {
-      this.$store.commit('OrderFilm/allChangedAccept')
+      this.$store.commit('Order/Film/allChangedAccept')
     },
     changedAccept(e, _id, key) {
       e.preventDefault()
-      this.$store.commit('OrderFilm/changedAccept', { _id: _id, key: key })
+      this.$store.commit('Order/Film/changedAccept', { _id: _id, key: key })
     },
-    cellHasChanged(slotProps, key) {
-      return slotProps.data.keyHasChanged.indexOf(key) > -1
-    },
+    cellHasChanged: () => false,
     addProduct(order) {
       console.log(order)
     },
@@ -203,16 +201,16 @@ export default {
       console.log(order)
     },
     loadOrderDetail() {
-      // this.$store.dispatch('OrderFilm/getOrderDetail')
+      // this.$store.dispatch('Order/Film/getOrderDetail')
       let _prodList = []
       this.selected.map(fo => {
         _prodList = [..._prodList, ...fo.products]
       })
-      this.$store.commit('OrderFilm/setState', { state: 'prodList', value: _prodList })
+      this.$store.commit('Order/Film/setState', { key: 'prodList', data: _prodList })
     },
     closeMessage(idx) {
       console.log('idx', idx)
-      this.$store.commit('OrderFilm/spliceMess', idx)
+      this.$store.commit('Order/Film/spliceMess', idx)
     },
     onToggleEnlarge() {
       this.$emit('toggle-enlarge')
@@ -228,13 +226,13 @@ export default {
     },
     onRowSelect() {},
     onRowUnselect(e) {
-      if (this.prodList.length) this.$store.commit('OrderFilm/filterSomeByIndexOf', { state: 'prodList', _id: e.data._id })
+      if (this.prodList.length) this.$store.commit('Order/Film/filterSomeByIndexOf', { state: 'prodList', _id: e.data._id })
     },
     onRowUnselectAll() {
-      if (this.prodList.length) this.$store.commit('OrderFilm/setState', { state: 'prodList', value: [] })
+      if (this.prodList.length) this.$store.commit('Order/Film/setState', { key: 'prodList', data: [] })
     },
     rowClass(data) {
-      return this.$store.getters['OrderFilm/isNewOrder'](data._id) ? 'p-info' : ''
+      return this.$store.getters['Order/Film/isDroppedOrder'](data._id) ? 'r-deleted' : this.$store.getters['Order/Film/isNewOrder'](data._id) ? 'p-info' : ''
     },
   },
   computed: {
@@ -248,41 +246,44 @@ export default {
     },
     selected: {
       get() {
-        return this.$store.state.OrderFilm.selected
+        return this.$store.state.Order.Film.selected
       },
       set(value) {
-        this.$store.commit('OrderFilm/setState', { state: 'selected', value: value })
+        this.$store.commit('Order/Film/setState', { key: 'selected', data: value })
         this.sectedOrdersHasProd = value.some(v => v.products.length > 0)
       },
     },
     hasNewOrder() {
-      return this.$store.getters['OrderFilm/hasNewOrder']
+      return this.$store.getters['Order/Film/hasNewOrder']
     },
     hasOrderChanged() {
-      return this.$store.getters['OrderFilm/hasOrderChanged']
+      return this.$store.getters['Order/Film/hasOrderChanged']
     },
     messages: {
       get() {
-        return this.$store.state.OrderFilm.messages
+        return this.$store.state.Order.Film.messages
       },
       set(value) {
-        this.$store.commit('OrderFilm/pushMess', value)
+        this.$store.commit('Order/Film/pushMess', value)
       },
     },
     ...mapState({
-      list: state => state.OrderFilm.list,
-      loading: state => state.OrderFilm.loading,
-      prodList: state => state.OrderFilm.prodList,
+      list: state => state.Order.Film.list,
+      loading: state => state.Order.Film.loading,
+      prodList: state => state.Order.Film.prodList,
+      seq: state => state.Order.Film.seq,
     }),
   },
   created: function() {},
   mounted: function() {
-    // if (this.$store.state.OrderFilm.seq) this.$store.dispatch('OrderFilm/sync')
-    // else this.$store.dispatch('OrderFilm/getAll')
-    // this.$socket.$subscribe('error', payload => {
-    //   console.log(payload)
-    //   this.socketError = payload
-    // })
+    this.$nextTick(() => {
+      // if (this.seq) this.$store.dispatch('Order/Film/sync')
+      // else this.$store.dispatch('Order/Film/getAll')
+      this.$socket.$subscribe('error', payload => {
+        console.log(payload)
+        this.socketError = payload
+      })
+    })
   },
 }
 </script>

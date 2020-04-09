@@ -1,9 +1,9 @@
-const ordersFilmGetAll = async (req, res, next) => {
+const ordersFilmGetAll = async ({ db, user }, res, next) => {
   try {
-    const _db = req.db
-    if (!_db || !_db.isRunning()) return next({ statusCode: 501, message: `db ${_db.name} not found` })
-    const _docs = await _db.all(req.user)
-    return res.status(200).json({ docs: _docs, seq: _db.seq })
+    if (!db || !db.isRunning()) return next({ statusCode: 501, message: `db ${db.name} not found` })
+    const _docs = await db.all(user)
+    const _res = { docs: _docs.filter(doc => !doc._id.includes('_design')), seq: db.seq }
+    return res.status(200).json(_res)
   } catch (e) {
     return next(e)
   }

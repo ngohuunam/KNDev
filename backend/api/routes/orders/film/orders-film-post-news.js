@@ -1,24 +1,16 @@
-const ordersFilmPostNew = async (req, res, next) => {
+const ordersFilmPostNew = async ({ db, body, user }, res, next) => {
   try {
-    const _db = req.db
-    if (!_db || !_db.isRunning()) return next({ statusCode: 501, message: `db ${_db.name} not found` })
-    const _newOrders = req.body
+    if (!db || !db.isRunning()) return next({ statusCode: 501, message: `db ${db.name} not found` })
+    const _newOrders = body
     _newOrders.map(_newOrder => {
       _newOrder.createdAt = Date.now()
       /* create order log */
-      const _log = {}
-      _log.type = 'Create'
-      _log.at = _newOrder.createdAt
-      _log.by = _newOrder.createdBy
-      _log.note = _newOrder.note
-      /* update order log */
-      _newOrder.logs.push(_log)
+      _newOrder.logs.unshift({ type: 'Create', at: Date.now(), by: user._id })
     })
-    const _docs = await _db.news({ docs: _newOrders, include_docs: true }, req.user)
-    const _res = { new: [], old: [], err: [], other: [], seq: _db.seq }
+    const _docs = await db.news({ docs: _newOrders, include_docs: true }, user)
+    const _res = { news: [], err: [], other: [], seq: db.seq }
     _docs.map(_doc => {
-      if (_doc.ok && _doc.rev.startsWith('1-')) _res.new.push(_doc)
-      else if (_doc.ok) _res.old.push(_doc)
+      if (_doc.ok && _doc.rev.startsWith('1-')) _res.news.push(_doc)
       else if (_doc.error) _res.err.push(_doc)
       else _res.other.push(_doc)
     })

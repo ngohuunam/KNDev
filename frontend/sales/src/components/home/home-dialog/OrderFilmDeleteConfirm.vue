@@ -9,7 +9,7 @@
         </template>
       </Column>
     </DataTable>
-    <Editor v-model="log" editorStyle="height: 60px" class="margin-top">
+    <Editor v-model="note" editorStyle="height: 60px" class="margin-top">
       <template slot="toolbar">
         <span class="ql-formats">
           <button class="ql-bold"></button>
@@ -38,19 +38,18 @@ export default {
   components: {},
   data: () => ({
     willDelete: [],
-    log: '',
+    note: '',
   }),
   methods: {
     confirm() {
-      if (this.willDelete.length === this.selected.length) {
-        const _delList = this.willDelete.map(fo => ({ _id: fo._id, _rev: fo._rev, deleted: true }))
-        this.$store.dispatch('OrderFilm/deleteOrders', _delList)
-      } else this.$store.commit('Dialog/setMess', { text: 'Select All to Confirm', severity: 'error' })
+      // if (this.willDelete.length === this.selected.length) this.$store.dispatch('Order/Film/deleteOrders', this.willDelete)
+      if (this.willDelete.length === this.selected.length) this.$store.dispatch('Order/Film/Worker', { name: 'dropOrders', payload: { docs: this.selected, note: this.note } })
+      else this.$store.commit('Dialog/setMess', { text: 'Select All to Confirm', severity: 'error' })
     },
   },
   computed: {
     selected() {
-      return this.$store.state.filmOrdersList.selected
+      return this.$store.state.Order.Film.selected
     },
   },
   mounted: function() {},

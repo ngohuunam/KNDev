@@ -34,21 +34,6 @@ class Database {
     this.eventUpdate = opt.eventUpdate
     this.eventDelete = opt.eventDelete
     this.getSeq()
-    this.feed = this.db.follow({ since: 'now', include_docs: true })
-    this.feed.on('change', async change => {
-      dbLogger.info(`feed ${this.name} - db: ${this.name} - change: ${JSON.stringify(change)}`)
-      try {
-        await this.getSeq()
-      } catch (e) {
-        throwErr(e, dbLogger)
-      }
-      const _doc = change.doc
-      let _skEvent = this.eventUpdate
-      if (_doc._deleted === true) _skEvent = this.eventDelete
-      else if (_doc._rev.startsWith('1-')) _skEvent = this.eventNew
-      socket.sendNotification(_skEvent, { newDoc: _doc, newSeq: this.seq })
-    })
-    this.feed.follow()
   }
   async bulk(ops, user, text) {
     dbLogger.info(`${user._id} - func: ${text} - db: ${this.name} - req: ${JSON.stringify(ops)}`)
@@ -67,6 +52,10 @@ class Database {
     dbLogger.info(`${user._id} - func: new doc - db: ${this.name} - req: ${JSON.stringify(doc)}`)
     const res = await this.db.insert(doc)
     dbLogger.info(`${user._id} - func: new doc - db: ${this.name} - res: ${JSON.stringify(doc)}`)
+    socket.io
+      .of('/sales/home')
+      .to('order.film')
+      .emit('create', JSON.stringify({ doc: res, seq: this.seq }))
     return res
   }
   async all(user) {
@@ -88,14 +77,7 @@ class Database {
   }
   isRunning(key) {
     if (key) return this[key] !== null
-    return (
-      this.db !== null &&
-      this.seq !== null &&
-      this.feed !== null &&
-      this.eventNew !== null &&
-      this.eventDelete !== null &&
-      this.eventUpdate !== null
-    )
+    return this.db !== null && this.seq !== null && this.eventNew !== null && this.eventDelete !== null && this.eventUpdate !== null
   }
 }
 

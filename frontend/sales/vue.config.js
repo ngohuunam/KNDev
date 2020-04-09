@@ -1,6 +1,7 @@
 const CompressionPlugin = require('compression-webpack-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const HtmlWebpackInlineSourcePlugin = require('html-webpack-inline-source-plugin')
+const WorkerPlugin = require('worker-plugin')
 const { publicPath } = require('./package.json')
 
 module.exports = {
@@ -53,6 +54,7 @@ module.exports = {
       hints: false,
     },
     plugins: [
+      new WorkerPlugin({ globalObject: 'self', sharedWorker: true, worker: false, filename: '[name].worker.js' }),
       new CompressionPlugin({
         filename: '[path].gz[query]',
         algorithm: 'gzip',

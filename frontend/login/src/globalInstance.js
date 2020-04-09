@@ -7,6 +7,6 @@ const install = Vue => {
   Vue.prototype.$idbSet = set
   Vue.prototype.$idbGet = get
   Vue.prototype.$idbDel = del
-  Vue.prototype.$idbStore = new Store('kn', 'user')
+  Vue.prototype.$idbStore = new Store('kn', 'data')
 }
 export { install }

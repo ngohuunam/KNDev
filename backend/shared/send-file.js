@@ -10,7 +10,7 @@ const handleErr = (info, err, next) => {
   return next(err)
 }
 
-const sendFile = (req, res, next, path, options) => {
+const sendFile = (res, next, path, options) => {
   res.sendFile(resolve(path), options, error => {
     if (error) return handleErr(`(sendFile) ERROR:`, error, next)
     sendFileLogger.info('(sendFile) OK: ' + path)
@@ -23,8 +23,8 @@ const sendFile = (req, res, next, path, options) => {
  * if file gzip not existed, send orignal file
  * and make new gzip file
  */
-const sendGzip = (input, req, res, next, contentType) => {
-  const isGzipAccepted = req.headers['accept-encoding'].indexOf('gzip') > -1
+const sendGzip = (input, headers, res, next, contentType) => {
+  const isGzipAccepted = headers['accept-encoding'].includes('gzip')
   if (isGzipAccepted) {
     const options = {
       headers: {
@@ -37,7 +37,7 @@ const sendGzip = (input, req, res, next, contentType) => {
       if (err) {
         if (err.message.indexOf('no such file') > -1) {
           try {
-            sendFile(req, res, next, input)
+            sendFile(res, next, input)
             await doGzip(input, output)
           } catch (e) {
             handleErr('PROMISE (do_gzip) ERROR: ', e)
@@ -45,15 +45,15 @@ const sendGzip = (input, req, res, next, contentType) => {
         } else handleErr('(sendFile) ERROR: ', err)
       } else sendFileLogger.info('(sendFile) OK: ' + output)
     })
-  } else sendFile(req, res, next, input)
+  } else sendFile(res, next, input)
 }
 
 /**
  * Short function to send login page
  */
-const sendLogin = (req, res, next) => {
+const sendLogin = ({ headers }, res, next) => {
   const input = 'web/pages/login/index.html'
-  sendGzip(input, req, res, next, 'text/html')
+  sendGzip(input, headers, res, next, 'text/html')
 }
 
 module.exports = { sendGzip, sendLogin }

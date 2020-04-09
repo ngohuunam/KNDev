@@ -1,3 +1,13 @@
+import Default from './assets/defaultState'
+
+const toProperCase = function() {
+  return this.replace(/([^\W_]+[^\s-]*) */g, function(txt) {
+    return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()
+  })
+}
+
+String.prototype.toProperCase = toProperCase
+
 const dateToUnix = (dateStr, hasTime) => {
   if (dateStr) {
     const _dateTimeRegexCheck = hasTime ? /(\d{2})\/(\d{2})\/(\d{4}) (\d{2}):(\d{2})/ : /(\d{2})\/(\d{2})\/(\d{4})/
@@ -17,7 +27,7 @@ const dateToUnix = (dateStr, hasTime) => {
   return null
 }
 
-const unixTime = time => (time ? (typeof time === 'string' ? dateToUnix(time) : time.getTime()) : null)
+const unixTime = time => (time ? (typeof time === 'string' ? dateToUnix(time) : time.getTime()) : 0)
 
 export default {
   tToString: function(timestamp, addTime, nullString, yFormat) {
@@ -33,13 +43,13 @@ export default {
     const doc = new DOMParser().parseFromString(html, 'text/html')
     return doc.body.textContent || ''
   },
-  newOrder: (order, user) => {
-    const _newOrder = { ...order, ...{ status: 'Created', createdBy: user } }
-    _newOrder.foreignTitle = order.foreignTitle.toProperCase()
+  newOrder: order => {
+    const _newOrder = { ...Default.order.film.new, ...order, ...{ status: 'Created' } }
+    _newOrder.foreignTitle = _newOrder.foreignTitle.toProperCase()
     _newOrder._id = _newOrder.foreignTitle.replace(/\s/g, '')
-    _newOrder.vietnameseTitle = order.vietnameseTitle.toProperCase()
-    _newOrder.premiereDate = unixTime(order.premiereDate)
-    _newOrder.endAt = unixTime(order.endAt)
+    _newOrder.vietnameseTitle = _newOrder.vietnameseTitle.toProperCase()
+    _newOrder.premiereDate = unixTime(_newOrder.premiereDate)
+    _newOrder.endAt = unixTime(_newOrder.endAt)
     return _newOrder
   },
   dateToUnix,

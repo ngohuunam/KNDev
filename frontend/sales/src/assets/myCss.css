@@ -78,3 +78,29 @@ body .p-button.p-button-icon-only .p-button-text {
 .ql-toolbar.ql-snow {
   padding: 4px;
 }
+
+.version {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  font-size: 9pt;
+  color: gray;
+}
+
+body .p-datatable .p-datatable-tbody > tr.r-deleted,
+body .p-datatable.p-datatable-hoverable-rows .p-datatable-tbody > tr.r-deleted:not(.p-highlight):not(.p-highlight-contextmenu):hover,
+body .p-datatable .p-datatable-tbody > tr.r-deleted.p-highlight:hover,
+body .p-datatable .p-datatable-tbody > tr.r-deleted:nth-child(even).p-highlight:hover {
+  background: darkgray;
+  color: grey;
+  cursor: no-drop;
+}
+
+.r-deleted > td > button,
+.r-deleted > td > button:hover {
+  background: darkgray;
+  color: grey;
+  cursor: no-drop;
+  border-color: darkgray;
+  pointer-events: none;
+}

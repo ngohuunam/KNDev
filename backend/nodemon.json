@@ -1,0 +1,5 @@
+{
+  "ignore": ["logs", "errors", "cert", "backup"],
+  "verbose": true,
+  "ext": "js"
+}

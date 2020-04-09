@@ -13,20 +13,21 @@ export default {
   data: () => ({}),
   methods: {
     confirm() {
-      this.$store.dispatch('OrderFilm/newOrder')
+      // this.$store.dispatch('Order/Film/newOrder')
+      this.$store.dispatch('Order/Film/Worker', { name: 'newOrder', payload: { ...this.$store.state.Order.Film.newOrderConverted } })
     },
   },
   computed: {
     value() {
-      return this.$store.getters['OrderFilm/newOrderConfirmTableProperties']
+      return this.$store.getters['Order/Film/newOrderConfirmTableProperties']
     },
     newOrderLabels() {
-      return this.$store.state.filmOrdersList.newOrderLabels
+      return this.$store.state.Order.Film.newOrderLabels
     },
   },
   mounted: function() {},
   beforeDestroy: function() {
-    this.$store.commit('OrderFilm/setState', { state: 'newOrderConverted', value: null })
+    this.$store.commit('Order/Film/setState', { key: 'newOrderConverted', data: null })
   },
 }
 </script>

@@ -58,6 +58,46 @@ class ReplaceStringsStream extends Transform {
   }
 }
 
+class InsertTokenStream extends Transform {
+  constructor(options, regexs, token) {
+    super(options)
+    this.regexs = regexs
+    this.token = token
+    // The stream will have Buffer chunks. The
+    // decoder converts these to String instances.
+    this._decoder = new StringDecoder('utf-8')
+    this.replaced = null
+  }
+  _transform(chunk, encoding, callback) {
+    // Convert the Buffer chunks to String.
+    if (encoding === 'buffer') chunk = this._decoder.write(chunk)
+
+    this.regexs.map(r => {
+      if (this.replaced !== r) {
+        const index = chunk.indexOf(r)
+        // console.log('InsertTokenStream index: ', index)
+        if (index > -1) {
+          // console.log('InsertTokenStream chunk: ', chunk)
+          const startIndex = chunk.lastIndexOf('"', index) + 1
+          const found = chunk.substring(startIndex, index + 10)
+          // console.log('InsertTokenStream found: ', found)
+
+          // console.log('InsertTokenStream this.token: ', this.token)
+          const replace = this.token.concat('/', found)
+          // console.log('InsertTokenStream replace: ', replace)
+
+          chunk = chunk.replace(found, replace)
+          // console.log('InsertTokenStream chunk replaced: ', chunk)
+          this.replaced = r
+        }
+      }
+    })
+
+    // Pass the chunk on.
+    callback(null, chunk)
+  }
+}
+
 const pipe = promisify(pipeline)
 const doGzip = async (input, output, regex, replace) => {
   const cgzip = createGzip()
@@ -80,6 +120,12 @@ const readReplaceMultiRes = async (input, regexs_replaces, res) => {
   await pipe(source, replaceStream, res)
 }
 
+const insertTokenRes = async (input, regexs, token, res) => {
+  const source = createReadStream(input)
+  const replaceStream = new InsertTokenStream(null, regexs, token)
+  await pipe(source, replaceStream, res)
+}
+
 const streamRender = async (path, keys_values, res, isSingle) => {
   let regexs_replaces = []
   keys_values.map(({ key, value }) => {
@@ -95,21 +141,10 @@ const streamRender = async (path, keys_values, res, isSingle) => {
   await pipe(source, replaceStream, res)
 }
 
-const redirectToLogin = (res, code, mess, cmd) => {
+const redirectToLogin = (res, code, mess) => {
   res.status(code)
   streamLogger.error(`Response ${code}: ${mess}`)
-  if (cmd) {
-    streamRender(
-      'login',
-      [
-        { key: 'Type Email & Password and Login', value: `Res ${code}: ${mess}` },
-        { key: 'cmd:"this place for cmd"', value: cmd },
-      ],
-      res,
-    )
-  } else {
-    streamRender('login', [{ key: 'Type Email & Password and Login', value: `Res ${code}: ${mess}` }], res)
-  }
+  streamRender('relogin', [{ key: 'Type Email & Password and Login', value: `Res ${code}: ${mess}` }], res)
 }
 
 module.exports = {
@@ -119,4 +154,5 @@ module.exports = {
   streamRender,
   redirectToLogin,
   readReplaceMultiRes,
+  insertTokenRes,
 }

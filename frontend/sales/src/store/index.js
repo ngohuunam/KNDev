@@ -1,9 +1,9 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 // import createPersistedState from 'vuex-persistedstate'
-import OrderFilmPlugin from './plugin/order-film'
+import OrderFilmPlugin from './plugin/order-film.plugin'
 
-import OrderFilmModule from './modules/order-film'
+import OrderModule from './modules/order/index'
 import HomeModule from './modules/home'
 import DialogModule from './modules/dialog'
 
@@ -15,7 +15,7 @@ import * as getters from './getters'
 import * as actions from './actions'
 
 const store = new Vuex.Store({
-  modules: { OrderFilm: OrderFilmModule, Home: HomeModule, Dialog: DialogModule },
+  modules: { Order: OrderModule, Home: HomeModule, Dialog: DialogModule },
   state,
   mutations,
   getters,
@@ -24,7 +24,7 @@ const store = new Vuex.Store({
   // plugins: [createPersistedState({ paths: ['OrderFilm.list', 'OrderFilm.seq'], fetchBeforeUse: true })],
 })
 
-const hotReloadElements = ['./state', './mutations', './getters', './actions', './modules/order-film', './modules/Home', './modules/Dialog']
+const hotReloadElements = ['./state', './mutations', './getters', './actions', './modules/order/index', './modules/Home', './modules/Dialog']
 
 if (module.hot) {
   module.hot.accept(hotReloadElements, () => {
@@ -32,7 +32,7 @@ if (module.hot) {
     const newGetters = require('./getters').default
     const newActions = require('./actions').default
     const newState = require('./state').default
-    const newOrderFilmModule = require('./modules/order-film').default
+    const newOrderModule = require('./modules/order').default
     const newHomeModule = require('./modules/home').default
     const newDialogModule = require('./modules/dialog').default
     store.hotUpdate({
@@ -41,7 +41,7 @@ if (module.hot) {
       getters: newGetters,
       actions: newActions,
       modules: {
-        OrderFilm: newOrderFilmModule,
+        Order: newOrderModule,
         Home: newHomeModule,
         Dialog: newDialogModule,
       },
