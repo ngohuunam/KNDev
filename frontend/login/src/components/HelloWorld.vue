@@ -1,6 +1,6 @@
 <template>
   <div class="login-page">
-    <img alt="Logo" src="../assets/logoKN.png" />
+    <img alt="Logo" default-src="../assets/logoKN.png" src="../assets/logoKN.png" />
     <div class="form">
       <div name="loginform" class="login-form">
         <input type="email" name="email" placeholder="email" v-model="email" />

@@ -4,9 +4,6 @@ const cookieParser = require('cookie-parser')
 const bodyParser = require('body-parser')
 const { dbOpt, initDB, initLogger } = require('../shared')
 const { handleAuthJwt } = require('./auth')
-// const PouchDB = require('pouchdb')
-// const TempPouchDB = require('http-pouchdb')(PouchDB, 'http://163.172.176.57:5984/')
-const proxy = require('express-http-proxy')
 
 const apiLogger = initLogger('api')
 
@@ -42,8 +39,6 @@ const apiJwtAuthLogger = initLogger('auth/jwt/api', 'debug', 'debug')
 
 const authJwt = (req, res, next) => handleAuthJwt(req, res, next, apiJwtAuthLogger)
 
-app.use('/pouch', authJwt, proxy('http://163.172.176.57:5984/'))
-// app.use('/pouchdb', authJwt, require('express-pouchdb')(TempPouchDB, { configPath: './pouchdb-config.json', logPath: './logs/pouchdb.log' }))
 app.use('/', authJwt, routes)
 
 // API Specific 404

@@ -111,4 +111,5 @@ module.exports = {
   initDB,
   getDb,
   attachDB,
+  couchUrl: couchdb.url,
 }

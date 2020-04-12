@@ -12,8 +12,7 @@
       @row-unselect="onRowUnselect"
       @row-unselect-all="onRowUnselectAll"
       :rowClass="rowClass"
-      stateStorage="local"
-      stateKey="dt-state-demo-local"
+      @row-click="onRowClick"
     >
       <!-------------------- < Header > --------------------->
       <template #header>
@@ -30,8 +29,15 @@
             <Button v-if="selected.length" :label="enlarge ? 'Delete Orders' : ''" icon="pi pi-minus" @click="confirmDelOrder" class="p-button-danger margin-right" />
             <!-- <ToggleButton v-if="!enlarge" v-model="enlarge" @change="onToggleEnlarge" onIcon="pi pi-angle-left" offIcon="pi pi-angle-right" /> -->
             <InputText v-if="enlarge" v-model="filters['global']" placeholder="Search" style="width: 20%" class="margin-right" />
-            <Button v-if="hasOrderChanged" :label="enlarge ? 'Sth Changed' : ''" icon="pi pi-star" @click="allChangedAccept" class="margin-right" />
-            <Button v-if="hasNewOrder" :label="enlarge ? 'New Order' : ''" icon="pi pi-file-o" @click="allNewOrderAccept" class="margin-right" />
+            <Button v-if="hasOrderChanged" :label="enlarge ? 'Sth Changed' : ''" :icon="btnIcon('allChangedAccept', 'pi-star')" @click="allChangedAccept" class="margin-right" />
+            <Button v-if="hasNewOrder" :label="enlarge ? 'New Order' : ''" :icon="btnIcon('allNewOrderCheck', 'pi-file-o')" @click="allNewOrderCheck" class="margin-right" />
+            <Button
+              v-if="hasDroppedOrder"
+              :label="enlarge ? 'Dropped Order' : ''"
+              :icon="btnIcon('allDroppedOrderCheck', 'pi-file-o')"
+              @click="allDroppedOrderCheck"
+              class="margin-right"
+            />
             <ToggleButton :onLabel="enlarge ? 'Collapse' : ''" offLabel=" " v-model="enlarge" @change="onToggleEnlarge" onIcon="pi pi-angle-left" offIcon="pi pi-angle-right" />
             <InputText v-if="!enlarge" v-model="filters['global']" placeholder="Search" style="width: 100%" class="margin-top" />
           </div>
@@ -43,31 +49,33 @@
         <ProgressBar mode="indeterminate" />
       </template>
       <!-------------------- < Column: Add Prod > --------------------->
-      <Column headerStyle="width: 2.6em; text-align: center" bodyStyle="text-align: center; overflow: visible; padding: 4px 0">
+      <!-- <Column headerStyle="width: 2.6em; text-align: center" bodyStyle="text-align: center; overflow: visible; padding: 4px 0">
         <template #body="slotProps">
-          <Button type="button" icon="pi pi-plus" @click="addSimpleProd(slotProps.data)"></Button>
+          <Button type="button" :icon="slotProps.data.ui ? 'pi pi-plus' : 'pi pi-thumbs-up'" @click="rowMenu(slotProps.data)"></Button>
         </template>
-      </Column>
+      </Column> -->
       <!-------------------- < Column: Edit Order > --------------------->
-      <Column headerStyle="width: 2.6em; text-align: center" bodyStyle="text-align: center; overflow: visible; padding: 4px 0">
+      <!-- <Column headerStyle="width: 2.6em; text-align: center" bodyStyle="text-align: center; overflow: visible; padding: 4px 0">
         <template #body="slotProps">
           <Button type="button" icon="pi pi-pencil" @click="editOrder(slotProps.data._id)"></Button>
         </template>
-      </Column>
+      </Column> -->
       <!-------------------- < Column: Selection > --------------------->
       <Column selectionMode="multiple" bodyStyle="padding: 0" headerStyle="width: 2.5em" :sortable="true" sortField="selected"></Column>
       <!-------------------- < Column: Foreign Title > --------------------->
-      <Column field="foreignTitle" header="Foreign Title" bodyStyle="padding: 0 8px" :headerStyle="enlarge ? 'width: 18%' : ''" filterMatchMode="contains" :sortable="true">
+      <Column field="foreignTitle" header="Foreign Title" :headerStyle="enlarge ? 'width: 18%' : ''" filterMatchMode="contains" :sortable="true">
         <template #filter>
           <InputText type="text" v-model="filters['foreignTitle']" class="p-column-filter" />
         </template>
         <template #body="slotProps">
           <Button v-if="cellHasChanged(slotProps, 'foreignTitle')" :label="slotProps.data.foreignTitle" @click="changedAccept($event, slotProps.data._id, 'foreignTitle')" />
-          <span v-else> {{ slotProps.data.foreignTitle }} </span>
+          <div v-else style="position: relative">
+            <span><i v-if="slotProps.data.icon" :class="`pi ${slotProps.data.icon} icon-loading`"></i> {{ slotProps.data.foreignTitle }} </span>
+          </div>
         </template>
       </Column>
       <!-------------------- < Column: NKC > --------------------->
-      <Column v-if="enlarge" field="premiereDate" header="NKC" bodyStyle="padding: 0 8px" filterMatchMode="contains" :sortable="true">
+      <Column v-if="enlarge" field="premiereDate" header="NKC" filterMatchMode="contains" :sortable="true">
         <template #filter>
           <InputText type="text" v-model="filters['premiereDate']" class="p-column-filter" />
         </template>
@@ -81,18 +89,23 @@
         </template>
       </Column>
       <!-------------------- < Column: Status > --------------------->
-      <Column v-if="enlarge" field="status" header="Status" bodyStyle="padding: 0 8px" filterMatchMode="in" :sortable="true">
+      <Column v-if="enlarge" field="status" header="Status" filterMatchMode="in" :sortable="true">
         <template #filter>
           <InputText type="text" v-model="filters['status']" class="p-column-filter" />
           <!-- <MultiSelect v-model="filters['status']" :options="orders" optionLabel="status" optionValue="status" placeholder="All" class="p-column-filter"></MultiSelect> -->
         </template>
         <template #body="slotProps">
-          <Button v-if="cellHasChanged(slotProps, 'status')" :label="slotProps.data.status" @click="changedAccept($event, slotProps.data._id, 'status')" />
+          <Button
+            v-if="slotProps.data.ui && slotProps.data.ui.status"
+            :icon="slotProps.data.ui.status.checking ? 'pi pi-spin pi-spinner' : ''"
+            :label="slotProps.data.status"
+            @click="checkChange($event, slotProps)"
+          />
           <span v-else> {{ slotProps.data.status }} </span>
         </template>
       </Column>
       <!-------------------- < Column: Products > --------------------->
-      <Column v-if="enlarge" field="productNames" header="Products" bodyStyle="padding: 0 8px" filterMatchMode="in" :sortable="true">
+      <Column v-if="enlarge" field="productNames" header="Products" filterMatchMode="in" :sortable="true">
         <template #filter>
           <InputText type="text" v-model="filters['productNames']" class="p-column-filter" />
         </template>
@@ -102,7 +115,7 @@
         </template>
       </Column>
       <!-------------------- < Column: Create At > --------------------->
-      <Column v-if="enlarge" field="createdAt" header="Create" bodyStyle="padding: 0 8px" headerStyle="width: 10%" filterMatchMode="contains" :sortable="true">
+      <Column v-if="enlarge" field="createdAt" header="Create" headerStyle="width: 10%" filterMatchMode="contains" :sortable="true">
         <template #filter>
           <InputText type="text" v-model="filters['createdAt']" class="p-column-filter" />
         </template>
@@ -116,7 +129,7 @@
         </template>
       </Column>
       <!-------------------- < Column: End At > --------------------->
-      <Column v-if="enlarge" field="endAt" header="End" bodyStyle="padding: 0 8px" headerStyle="width: 10%" filterMatchMode="contains" :sortable="true">
+      <Column v-if="enlarge" field="endAt" header="End" headerStyle="width: 10%" filterMatchMode="contains" :sortable="true">
         <template #filter>
           <InputText type="text" v-model="filters['endAt']" class="p-column-filter" />
         </template>
@@ -126,7 +139,7 @@
         </template>
       </Column>
       <!-------------------- < Column: Finish At > --------------------->
-      <Column v-if="enlarge" field="finishAt" header="Finish" bodyStyle="padding: 0 8px" headerStyle="width: 10%" filterMatchMode="contains" :sortable="true">
+      <Column v-if="enlarge" field="finishAt" header="Finish" headerStyle="width: 10%" filterMatchMode="contains" :sortable="true">
         <template #filter>
           <InputText type="text" v-model="filters['finishAt']" class="p-column-filter" />
         </template>
@@ -140,7 +153,7 @@
         </template>
       </Column>
       <!-------------------- < Column: Vietnamese Title > --------------------->
-      <Column v-if="enlarge" field="vietnameseTitle" header="Vietnamese Title" bodyStyle="padding: 0 8px" headerStyle="width: 18%" filterMatchMode="contains" :sortable="true">
+      <Column v-if="enlarge" field="vietnameseTitle" header="Vietnamese Title" headerStyle="width: 18%" filterMatchMode="contains" :sortable="true">
         <template #filter>
           <InputText type="text" v-model="filters['vietnameseTitle']" class="p-column-filter" />
         </template>
@@ -160,6 +173,10 @@
       <template #empty><div class="text-center">No records found.</div></template>
     </DataTable>
     <!-- <ProgressSpinner v-if="filmOrdersListLoading" /> -->
+    <ContextMenu :model="menuModel" ref="cm" />
+    <!-- <OverlayPanel ref="op" :showCloseIcon="true" :dismissable="true">
+      OK
+    </OverlayPanel> -->
   </div>
 </template>
 
@@ -169,13 +186,57 @@ import { mapState } from 'vuex'
 export default {
   name: 'OrderFilmColumn',
   components: {},
-  data: () => ({
-    filters: {},
-    sectedOrdersHasProd: false,
-    enlarge: true,
-    socketError: 'Disconnected',
-  }),
+  data() {
+    return {
+      filters: {},
+      sectedOrdersHasProd: false,
+      enlarge: true,
+      socketError: 'Disconnected',
+      menuModel: [],
+      menuModelNormal: [
+        { label: ``, icon: 'pi pi-dollar' },
+        { separator: true },
+        { label: 'View', icon: 'pi pi-fw pi-search', command: () => this.editOrder(this.rowClickData) },
+        { label: 'Delete', icon: 'pi pi-fw pi-times', command: () => this.deleteThisOrder({ ...this.rowClickData }) },
+      ],
+      menuNewRowModel: [{ label: 'Check', icon: 'pi pi-thumbs-up', command: () => this.$store.dispatch('Order/Film/newOrderCheck', this.rowClickData) }],
+      menuDroppedRowModel: [{ label: 'Check', icon: 'pi pi-thumbs-up', command: () => this.$store.dispatch('Order/Film/droppedOrderCheck', this.rowClickData) }],
+      menuCellCheckChangeModel: [],
+    }
+  },
+  rowClickData: null,
   methods: {
+    checkChange(e, slotProps) {
+      console.log('checkChange slotProps:', slotProps)
+      const _field = slotProps.column.field
+      const _ui = slotProps.data.ui
+      const _change = _ui[_field]
+      const _logs = _change.logs.map(log => ({ label: `${log.type} - ${log.by} - ${this.$tToString(log.at, false)}${log.note ? ` - ${log.note}` : ''}`, icon: '' }))
+      this.menuCellCheckChangeModel = [
+        { label: `Old: ${_change.old}`, icon: 'pi pi-minus-circle' },
+        { label: `New: ${_change.new}`, icon: 'pi pi-check-circle' },
+        { label: `Logs`, icon: 'pi pi-list', items: _logs },
+        { separator: true },
+        {
+          label: 'Check',
+          icon: 'pi pi-thumbs-up',
+          command: () => this.$store.dispatch('Order/Film/changeCheck', { _id: slotProps.data._id, key: _field, index: slotProps.index }),
+        },
+      ]
+      this.menuModel = this.menuCellCheckChangeModel
+      this.$refs.cm.show(e)
+    },
+    onRowClick({ originalEvent, data, index }) {
+      const {
+        target: { classList, parentElement },
+      } = originalEvent
+      if (!classList.contains('p-checkbox-box') && !parentElement.classList.contains('p-checkbox-box')) {
+        this.menuModelNormal[0].label = data._id
+        this.menuModel = data.dropped ? this.menuDroppedRowModel : data.ui ? this.menuModelNormal : this.menuNewRowModel
+        this.$refs.cm.show(originalEvent)
+        this.rowClickData = { data, index }
+      }
+    },
     addSimpleProd(order) {
       console.log(order._id)
       this.$emit('open-dialog', 'newProdForm', 'Create', 'Add new Product', order)
@@ -183,15 +244,17 @@ export default {
     editOrder(_id) {
       console.log(_id)
     },
-    allNewOrderAccept() {
-      this.$store.commit('Order/Film/allNewOrderAccept')
+    allNewOrderCheck() {
+      this.$store.dispatch('Order/Film/allNewOrderCheck')
+    },
+    allDroppedOrderCheck() {
+      this.$store.dispatch('Order/Film/allDroppedOrderCheck')
     },
     allChangedAccept() {
       this.$store.commit('Order/Film/allChangedAccept')
     },
     changedAccept(e, _id, key) {
-      e.preventDefault()
-      this.$store.commit('Order/Film/changedAccept', { _id: _id, key: key })
+      this.$store.dispatch('Order/Film/changeCheck', { _id: _id, key: key })
     },
     cellHasChanged: () => false,
     addProduct(order) {
@@ -209,7 +272,6 @@ export default {
       this.$store.commit('Order/Film/setState', { key: 'prodList', data: _prodList })
     },
     closeMessage(idx) {
-      console.log('idx', idx)
       this.$store.commit('Order/Film/spliceMess', idx)
     },
     onToggleEnlarge() {
@@ -224,7 +286,9 @@ export default {
     confirmDelOrder() {
       this.$emit('open-dialog', 'deleteConfirm', this.selected.length > 1 ? 'Delete All' : 'Delete', 'Confirm Delete - This action is undone')
     },
-    onRowSelect() {},
+    onRowSelect(e) {
+      console.log('onRowSelect: ', e)
+    },
     onRowUnselect(e) {
       if (this.prodList.length) this.$store.commit('Order/Film/filterSomeByIndexOf', { state: 'prodList', _id: e.data._id })
     },
@@ -232,7 +296,10 @@ export default {
       if (this.prodList.length) this.$store.commit('Order/Film/setState', { key: 'prodList', data: [] })
     },
     rowClass(data) {
-      return this.$store.getters['Order/Film/isDroppedOrder'](data._id) ? 'r-deleted' : this.$store.getters['Order/Film/isNewOrder'](data._id) ? 'p-info' : ''
+      return data.dropped ? 'r-deleted' : data.ui ? '' : 'r-new'
+    },
+    btnIcon(name, icon) {
+      return this.$store.state.Order.Film.btnIcon[name] ? 'pi pi-spin pi-spinner' : 'pi ' + icon
     },
   },
   computed: {
@@ -254,10 +321,13 @@ export default {
       },
     },
     hasNewOrder() {
-      return this.$store.getters['Order/Film/hasNewOrder']
+      return this.list.some(o => !o.ui)
+    },
+    hasDroppedOrder() {
+      return this.list.some(o => o.dropped)
     },
     hasOrderChanged() {
-      return this.$store.getters['Order/Film/hasOrderChanged']
+      return this.list.some(o => o.ui && this.$isObjEmpty(o.ui) === false)
     },
     messages: {
       get() {

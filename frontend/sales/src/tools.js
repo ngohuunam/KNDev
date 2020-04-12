@@ -7,8 +7,91 @@ const toProperCase = function() {
 }
 
 String.prototype.toProperCase = toProperCase
+String.prototype.toDataId = function() {
+  return this.toProperCase().replace(/\s/g, '')
+}
 
-const dateToUnix = (dateStr, hasTime) => {
+export const date = new Date()
+export const year = date.getFullYear()
+
+export const parseInt_rev = _rev => {
+  return parseInt(_rev.slice(0, _rev.indexOf('-')))
+}
+
+export const filter_rev = (logs, start_rev) => {
+  const startIndex = logs.findIndex(log => log._rev === start_rev)
+  return logs.slice(startIndex)
+}
+
+export const pushAtSort = (array, item, compareFunction) => {
+  let high = array.length - 1
+  let low = 0
+  let mid = 0
+
+  while (low <= high) {
+    // https://github.com/darkskyapp/binary-search
+    // http://googleresearch.blogspot.com/2006/06/extra-extra-read-all-about-it-nearly.html
+    mid = low + ((high - low) >> 1)
+    const _cmp = compareFunction(array[mid], item)
+    if (_cmp <= 0.0) {
+      // searching too low
+      low = mid + 1
+    } else {
+      // searching too high
+      high = mid - 1
+    }
+  }
+
+  const cmp = compareFunction(array[mid], item)
+  if (cmp <= 0.0) {
+    mid++
+  }
+
+  array.splice(mid, 0, item)
+  return mid
+}
+
+export const queryBy_id = (id, source) => {
+  let _idx
+  const _doc = source.find(({ _id }, idx) => {
+    _idx = idx
+    return _id === id
+  })
+  return { index: _idx, doc: _doc }
+}
+
+export const sortBy_id = (a, b) => (a._id > b._id ? 1 : b._id > a._id ? -1 : 0)
+
+export const pushSortBy_id = (source, item) => pushAtSort(source, item, sortBy_id)
+
+export const pushSortBy_key = (source, item, key) => pushAtSort(source, item, (a, b) => (a[key] > b[key] ? 1 : b[key] > a[key] ? -1 : 0))
+
+export const daysInMonth = (m, y) => {
+  // m is 0 indexed: 0-11
+  switch (m) {
+    case 1:
+      return (y % 4 == 0 && y % 100) || y % 400 == 0 ? 29 : 28
+    case 8:
+    case 3:
+    case 5:
+    case 10:
+      return 30
+    default:
+      return 31
+  }
+}
+
+export const dateIsValid = (dStr, mStr, yStr) => {
+  const d = parseInt(dStr)
+  const m = parseInt(mStr) - 1
+  const y = parseInt(yStr)
+  // console.log(d)
+  // console.log(m)
+  // console.log(y)
+  return m >= 0 && m < 12 && d > 0 && d <= daysInMonth(m, y)
+}
+
+export const dateToUnix = (dateStr, hasTime) => {
   if (dateStr) {
     const _dateTimeRegexCheck = hasTime ? /(\d{2})\/(\d{2})\/(\d{4}) (\d{2}):(\d{2})/ : /(\d{2})\/(\d{2})\/(\d{4})/
     const _regexCheck = new RegExp(_dateTimeRegexCheck)
@@ -24,76 +107,39 @@ const dateToUnix = (dateStr, hasTime) => {
       }
     }
   }
-  return null
+  return 0
 }
 
-const unixTime = time => (time ? (typeof time === 'string' ? dateToUnix(time) : time.getTime()) : 0)
+export const unixTime = time => (time ? (typeof time === 'string' ? dateToUnix(time) : time.getTime()) : 0)
 
-export default {
-  tToString: function(timestamp, addTime, nullString, yFormat) {
-    // console.log(timestamp)
-    if (Number.isNaN(timestamp) || timestamp < 1553048548000) return nullString
-    const _yFormat = yFormat ? yFormat : '2-digit'
-    const _newDate = new Date(timestamp)
-    const _opt = { day: '2-digit', month: '2-digit', year: _yFormat }
-    const _optAddTime = { day: '2-digit', month: '2-digit', year: _yFormat, hour: '2-digit', minute: '2-digit' }
-    return _newDate.toLocaleDateString('vi', addTime ? _optAddTime : _opt)
-  },
-  htmlStrip: function(html) {
-    const doc = new DOMParser().parseFromString(html, 'text/html')
-    return doc.body.textContent || ''
-  },
-  newOrder: order => {
-    const _newOrder = { ...Default.order.film.new, ...order, ...{ status: 'Created' } }
-    _newOrder.foreignTitle = _newOrder.foreignTitle.toProperCase()
-    _newOrder._id = _newOrder.foreignTitle.replace(/\s/g, '')
-    _newOrder.vietnameseTitle = _newOrder.vietnameseTitle.toProperCase()
-    _newOrder.premiereDate = unixTime(_newOrder.premiereDate)
-    _newOrder.endAt = unixTime(_newOrder.endAt)
-    return _newOrder
-  },
-  dateToUnix,
-  daysInMonth,
-  dateIsValid,
+export const tToString = (timestamp, addTime, nullString, yFormat) => {
+  // console.log(timestamp)
+  if (Number.isNaN(timestamp) || timestamp < 1553048548000) return nullString
+  const _yFormat = yFormat ? yFormat : '2-digit'
+  const _newDate = new Date(timestamp)
+  const _opt = { day: '2-digit', month: '2-digit', year: _yFormat }
+  const _optAddTime = { day: '2-digit', month: '2-digit', year: _yFormat, hour: '2-digit', minute: '2-digit' }
+  return _newDate.toLocaleDateString('vi', addTime ? _optAddTime : _opt)
 }
 
-const daysInMonth = (m, y) => {
-  // m is 0 indexed: 0-11
-  switch (m) {
-    case 1:
-      return (y % 4 == 0 && y % 100) || y % 400 == 0 ? 29 : 28
-    case 8:
-    case 3:
-    case 5:
-    case 10:
-      return 30
-    default:
-      return 31
-  }
+export const htmlStrip = html => {
+  const doc = new DOMParser().parseFromString(html, 'text/html')
+  return doc.body.textContent || ''
 }
 
-const dateIsValid = (dStr, mStr, yStr) => {
-  const d = parseInt(dStr)
-  const m = parseInt(mStr) - 1
-  const y = parseInt(yStr)
-  // console.log(d)
-  // console.log(m)
-  // console.log(y)
-  return m >= 0 && m < 12 && d > 0 && d <= daysInMonth(m, y)
+export const newOrder = order => {
+  const _newOrder = { ...Default.order.film.new, ...order, ...{ status: 'Created' } }
+  _newOrder.foreignTitle = _newOrder.foreignTitle.toProperCase()
+  _newOrder._id = _newOrder.foreignTitle.replace(/\s/g, '')
+  _newOrder.vietnameseTitle = _newOrder.vietnameseTitle.toProperCase()
+  _newOrder.premiereDate = unixTime(_newOrder.premiereDate)
+  _newOrder.endAt = unixTime(_newOrder.endAt)
+  return _newOrder
 }
 
-// const validateDate = (dateStr, hasTime) => {
-//   if (dateStr) {
-//     const _dateTimeRegexCheck = hasTime ? /(\d{2})\/(\d{2})\/(\d{4}) (\d{2}):(\d{2})/ : /(\d{2})\/(\d{2})\/(\d{4})/
-//     const _regexCheck = new RegExp(_dateTimeRegexCheck)
-//     if (_regexCheck.test(dateStr)) {
-//       const parts = dateStr.match(_dateTimeRegexCheck)
-//       if (dateIsValid(parts[3], parts[2], parts[1])) {
-//         const _fitTimeZoneMs = 7 * 24 * 3600 * 1000
-//         const _dt = hasTime ? Date.UTC(+parts[3], parts[2] - 1, +parts[1], +parts[4], +parts[5]) : Date.UTC(+parts[3], parts[2] - 1, +parts[1])
-//         return _dt + _fitTimeZoneMs
-//       }
-//     }
-//   }
-//   return NaN
-// }
+export const isObjEmpty = obj => {
+  for (let key in obj) return false
+  return true
+}
+
+export const filmState = { ...Default.order.film }

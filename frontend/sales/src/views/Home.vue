@@ -19,7 +19,7 @@
       :closable="false"
       :disableKeyTab="disableKeyTab"
     >
-      <BlockUI :blocked="loading" fullScreen @unblock="unblock">
+      <BlockUI v-if="dialogComponent" :blocked="loading">
         <component :key="confirmBtnLabel" :is="dialogComponent" :ref="compRef" @switch-comp="openDialog" :cp="compProps" />
         <NewMessage v-if="dialogMess.text" @close-message="closeMessage" :severity="dialogMess.severity">{{ dialogMess.text }}</NewMessage>
       </BlockUI>

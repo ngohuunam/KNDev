@@ -3,6 +3,7 @@ export default {
   selected: [],
   seq: null,
   loading: true,
+  btnIcon: {},
   changes: [],
   newOrder: null,
   newOrderLabels: [

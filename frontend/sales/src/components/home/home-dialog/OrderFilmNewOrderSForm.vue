@@ -81,7 +81,7 @@
 
 <script>
 import defaultState from '@/assets/defaultState'
-import tools from '@/tools'
+import { dateToUnix } from '@/tools'
 
 const randomOrderId = () => Date.now() + Math.floor(Math.random() * 100 + 1)
 const randomNewOrder = () => ({ ...defaultState.newOrder, ...{ _id: randomOrderId(), note: '' } })
@@ -100,7 +100,7 @@ export default {
     parseDateTime(slotProps, hasTime) {
       const _field = slotProps.column.field
       const _str = slotProps.data[_field]
-      const _unix = tools.dateToUnix(_str, hasTime)
+      const _unix = dateToUnix(_str, hasTime)
       if (_unix) return _unix
       this.errors[slotProps.index][_field] = true
     },

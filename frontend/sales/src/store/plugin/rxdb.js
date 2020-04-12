@@ -6,28 +6,37 @@ import RxDBSchemaCheckModule from 'rxdb/plugins/schema-check'
 import RxDBValidateModule from 'rxdb/plugins/validate'
 import RxErrorsModule from 'rxdb/plugins/error-messages'
 import JsonDumpPlugin from 'rxdb/plugins/json-dump'
+// import UpdatePlugin from 'rxdb/plugins/update'
 import * as PouchdbAdapterHttp from 'pouchdb-adapter-http'
 import PouchdbAdapterIndexeddb from 'pouchdb-adapter-indexeddb'
 import PouchDB from 'pouchdb-core'
 import { fetch } from 'pouchdb-fetch'
+import userSchema from './schema/user.RxSchema'
 
-const init = (dbname, colName, schema, token, endpoint) => {
+const init = (dbname, colName, schema, token, userId, endpoint) => {
   loadRxDBPlugins()
-  const result = { col: null, replicationState: null }
+  const result = { docs: [], json: [], col: null, replicationState: null, user: null }
   return RxDatabase(dbname).then(db =>
-    RxCollection(db, colName, schema).then(col => {
-      return col.dump().then(json => {
-        console.log('json: ', json)
-        result.docs = json.docs
-        result.col = col
-        result.replicationState = RxReplicationState(col, token, endpoint)
-        return result
+    Promise.all([RxCollection(db, colName, schema), RxCollection(db, 'user', userSchema)]).then(() => {
+      return Promise.all([sync(db.collections[colName], token, endpoint), sync(db.collections['user'], token, 'staffs', { _id: { $eq: userId } })]).then(() => {
+        result.col = db.collections[colName]
+        result.replicationState = RxReplicate(result.col, token, endpoint)
+        RxReplicate(db.collections['user'], token, 'staffs', { _id: { $eq: userId } })
+        return Promise.all([
+          result.col.dump().then(json => {
+            result.json = json.docs
+          }),
+          db.collections['user']
+            .findOne(userId)
+            .exec()
+            .then(_doc => (result.user = _doc)),
+        ]).then(() => {
+          return result
+        })
       })
     }),
   )
 }
-
-// col.dump().then(json => console.dir(json))
 
 const RxDatabase = dbname => {
   return createRxDatabase({
@@ -39,11 +48,6 @@ const RxDatabase = dbname => {
       auto_compaction: true,
       adapter: 'indexeddb',
     },
-  }).then(_db => {
-    return _db.waitForLeadership().then(() => {
-      console.log('isLeader now')
-      return _db
-    })
   })
 }
 
@@ -56,14 +60,39 @@ const RxCollection = (rxDb, colName, schema) => {
   })
 }
 
-const RxReplicationState = (rxCol, token, endpoint, options = { live: true, retry: true }, direction = { pull: true, push: true }) => {
-  return rxCol.sync({
+const sync = (rxCol, token, endpoint, query) => {
+  const _sub$ = { e: '', d: '', c: '' }
+  const opt = {
+    remote: rxRemote(token, endpoint),
+    waitForLeadership: false,
+    direction: { pull: true, push: false },
+    options: { live: false, retry: true },
+  }
+  if (query) opt.query = rxCol.find(query)
+  return new Promise((resolve, reject) => {
+    const syncState = rxCol.sync(opt)
+    _sub$.c = syncState.complete$.subscribe(completed => {
+      // console.log(`sync ${endpoint} complete$: `, completed)
+      if (completed) {
+        rxCol.seq = completed.last_seq
+        for (let key in _sub$) _sub$[key].unsubscribe()
+        resolve(completed)
+      }
+    })
+    _sub$.e = syncState.error$.subscribe(error => reject(error))
+    _sub$.d = syncState.denied$.subscribe(docData => reject(docData))
+  })
+}
+
+const RxReplicate = (rxCol, token, endpoint, query) => {
+  const opt = {
     remote: rxRemote(token, endpoint),
     waitForLeadership: true,
-    direction: direction,
-    options: options,
-    query: rxCol.find({ _deleted: { $exists: false } }),
-  })
+    direction: { pull: true, push: true },
+    options: { live: true, retry: true },
+  }
+  if (query) opt.query = rxCol.find(query)
+  return rxCol.sync(opt)
 }
 
 const rxRemote = (token, endpoint) =>
@@ -84,6 +113,7 @@ const loadRxDBPlugins = () => {
   addRxDBPlugin(RxDBValidateModule)
   addRxDBPlugin(RxErrorsModule)
   addRxDBPlugin(JsonDumpPlugin)
+  // addRxDBPlugin(UpdatePlugin)
 }
 
 export default init

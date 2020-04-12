@@ -149,6 +149,9 @@ Vue.component('FileUpload', FileUpload)
 import InputMask from 'primevue/inputmask'
 Vue.component('InputMask', InputMask)
 
+// import OverlayPanel from 'primevue/overlaypanel'
+// Vue.component('OverlayPanel', OverlayPanel)
+
 import 'primevue/resources/themes/nova-light/theme.css'
 import 'primevue/resources/primevue.min.css'
 import 'primeicons/primeicons.css'

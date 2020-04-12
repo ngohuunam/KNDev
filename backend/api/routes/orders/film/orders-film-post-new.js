@@ -9,7 +9,7 @@ const ordersFilmPostNew = async ({ db, body, user }, res, next) => {
     const _res = { doc: _doc, seq: db.seq }
     return res.status(200).json(_res)
   } catch (e) {
-    if (e.message.indexOf('conflict') > -1) e.info = JSON.parse(JSON.stringify(e))
+    if (e.message.includes('conflict')) e.info = JSON.parse(JSON.stringify(e))
     return next(e)
   }
 }

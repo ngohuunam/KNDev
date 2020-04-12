@@ -55,7 +55,7 @@ const initLogger = fileName => {
   const logger = createLogger({
     format: combine(
       timestamp({
-        format: 'DD-MM-YYYY HH:mm',
+        format: 'DD-MM-YYYY HH:mm:ss',
       }),
       // simple(),
       prettyPrint(),

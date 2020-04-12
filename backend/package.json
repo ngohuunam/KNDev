@@ -12,6 +12,7 @@
     "@host": "host/app",
     "@api": "api/app",
     "@web": "web/app",
+    "@db": "db/app",
     "@errors": "errors/app",
     "@logs": "logs"
   },
@@ -38,6 +39,10 @@
     "passport-jwt": "^4.0.0",
     "passport-local": "^1.0.0",
     "pouchdb": "^7.2.1",
+    "pouchdb-adapter-http": "^7.2.1",
+    "pouchdb-adapter-memory": "^7.2.1",
+    "rxdb": "^8.8.0",
+    "rxjs": "^6.5.5",
     "socket.io": "^2.3.0",
     "winston": "^3.2.1"
   },

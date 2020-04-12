@@ -27,6 +27,7 @@ export default {
         prodList: [],
         prodListSelected: [],
       },
+      checkKeys: ['team', 'endAt', 'finishAt', 'foreignTitle', 'vietnameseTitle', 'premiereDate', 'status', 'productNames'],
       new: {
         _id: '',
         client: 'Film',

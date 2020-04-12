@@ -12,9 +12,11 @@ const app = express()
 // --------
 const api = require('@api')
 const web = require('@web')
+const db = require('@db')
 // const errors = require('@errors')
 
 app.use('/api', api)
+app.use('/db', db)
 app.use('/', web)
 // app.use(errors)
 

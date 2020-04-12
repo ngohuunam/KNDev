@@ -15,7 +15,7 @@ module.exports = {
   ],
   // couchdb: 'http://hnam:1234@192.168.1.11:5984/',
   couchdb: {
-    url: 'http://163.172.176.57:5984/',
+    url: 'http://163.172.176.57:5984',
     // eslint-disable-next-line no-unused-vars
     log: (id, args) => {
       if (args) couchdbLogger.info(JSON.stringify({ args }))

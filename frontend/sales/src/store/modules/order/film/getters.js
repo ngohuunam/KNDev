@@ -1,4 +1,4 @@
-import tools from '@/tools'
+import { tToString, htmlStrip } from '@/tools'
 
 export const openDialog = state => {
   return state.createNewOrder || state.wantDelOrder
@@ -40,8 +40,8 @@ export const newOrderConfirmTableProperties = state => {
       { name: 'Vietnamese Title', value: state.newOrderConverted.vietnameseTitle },
       { name: 'Client', value: state.newOrderConverted.client },
       { name: 'Team', value: state.newOrderConverted.team },
-      { name: 'NKC', value: tools.tToString(state.newOrderConverted.premiereDate, false, '', 'numeric') },
-      { name: 'Deadline', value: tools.tToString(state.newOrderConverted.endAt, true, 'Empty', 'numeric') },
+      { name: 'NKC', value: tToString(state.newOrderConverted.premiereDate, false, '', 'numeric') },
+      { name: 'Deadline', value: tToString(state.newOrderConverted.endAt, true, 'Empty', 'numeric') },
     ]
   else return []
 }
@@ -52,8 +52,8 @@ export const newProdConfirmTableProperties = state => {
       { name: 'ID', value: state.newProdConverted._id },
       { name: 'Product Name', value: state.newProdConverted.name },
       { name: 'Type', value: state.newProdConverted.type },
-      { name: 'Details:', value: tools.htmlStrip(state.newProdConverted.details) },
-      { name: 'Deadline', value: tools.tToString(state.newProdConverted.endAt, true, 'Not assign yet', 'numeric') },
+      { name: 'Details:', value: htmlStrip(state.newProdConverted.details) },
+      { name: 'Deadline', value: tToString(state.newProdConverted.endAt, true, 'Not assign yet', 'numeric') },
     ]
   else return []
 }

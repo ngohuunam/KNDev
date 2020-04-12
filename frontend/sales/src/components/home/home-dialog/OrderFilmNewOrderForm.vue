@@ -101,7 +101,7 @@ export default {
   },
   created: function() {
     console.log(defaultState)
-    this.newOrder = defaultState.order.film.new
+    this.newOrder = { ...defaultState.order.film.new }
   },
   beforeDestroy: function() {},
 }
