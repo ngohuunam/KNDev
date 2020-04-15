@@ -15,6 +15,14 @@ export const setStateDeep = (state, { dotPath, key, value }) => {
   Vue.set(deepState, key, value)
 }
 
+export const load = (state, { from, dotPath, key, prop }) => {
+  const deepStateFrom = from.split('.').reduce((o, i) => o[i], state)
+  const _filter = deepStateFrom.map(item => item[prop])
+  let deepStateTo = dotPath.split('.').reduce((o, i) => o[i], state)
+  Vue.set(deepStateTo, key, _filter)
+  console.log(deepStateTo)
+}
+
 export const pushState = (state, payload) => {
   state[payload.state].push(payload.value)
 }

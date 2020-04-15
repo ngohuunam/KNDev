@@ -3,8 +3,11 @@
     <!-- <div class="center"><img alt="Vue logo" src="../assets/logoKN.png" /></div> -->
 
     <div class="p-grid">
-      <div :class="orderColumnClass">
-        <keep-alive> <OrderFilmColumn @toggle-enlarge="toggleOrderColumnEnlarge" @open-dialog="openDialog" /> </keep-alive>
+      <div :class="orderFilmColumnClass">
+        <OrderFilmColumn @toggle-enlarge="toggleOrderFilmColumnEnlarge" @open-dialog="openDialog" />
+      </div>
+      <div v-if="hasProdFilmTable" :class="prodFilmColumnClass">
+        <ProdFilmColumn @toggle-enlarge="toggleProdFilmColumnEnlarge" @open-dialog="openDialog" />
       </div>
     </div>
     <NewDialog
@@ -39,6 +42,7 @@
 <script>
 // @ is an alias to /src
 import OrderFilmColumn from '@/components/home/home-columns/OrderFilmColumn.vue'
+import ProdFilmColumn from '@/components/home/home-columns/ProdFilmColumn.vue'
 import OrderFilmDeleteConfirm from '@/components/home/home-dialog/OrderFilmDeleteConfirm.vue'
 import OrderFilmNewOrderForm from '@/components/home/home-dialog/OrderFilmNewOrderForm.vue'
 import OrderFilmNewOrderConfirm from '@/components/home/home-dialog/OrderFilmNewOrderConfirm.vue'
@@ -50,6 +54,7 @@ export default {
   name: 'Home',
   components: {
     OrderFilmColumn,
+    ProdFilmColumn,
     deleteConfirm: OrderFilmDeleteConfirm,
     newOrderForm: OrderFilmNewOrderForm,
     newOrderConfirm: OrderFilmNewOrderConfirm,
@@ -59,8 +64,8 @@ export default {
   },
   data: () => ({
     dialogComponent: null,
-    orderColumnEnlarge: true,
-    productSimpleColumnEnlarge: true,
+    orderFilmColumnEnlarge: true,
+    prodFilmColumnEnlarge: true,
     jobColumnEnlarge: true,
     confirmBtnLabel: '',
     dialogHeader: '',
@@ -105,11 +110,11 @@ export default {
     forceCreate() {
       this.$refs[this.compRef].doCreate()
     },
-    toggleOrderColumnEnlarge() {
-      this.orderColumnEnlarge = !this.orderColumnEnlarge
+    toggleOrderFilmColumnEnlarge() {
+      this.orderFilmColumnEnlarge = !this.orderFilmColumnEnlarge
     },
-    toggleProductSimpleColumnEnlarge() {
-      this.productSimpleColumnEnlarge = !this.productSimpleColumnEnlarge
+    toggleProdFilmColumnEnlarge() {
+      this.prodFilmColumnEnlarge = !this.prodFilmColumnEnlarge
     },
     toggleJobColumnEnlarge() {
       this.jobColumnEnlarge = !this.jobColumnEnlarge
@@ -125,6 +130,9 @@ export default {
     },
   },
   computed: {
+    hasProdFilmTable() {
+      return this.$store.getters['Prod/Film/tableList'].length > 0
+    },
     isOpenDialog: {
       get() {
         return this.$store.state.Dialog.isOpen
@@ -141,25 +149,17 @@ export default {
         this.$store.commit('Dialog/setMess', value)
       },
     },
-    newOrder: {
-      get() {
-        return this.$store.state.Order.Film.newOrder
-      },
-      set(value) {
-        this.$store.commit('OrderFilm/setState', { key: 'newOrder', data: value })
-      },
-    },
     buttonIcon() {
       return this.loading ? 'pi pi-spin pi-spinner' : 'pi pi-check'
     },
     loading() {
       return this.$store.state.Dialog.loading
     },
-    orderColumnClass: function() {
-      return this.orderColumnEnlarge ? 'p-col-12' : 'p-col-2'
+    orderFilmColumnClass: function() {
+      return this.orderFilmColumnEnlarge ? 'p-col-12' : 'p-col-2'
     },
-    productSimpleColumnClass: function() {
-      return this.productSimpleColumnEnlarge ? (this.orderColumnEnlarge ? 'p-col-12' : 'p-col-10') : 'p-col-2'
+    prodFilmColumnClass: function() {
+      return this.prodFilmColumnEnlarge ? (this.orderFilmColumnEnlarge ? 'p-col-12' : 'p-col-10') : 'p-col-2'
     },
     jobColumnClass: function() {
       return this.jobColumnEnlarge ? 'p-col-3' : 'p-col-1'

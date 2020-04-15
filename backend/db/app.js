@@ -30,7 +30,7 @@ app.use('/', authJwt)
 app.use(morgan(morganFormat, { stream: dbLogger.stream }))
 // app.use(logToConsole, proxy(couchUrl))
 app.use(
-  proxy(process.env.COUCH_URL, {
+  proxy(process.env.COUCHDB_URL, {
     // proxyReqPathResolver: function(req) {
     //   return '/couchdb'.concat(req.path)
     // },

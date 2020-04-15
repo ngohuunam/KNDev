@@ -1,6 +1,7 @@
 export default {
   list: [],
   selected: [],
+  table: [],
   seq: null,
   loading: true,
   btnIcon: {},

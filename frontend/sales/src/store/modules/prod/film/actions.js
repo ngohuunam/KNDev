@@ -10,8 +10,8 @@ export const newItem = async ({ state, commit, rootState }) => {
   commit('Worker', { name: 'newItem', payload: state.converted })
 }
 
-export const allNewOrderCheck = ({ state, commit }) => {
-  state.btnIcon['allNewOrderCheck'] = true
+export const allNewCheck = ({ state, commit }) => {
+  state.btnIcon['allNewCheck'] = true
   const payload = { datas: [], indexs: [] }
   state.list.map((ord, i) => {
     if (!ord.ui) {
@@ -20,23 +20,23 @@ export const allNewOrderCheck = ({ state, commit }) => {
       payload.indexs.push(i)
     }
   })
-  commit('Worker', { name: 'allNewOrderCheck', payload })
+  commit('Worker', { name: 'allNewCheck', payload })
 }
 
-export const newOrderCheck = ({ state, commit }, { data, index }) => {
+export const newCheck = ({ state, commit }, { data, index }) => {
   data.icon = 'pi-spin pi-spinner color-red'
   Vue.set(state.list, index, data)
-  commit('Worker', { name: 'newOrderCheck', payload: { data, index } })
+  commit('Worker', { name: 'newCheck', payload: { data, index } })
 }
 
-export const droppedOrderCheck = ({ state, commit }, { data, index }) => {
+export const droppedCheck = ({ state, commit }, { data, index }) => {
   data.icon = 'pi-spin pi-spinner color-red'
   Vue.set(state.list, index, data)
-  commit('Worker', { name: 'droppedOrderCheck', payload: { data, index } })
+  commit('Worker', { name: 'droppedCheck', payload: { data, index } })
 }
 
-export const allDroppedOrderCheck = ({ state, commit }) => {
-  state.btnIcon['allDroppedOrderCheck'] = true
+export const allDroppedCheck = ({ state, commit }) => {
+  state.btnIcon['allDroppedCheck'] = true
   const payload = { datas: [], indexs: [] }
   state.list.map((ord, i) => {
     if (ord.dropped) {
@@ -45,7 +45,7 @@ export const allDroppedOrderCheck = ({ state, commit }) => {
       payload.indexs.push(i)
     }
   })
-  commit('Worker', { name: 'allDroppedOrderCheck', payload })
+  commit('Worker', { name: 'allDroppedCheck', payload })
 }
 
 export const changeCheck = ({ state, commit }, { _id, key, index }) => {

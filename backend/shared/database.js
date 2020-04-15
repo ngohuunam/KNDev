@@ -1,5 +1,6 @@
 const { couchdb, secret, dbOpt, dbLog } = require('./setting')
 const nano = require('nano')(couchdb)
+// console.log(nano)
 const { encrypt } = require('./crypto')
 const socket = require('./socket')
 const { initLogger } = require('./logger')

@@ -85,7 +85,7 @@ export default {
     doCreate(idChecked) {
       if (!idChecked) this.checkId()
       if (this.newProd._id) {
-        this.$store.commit('Prod/Film/create')
+        this.$store.commit('Prod/Film/create', this.newProd)
         this.$emit('switch-comp', 'newProdConfirm', 'Save', 'Save new product confirm', this.cp)
         this.dialogMess = { text: '', severity: '' }
       } else this.dialogMess = { text: "Product's name required", severity: 'error' }

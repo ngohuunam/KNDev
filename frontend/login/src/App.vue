@@ -2,7 +2,7 @@
   <div id="app">
     <Loading v-show="isLoading" />
     <HelloWorld v-show="!isLoading" />
-    <div class="version">V0.202</div>
+    <!-- <div class="version">V0.202</div> -->
   </div>
 </template>
 

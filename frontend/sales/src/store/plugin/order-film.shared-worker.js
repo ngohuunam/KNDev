@@ -1,18 +1,20 @@
 // import io from 'socket.io-client'
 // import { Store, get } from 'idb-keyval'
-import initRxDB from './rxdb'
-import schema from './schema/order-film'
-import { pushSortBy_id, newOrder as repareNewOrder, queryBy_id, year, filter_rev } from '../../tools'
+// import initRxDB from './rxdb'
+import schema from './schema/order-film.schema'
+import { newOrder as repareNewOrder, queryBy_id, year } from '../../tools'
+import { updateUserState, initDB, subscribeInsert, subscribeUpdate, preInsert, rxUserUpdateSubcribe } from './rx-subcribe-func'
 
 const { console } = self
 
 // const user_store = new Store('kn', 'data')
-let rxUser, film, ui, user
-let list = []
+let film, ui, user, RxCollection, list, rxUser
 const ports = []
-let RxCollection, RxReplicationState
 let ready = false
 const checkKeys = ['team', 'endAt', 'finishAt', 'foreignTitle', 'vietnameseTitle', 'premiereDate', 'status', 'productNames']
+const dbName = 'order'
+const colName = 'film'
+const endpoint = 'order_film_2020'
 
 const postMessage = msg => {
   const len = ports.length
@@ -25,74 +27,27 @@ const commit = (type, payload) => postMessage({ action: 'commit', type: `Order/F
 
 const commitRoot = (type, payload) => postMessage({ action: 'commit', type, payload })
 
-const init = (token, user_id) => {
-  console.log('token:', token)
-  console.log('user_id:', user_id)
-  return initRxDB('order', 'film', schema, token, user_id, 'order_film_2020').then(db => {
-    db.col.database.waitForLeadership().then(() => console.log('isLeader now'))
-    RxCollection = db.col
-    RxReplicationState = db.replicationState
-    rxUser = db.user
-    user = rxUser.toJSON()
-    film = user.state[year].order.film
-    ui = film.ui
-    // console.log('rxUser', rxUser)
-    // console.log('ui: ', ui)
-    list = db.json.reduce((acc, current) => {
-      const _key = current._id
-      if (ui[_key]) current.ui = ui[_key]
-      if (current.dropped && !current.ui) return acc
-      acc.push(current)
-      return acc
-    }, [])
-    // console.log('RxCollection: ', RxCollection)
-    // console.log('list: ', list)
-    RxReplicationState.change$.subscribe(changeObj => {
-      console.log('change$: ', changeObj)
-      // commit('setSeq', changeObj.change.last_seq)
+const init = (token, user_id) =>
+  initDB(dbName, colName, schema, token, user_id, endpoint, commit, checkKeys)
+    .then(_res => {
+      console.log('init _res: ', _res)
+      ready = _res.ready
+      user = _res.user
+      film = user.state[year][dbName][colName]
+      ui = film.ui
+      list = _res.list
+      RxCollection = _res.col
+      rxUser = _res.rxUser
+      _res.replicationState.denied$.subscribe(docData => console.log('denied$: ', docData))
+      _res.replicationState.error$.subscribe(error => console.error('error$: ', error))
+
+      RxCollection.insert$.subscribe(changeEvent => subscribeInsert(changeEvent, commit, list))
+      RxCollection.update$.subscribe(changeEvent => subscribeUpdate(changeEvent, checkKeys, list, ui, commit, film, user, rxUser))
+      RxCollection.preInsert(docObj => preInsert(docObj, user), true)
+
+      rxUser.collection.update$.subscribe(changeEvent => rxUserUpdateSubcribe(changeEvent, year, dbName, film, list, ui, commit))
     })
-    RxReplicationState.denied$.subscribe(docData => console.log('denied$: ', docData))
-    RxReplicationState.error$.subscribe(error => console.error('error$: ', error))
-
-    RxCollection.insert$.subscribe(subscribeInsert)
-    RxCollection.update$.subscribe(changeEvent => subscribeUpdate(changeEvent, checkKeys))
-    RxCollection.preInsert(preInsert, true)
-
-    rxUser.collection.update$.subscribe(rxUserUpdateSubcribe)
-    commit('setStates', { keys: ['list', 'loading'], datas: [list, false] })
-    // commitRoot('setState', { key: 'loading', data: false })
-    // initSocketIo(url)
-    ready = true
-  })
-}
-
-const rxUserUpdateSubcribe = changeEvent => {
-  console.log('rxUser update$: ', changeEvent)
-  if (changeEvent.data.db === 'remote') {
-    const _newUser = { ...changeEvent.data.v }
-    const _newFilm = _newUser.state[year].prod.film
-    if (_newFilm._rev !== film._rev) {
-      const _newUi = _newFilm.ui
-      const _lastKey = _newFilm.last
-      const _index = list.findIndex(_it => _it._id === _lastKey._id)
-      switch (_lastKey.type) {
-        case 'd':
-          delete ui[_lastKey._id]
-          list.splice(_index, 1)
-          break
-        case 'n':
-          ui[_lastKey._id] = {}
-          list[_index].ui = {}
-          break
-        case 'c':
-          ui[_lastKey._id] = _newUi[_lastKey._id]
-          list[_index].ui = _newUi[_lastKey._id]
-          break
-      }
-      commit('setState', { key: 'list', data: list })
-    }
-  }
-}
+    .catch(e => console.error(e))
 
 // const initSocketIo = url => {
 //   const cloneUser = { ...user }
@@ -122,52 +77,51 @@ self.onconnect = e => {
 }
 
 const getStatus = ({ token, _id }) => {
-  if (ready) {
-    commit('setStates', { keys: ['list', 'loading'], datas: [list, false] })
-    // commitRoot('setState', { key: 'loading', data: false })
-  } else {
-    init(token, _id)
-      .then()
-      .catch(e => console.error(e))
-  }
+  if (ready) commit('setStates', { keys: ['list', 'loading'], datas: [list, false] })
+  else init(token, _id)
 }
 
 const newProd = prod => {
   console.log(prod)
-  prod = preInsert(prod, true)
   const _order_id = prod.orderId
   const _query = queryBy_id(_order_id, list)
   const _order = { ..._query.doc }
   _order.products.unshift(prod._id)
-  _order.productNames = _order.products.join(', ')
-  _order.logs.unshift({ type: 'Add prod', _rev: _order._rev, at: prod.createdAt, by: user._id, note: prod.note })
+  _order.productNames = prod.name + (_order.productNames ? ', ' + _order.productNames : '')
+  _order.logs.unshift({ type: 'Add prod', name: prod.name, _rev: _order._rev, at: Date.now(), by: user._id, note: prod.note })
   delete _order.ui
   return RxCollection.upsert(_order)
     .then(() => commitCloseDialog('Create'))
     .catch(e => console.error(e))
 }
 
-const newOrder = (order, isMulti) => {
+const newOrder = order => {
   return RxCollection.insert(order)
     .then(_doc => {
       console.log(_doc)
-      if (!isMulti) {
-        commit('setStates', { keys: ['new', 'converted'], datas: [null, null] })
-        commitCloseDialog('Create')
-      }
+      commit('setStates', { keys: ['new', 'converted'], datas: [null, null] })
+      commitCloseDialog('Create')
       return _doc
     })
     .catch(e => {
       console.error(e)
       if (e.message.includes('conflict')) commitRoot('pushToasts', { severity: 'error', summary: 'CONFLICT', detail: `${order._id} existed`, life: 10000 })
       else commitRoot('pushToasts', { severity: 'error', summary: 'ERROR', detail: `${e.message}`, life: 10000 })
-      if (!isMulti) commitCloseDialog('')
+      commitCloseDialog('')
     })
 }
 
 const newOrders = orders => {
-  const _newOrders = orders.map(o => repareNewOrder({ ...o }))
-  return Promise.all(_newOrders.map(_newOrder => newOrder(_newOrder, true)))
+  return Promise.all(
+    orders.map(_order => {
+      _order = repareNewOrder(_order)
+      return RxCollection.insert(_order).catch(e => {
+        console.error(e)
+        if (e.message.includes('conflict')) commitRoot('pushToasts', { severity: 'error', summary: 'CONFLICT', detail: `${_order._id} existed`, life: 10000 })
+        else commitRoot('pushToasts', { severity: 'error', summary: 'ERROR', detail: `${e.message}`, life: 10000 })
+      })
+    }),
+  )
     .then(_docs => {
       console.log('newOrders _docs: ', _docs)
       const _docOks = _docs.map(_doc => {
@@ -204,88 +158,26 @@ const commitCloseDialog = mess => {
   }, 1000)
 }
 
-const subscribeInsert = changeEvent => {
-  console.log('insert$: ', changeEvent)
-  const _$doc = { ...changeEvent.data.v }
-  if (list.length) {
-    const { doc, index } = queryBy_id(_$doc._id, list)
-    if (!doc) {
-      const _idx = pushSortBy_id(list, _$doc)
-      commit('insertAt', { key: 'list', data: _$doc, idx: _idx })
-    } else if (!doc._rev.startsWith('1-')) {
-      list[index] = _$doc
-      commit('replaceAt', { key: 'list', data: _$doc, idx: index })
-    }
-  } else {
-    list.push(_$doc)
-    commit('setState', { key: 'list', data: list })
-  }
-}
+const allNewCheck = ({ datas, indexs }) => datas.map((data, i) => newCheck({ data, index: indexs[i] }))
 
-const subscribeUpdate = (changeEvent, _checkKeys) => {
-  console.log('update$: ', changeEvent)
-  const _$doc = { ...changeEvent.data.v }
-  let _needUpdateUserState = false
-  if (ui[_$doc._id]) _$doc.ui = ui[_$doc._id]
-  if (list.length) {
-    const { doc, index } = queryBy_id(_$doc._id, list)
-    if (!doc) {
-      const _idx = pushSortBy_id(list, _$doc)
-      commit('insertAt', { key: 'list', data: _$doc, idx: _idx })
-    } else if (doc._rev !== _$doc._rev) {
-      if (!_$doc.dropped) {
-        // if (!_$doc.ui) _$doc.ui = {}
-        const _currentUi = ui[_$doc._id]
-        _checkKeys.map(key => {
-          if (doc[key] !== _$doc[key]) {
-            const _change = { old: doc[key], new: _$doc[key], logs: filter_rev(_$doc.logs, doc._rev) }
-            _$doc.ui[key] = _change
-            _currentUi[key] = _change
-            console.log('_$doc._id:', _$doc._id)
-            console.log('key:', key)
-            console.log('change:', _change)
-            _needUpdateUserState = true
-          }
-        })
-      }
-      if (_needUpdateUserState) updateUserState({ type: 'c', _id: _$doc._id })
-      list[index] = _$doc
-      commit('replaceAt', { key: 'list', data: _$doc, idx: index })
-    }
-  } else {
-    list.push(_$doc)
-    commit('setState', { key: 'list', data: list })
-  }
-}
+const allDroppedCheck = ({ datas, indexs }) => datas.map((data, i) => droppedCheck({ data, index: indexs[i] }, true))
 
-const preInsert = (docObj, needReturn) => {
-  docObj.createdAt = Date.now()
-  docObj.createdBy = user._id
-  docObj.logs.unshift({ type: 'Create', _rev: null, at: docObj.createdAt, by: user._id, note: docObj.note })
-  delete docObj.note
-  if (needReturn) return docObj
-}
-
-const allNewOrderCheck = ({ datas, indexs }) => datas.map((data, i) => newOrderCheck({ data, index: indexs[i] }))
-
-const allDroppedOrderCheck = ({ datas, indexs }) => datas.map((data, i) => droppedOrderCheck({ data, index: indexs[i] }, true))
-
-const newOrderCheck = ({ data, index }) => {
+const newCheck = ({ data, index }) => {
   data.icon = 'pi-check color-green'
   list[index] = data
   data.ui = {}
   ui[data._id] = {}
-  updateUserState({ type: 'n', _id: data._id }).then(() => {
+  updateUserState({ type: 'new', _id: data._id }, film, user, rxUser).then(() => {
     commit('replaceAt', { key: 'list', data, idx: index })
     delete data.icon
     setTimeout(() => commitRoot('setStateDeep', { dotPath: 'Order.Film.list', key: index, value: data }), 3000)
   })
 }
 
-const droppedOrderCheck = ({ data, index }, isMulti) => {
+const droppedCheck = ({ data, index }, isMulti) => {
   list.splice(index, 1)
   delete ui[data._id]
-  updateUserState({ type: 'd', _id: data._id }).then(() => {
+  updateUserState({ type: 'drop', _id: data._id }, film, user, rxUser).then(() => {
     if (isMulti) commit('splice', { key: 'list', _id: data._id })
     else commit('spliceAt', { key: 'list', idx: index })
   })
@@ -294,17 +186,7 @@ const droppedOrderCheck = ({ data, index }, isMulti) => {
 const changeCheck = ({ _id, key, index }) => {
   delete list[index].ui[key]
   delete ui[_id][key]
-  updateUserState({ type: 'c', _id: _id }).then(() => commit('replaceAt', { key: 'list', data: list[index], idx: index }))
+  updateUserState({ type: 'check', _id: _id, key: key }, film, user, rxUser).then(() => commit('replaceAt', { key: 'list', data: list[index], idx: index }))
 }
 
-const updateUserState = info => {
-  film.last = info
-  film.timestamp = Date.now()
-  return rxUser.atomicUpdate(oldData => {
-    film._rev = oldData._rev
-    oldData.state = { ...user.state }
-    return oldData
-  })
-}
-
-const func = { init, getStatus, newOrder, newOrders, drop, allNewOrderCheck, newOrderCheck, droppedOrderCheck, allDroppedOrderCheck, changeCheck, newProd }
+const func = { init, getStatus, newOrder, newOrders, drop, allNewCheck, newCheck, droppedCheck, allDroppedCheck, changeCheck, newProd }

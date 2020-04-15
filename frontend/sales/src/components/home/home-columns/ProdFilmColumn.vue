@@ -1,7 +1,7 @@
 <template>
   <div>
     <DataTable
-      :value="list"
+      :value="table"
       dataKey="_id"
       :selection.sync="selected"
       :filters="filters"
@@ -18,8 +18,8 @@
       <template #header>
         <div class="table-header-container">
           <div style="text-align: left">
-            <Button :label="enlarge ? 'New Order' : ''" icon="pi pi-plus" @click="addNew" class="margin-right" />
-            <Button :label="enlarge ? 'Some New Order' : ''" icon="pi pi-bars" @click="addNewS" class="margin-right" />
+            <Button :label="enlarge ? 'New' : ''" icon="pi pi-plus" @click="addNew" class="margin-right" />
+            <Button :label="enlarge ? 'Some New' : ''" icon="pi pi-bars" @click="addNewS" class="margin-right" />
             <Button
               :label="enlarge ? ($socket.connected ? 'Connected' : socketError || 'Disconnected') : ''"
               :icon="'pi ' + ($socket.connected ? 'pi-wifi' : 'pi-ban')"
@@ -29,9 +29,9 @@
             <Button v-if="selected.length" :label="enlarge ? 'Delete Orders' : ''" icon="pi pi-minus" @click="confirmDel" class="p-button-danger margin-right" />
             <!-- <ToggleButton v-if="!enlarge" v-model="enlarge" @change="onToggleEnlarge" onIcon="pi pi-angle-left" offIcon="pi pi-angle-right" /> -->
             <InputText v-if="enlarge" v-model="filters['global']" placeholder="Search" style="width: 20%" class="margin-right" />
-            <Button v-if="hasOrderChanged" :label="enlarge ? 'Sth Changed' : ''" :icon="btnIcon('allChangedCheck', 'pi-star')" @click="allChangedCheck" class="margin-right" />
-            <Button v-if="hasNewOrder" :label="enlarge ? 'New Order' : ''" :icon="btnIcon('allNewCheck', 'pi-file-o')" @click="allNewCheck" class="margin-right" />
-            <Button v-if="hasDroppedOrder" :label="enlarge ? 'Dropped Order' : ''" :icon="btnIcon('allDroppedCheck', 'pi-file-o')" @click="allDroppedCheck" class="margin-right" />
+            <Button v-if="hasChanged" :label="enlarge ? 'Sth Changed' : ''" :icon="btnIcon('allChangedCheck', 'pi-star')" @click="allChangedCheck" class="margin-right" />
+            <Button v-if="hasNew" :label="enlarge ? 'New' : ''" :icon="btnIcon('allNewCheck', 'pi-file-o')" @click="allNewCheck" class="margin-right" />
+            <Button v-if="hasDropped" :label="enlarge ? 'Dropped' : ''" :icon="btnIcon('allDroppedCheck', 'pi-file-o')" @click="allDroppedCheck" class="margin-right" />
             <ToggleButton :onLabel="enlarge ? 'Collapse' : ''" offLabel=" " v-model="enlarge" @change="onToggleEnlarge" onIcon="pi pi-angle-left" offIcon="pi pi-angle-right" />
             <InputText v-if="!enlarge" v-model="filters['global']" placeholder="Search" style="width: 100%" class="margin-top" />
           </div>
@@ -42,48 +42,51 @@
         <div class="text-center">Loading records...</div>
         <ProgressBar mode="indeterminate" />
       </template>
-      <!-------------------- < Column: Add Prod > --------------------->
-      <!-- <Column headerStyle="width: 2.6em; text-align: center" bodyStyle="text-align: center; overflow: visible; padding: 4px 0">
-        <template #body="slotProps">
-          <Button type="button" :icon="slotProps.data.ui ? 'pi pi-plus' : 'pi pi-thumbs-up'" @click="rowMenu(slotProps.data)"></Button>
-        </template>
-      </Column> -->
-      <!-------------------- < Column: Edit Order > --------------------->
-      <!-- <Column headerStyle="width: 2.6em; text-align: center" bodyStyle="text-align: center; overflow: visible; padding: 4px 0">
-        <template #body="slotProps">
-          <Button type="button" icon="pi pi-pencil" @click="edit(slotProps.data._id)"></Button>
-        </template>
-      </Column> -->
       <!-------------------- < Column: Selection > --------------------->
       <Column selectionMode="multiple" bodyStyle="padding: 0" headerStyle="width: 2.5em" :sortable="true" sortField="selected"></Column>
-      <!-------------------- < Column: Foreign Title > --------------------->
-      <Column field="foreignTitle" header="Foreign Title" :headerStyle="enlarge ? 'width: 18%' : ''" filterMatchMode="contains" :sortable="true">
+      <!-------------------- < Column: Name > --------------------->
+      <Column field="name" header="Name" :headerStyle="enlarge ? 'width: 18%' : ''" filterMatchMode="contains" :sortable="true">
         <template #filter>
-          <InputText type="text" v-model="filters['foreignTitle']" class="p-column-filter" />
+          <InputText type="text" v-model="filters['name']" class="p-column-filter" />
         </template>
         <template #body="slotProps">
           <div style="position: relative">
-            <span><i v-if="slotProps.data.icon" :class="`pi ${slotProps.data.icon} icon-loading`"></i> {{ slotProps.data.foreignTitle }} </span>
+            <span><i v-if="slotProps.data.icon" :class="`pi ${slotProps.data.icon} icon-loading`"></i> {{ slotProps.data.name }} </span>
           </div>
         </template>
       </Column>
-      <!-------------------- < Column: NKC > --------------------->
-      <Column v-if="enlarge" field="premiereDate" header="NKC" filterMatchMode="contains" :sortable="true">
+      <!-------------------- < Column: Product Type > --------------------->
+      <Column v-if="enlarge" field="type" header="Manufacture Type" headerStyle="width: 18%" filterMatchMode="contains" :sortable="true">
         <template #filter>
-          <InputText type="text" v-model="filters['premiereDate']" class="p-column-filter" />
+          <InputText type="text" v-model="filters['type']" class="p-column-filter" />
         </template>
         <template #body="slotProps">
           <Button
-            v-if="slotProps.data.ui && slotProps.data.ui.premiereDate"
-            :icon="slotProps.data.ui.premiereDate.checking ? 'pi pi-spin pi-spinner' : ''"
-            :label="$tToString(slotProps.data.premiereDate, false, '')"
+            v-if="slotProps.data.ui && slotProps.data.ui.type"
+            :icon="slotProps.data.ui.type.checking ? 'pi pi-spin pi-spinner' : ''"
+            :label="slotProps.data.type"
             @click="checkChange($event, slotProps)"
           />
-          <span v-else> {{ $tToString(slotProps.data.premiereDate, false, '') }} </span>
+          <span v-else> {{ slotProps.data.type }} </span>
+        </template>
+      </Column>
+      <!-------------------- < Column: Details > --------------------->
+      <Column v-if="enlarge" field="details" header="Details" filterMatchMode="contains" :sortable="true">
+        <template #filter>
+          <InputText type="text" v-model="filters['details']" class="p-column-filter" />
+        </template>
+        <template #body="slotProps">
+          <Button
+            v-if="slotProps.data.ui && slotProps.data.ui.details"
+            :icon="slotProps.data.ui.details.checking ? 'pi pi-spin pi-spinner' : ''"
+            :label="slotProps.data.details"
+            @click="checkChange($event, slotProps)"
+          />
+          <span v-else v-html="slotProps.data.details" />
         </template>
       </Column>
       <!-------------------- < Column: Status > --------------------->
-      <Column v-if="enlarge" field="status" header="Status" filterMatchMode="in" :sortable="true">
+      <Column v-if="enlarge" field="status" header="Status" filterMatchMode="contains" :sortable="true">
         <template #filter>
           <InputText type="text" v-model="filters['status']" class="p-column-filter" />
           <!-- <MultiSelect v-model="filters['status']" :options="orders" optionLabel="status" optionValue="status" placeholder="All" class="p-column-filter"></MultiSelect> -->
@@ -98,19 +101,19 @@
           <span v-else> {{ slotProps.data.status }} </span>
         </template>
       </Column>
-      <!-------------------- < Column: Products > --------------------->
-      <Column field="productNames" header="Products" filterMatchMode="in" :sortable="true">
+      <!-------------------- < Column: Jobs > --------------------->
+      <Column field="jobNames" header="Jobs" filterMatchMode="contains" :sortable="true">
         <template #filter>
-          <InputText type="text" v-model="filters['productNames']" class="p-column-filter" />
+          <InputText type="text" v-model="filters['jobNames']" class="p-column-filter" />
         </template>
         <template #body="slotProps">
           <Button
-            v-if="slotProps.data.ui && slotProps.data.ui.productNames"
-            :icon="slotProps.data.ui.productNames.checking ? 'pi pi-spin pi-spinner' : ''"
-            :label="slotProps.data.productNames"
+            v-if="slotProps.data.ui && slotProps.data.ui.jobNames"
+            :icon="slotProps.data.ui.jobNames.checking ? 'pi pi-spin pi-spinner' : ''"
+            :label="slotProps.data.jobNames"
             @click="checkChange($event, slotProps)"
           />
-          <span v-else> {{ slotProps.data.productNames }} </span>
+          <span v-else> {{ slotProps.data.jobNames }} </span>
         </template>
       </Column>
       <!-------------------- < Column: Create At > --------------------->
@@ -158,21 +161,6 @@
           <span v-else> {{ $tToString(slotProps.data.finishAt, true, '') }} </span>
         </template>
       </Column>
-      <!-------------------- < Column: Vietnamese Title > --------------------->
-      <Column v-if="enlarge" field="vietnameseTitle" header="Vietnamese Title" headerStyle="width: 18%" filterMatchMode="contains" :sortable="true">
-        <template #filter>
-          <InputText type="text" v-model="filters['vietnameseTitle']" class="p-column-filter" />
-        </template>
-        <template #body="slotProps">
-          <Button
-            v-if="slotProps.data.ui && slotProps.data.ui.vietnameseTitle"
-            :icon="slotProps.data.ui.vietnameseTitle.checking ? 'pi pi-spin pi-spinner' : ''"
-            :label="slotProps.data.vietnameseTitle"
-            @click="checkChange($event, slotProps)"
-          />
-          <span v-else> {{ slotProps.data.vietnameseTitle }} </span>
-        </template>
-      </Column>
       <!-------------------- < Footer > --------------------->
       <template v-if="messages.length" #footer>
         <NewMessage v-for="(message, i) in messages" :key="i" @close-message="closeMessage" :index="i" :severity="message.severity">{{ message.text }}</NewMessage>
@@ -200,12 +188,12 @@ export default {
         { label: ``, icon: 'pi pi-dollar' },
         { separator: true },
         { separator: true },
-        { label: 'Add product', icon: 'pi pi-fw pi-upload', command: () => this.addProd(this.rowClickData) },
+        { label: 'Add product', icon: 'pi pi-fw pi-upload', command: () => this.addJob(this.rowClickData) },
         { label: 'View', icon: 'pi pi-fw pi-search', command: () => this.edit(this.rowClickData) },
         { label: 'Delete', icon: 'pi pi-fw pi-times', command: () => this.deleteThis({ ...this.rowClickData }) },
       ],
-      menuNewRowModel: [{ label: 'Check', icon: 'pi pi-thumbs-up', command: () => this.$store.dispatch('Order/Film/newCheck', this.rowClickData) }],
-      menuDroppedRowModel: [{ label: 'Check', icon: 'pi pi-thumbs-up', command: () => this.$store.dispatch('Order/Film/droppedCheck', this.rowClickData) }],
+      menuNewRowModel: [{ label: 'Check', icon: 'pi pi-thumbs-up', command: () => this.$store.dispatch('Prod/Film/newCheck', this.rowClickData) }],
+      menuDroppedRowModel: [{ label: 'Check', icon: 'pi pi-thumbs-up', command: () => this.$store.dispatch('Prod/Film/droppedCheck', this.rowClickData) }],
       menuCellCheckChangeModel: [],
     }
   },
@@ -225,7 +213,7 @@ export default {
         {
           label: 'Check',
           icon: 'pi pi-thumbs-up',
-          command: () => this.$store.dispatch('Order/Film/changeCheck', { _id: slotProps.data._id, key: _field, index: slotProps.index }),
+          command: () => this.$store.dispatch('Prod/Film/changeCheck', { _id: slotProps.data._id, key: _field, index: slotProps.index }),
         },
       ]
       this.menuModel = this.menuCellCheckChangeModel
@@ -242,40 +230,45 @@ export default {
         this.rowClickData = { data, index }
       }
     },
-    addProd({ data, index }) {
+    addJob({ data, index }) {
       console.log(data._id)
       console.log(index)
-      this.$emit('open-dialog', 'newProdForm', 'Create', 'Add new Product', data)
+      this.$emit('open-dialog', 'newJobForm', 'Create', 'Add new Product', data)
     },
     edit(_id) {
       console.log(_id)
     },
     allNewCheck() {
-      this.$store.dispatch('Order/Film/allNewCheck')
+      this.$store.dispatch('Prod/Film/allNewCheck')
     },
     allDroppedCheck() {
-      this.$store.dispatch('Order/Film/allDroppedCheck')
+      this.$store.dispatch('Prod/Film/allDroppedCheck')
     },
     allChangedCheck() {
-      this.$store.dispatch('Order/Film/allChangedCheck')
+      this.$store.commit('Prod/Film/allChangedCheck')
     },
     deleteThis(order) {
       console.log(order)
     },
     load() {
-      this.$store.commit('load', { type: 'array_of__id', from: 'Order.Film.selected', dotPath: 'Prod.Film', key: 'table', prop: '_id' })
+      // this.$store.dispatch('Prod/Film/getOrderDetail')
+      let _prodList = []
+      this.selected.map(fo => {
+        _prodList = [..._prodList, ...fo.products]
+      })
+      this.$store.commit('Prod/Film/setState', { key: 'prodList', data: _prodList })
     },
     closeMessage(idx) {
-      this.$store.commit('Order/Film/spliceMess', idx)
+      this.$store.commit('Prod/Film/spliceMess', idx)
     },
     onToggleEnlarge() {
       this.$emit('toggle-enlarge')
     },
     addNew() {
-      this.$emit('open-dialog', 'newOrderForm', 'Create', 'Add new film')
+      this.$emit('open-dialog', 'newJobForm', 'Create', 'Add new film')
     },
     addNewS() {
-      this.$emit('open-dialog', 'newOrdersForm', 'Create', 'Add some new films', null, '1200px', true)
+      this.$emit('open-dialog', 'newJobsForm', 'Create', 'Add some new films', null, '1200px', true)
     },
     confirmDel() {
       this.$emit('open-dialog', 'deleteConfirm', this.selected.length > 1 ? 'Delete All' : 'Delete', 'Confirm Delete - This action is undone')
@@ -293,56 +286,57 @@ export default {
       return data.dropped ? 'r-deleted' : data.ui ? '' : 'r-new'
     },
     btnIcon(name, icon) {
-      return this.$store.state.Order.Film.btnIcon[name] ? 'pi pi-spin pi-spinner' : 'pi ' + icon
+      return this.$store.state.Prod.Film.btnIcon[name] ? 'pi pi-spin pi-spinner' : 'pi ' + icon
     },
   },
   computed: {
+    table() {
+      return this.$store.getters['Prod/Film/tableList']
+    },
     loadBtnProp() {
       let prop = { label: 'Load', icon: 'pi pi-download', disabled: false }
-      if (!this.selected.length && !this.prodList.length) prop = { label: 'No Select', icon: 'pi pi-download', disabled: true }
-      else if (this.selected.length && !this.sectedOrdersHasProd) prop = { label: 'No Prod', icon: 'pi pi-ban', disabled: true }
-      else if (!this.selected.length && this.prodList.length) prop = { label: 'Clear', icon: 'pi pi-upload', disabled: false }
+      if (!this.selected.length && !this.jobList.length) prop = { label: 'No Select', icon: 'pi pi-download', disabled: true }
+      else if (this.selected.length && !this.selectedHasJob) prop = { label: 'No Job', icon: 'pi pi-ban', disabled: true }
+      else if (!this.selected.length && this.jobList.length) prop = { label: 'Clear', icon: 'pi pi-upload', disabled: false }
       if (!this.enlarge) prop.label = ''
       return prop
     },
     selected: {
       get() {
-        return this.$store.state.Order.Film.selected
+        return this.$store.state.Prod.Film.selected
       },
       set(value) {
-        this.$store.commit('Order/Film/setState', { key: 'selected', data: value })
-        this.sectedOrdersHasProd = value.some(v => v.products.length > 0)
+        this.$store.commit('Prod/Film/setState', { key: 'selected', data: value })
+        this.selectedHasJob = value.some(v => v.jobs.length > 0)
       },
     },
-    hasNewOrder() {
-      return this.list.some(o => !o.ui)
+    hasNew() {
+      return this.table.some(o => !o.ui)
     },
-    hasDroppedOrder() {
-      return this.list.some(o => o.dropped)
+    hasDropped() {
+      return this.table.some(o => o.dropped)
     },
-    hasOrderChanged() {
-      return this.list.some(o => o.ui && this.$isObjEmpty(o.ui) === false)
+    hasChanged() {
+      return this.table.some(o => o.ui && this.$isObjEmpty(o.ui) === false)
     },
     messages: {
       get() {
-        return this.$store.state.Order.Film.messages
+        return this.$store.state.Prod.Film.messages
       },
       set(value) {
-        this.$store.commit('Order/Film/pushMess', value)
+        this.$store.commit('Prod/Film/pushMess', value)
       },
     },
     ...mapState({
-      list: state => state.Order.Film.list,
-      loading: state => state.Order.Film.loading,
-      prodList: state => state.Prod.Film.list,
-      seq: state => state.Order.Film.seq,
+      loading: state => state.Prod.Film.loading,
+      jobList: state => state.Job.Film.list,
     }),
   },
   created: function() {},
   mounted: function() {
     this.$nextTick(() => {
-      // if (this.seq) this.$store.dispatch('Order/Film/sync')
-      // else this.$store.dispatch('Order/Film/getAll')
+      // if (this.seq) this.$store.dispatch('Prod/Film/sync')
+      // else this.$store.dispatch('Prod/Film/getAll')
       this.$socket.$subscribe('error', payload => {
         console.log(payload)
         this.socketError = payload

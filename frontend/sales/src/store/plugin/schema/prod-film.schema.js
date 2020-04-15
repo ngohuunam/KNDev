@@ -16,9 +16,6 @@ export default {
       type: 'string',
       index: true,
     },
-    orderRev: {
-      type: 'string',
-    },
     type: {
       type: 'string',
     },

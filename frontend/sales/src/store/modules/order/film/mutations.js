@@ -14,10 +14,6 @@ export const create = (state, note) => {
   state.converted = newOrder(_newOrder)
 }
 
-export const allChangedAccept = state => {
-  state.changes = state.changes.filter(o => !o.update)
-}
-
 export const changedAccept = (state, payload) => {
   const _idx = state.list.findIndex(fo => fo._id === payload._id)
   const _oldOrder = state.list[_idx]

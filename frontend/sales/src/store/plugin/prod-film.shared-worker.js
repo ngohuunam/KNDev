@@ -1,6 +1,6 @@
 import initRxDB from './rxdb'
-import schema from './schema/prod-film'
-import { pushSortBy_id, queryBy_id, year, filter_rev } from '../../tools'
+import schema from './schema/prod-film.schema'
+import { pushSortBy_id, queryBy_id, year, filter_rev, isObjEmpty } from '../../tools'
 
 const { console } = self
 
@@ -64,38 +64,42 @@ const init = (token, user_id) => {
 const rxUserUpdateSubcribe = changeEvent => {
   console.log('rxUser update$: ', changeEvent)
   if (changeEvent.data.db === 'remote') {
-    const _newUser = { ...changeEvent.data.v }
+    const _newUser = changeEvent.data.v
     const _newFilm = _newUser.state[year].prod.film
     if (_newFilm._rev !== film._rev) {
       const _newUi = _newFilm.ui
-      const _lastKey = _newFilm.last
-      const _index = list.findIndex(_it => _it._id === _lastKey._id)
-      switch (_lastKey.type) {
-        case 'd':
-          delete ui[_lastKey._id]
+      const _lastChange = _newFilm.last
+      const _id = _lastChange._id
+      const _index = list.findIndex(_it => _it._id === _id)
+      let _ui = ui[_id]
+      switch (_lastChange.type) {
+        case 'drop':
+          delete ui[_id]
           list.splice(_index, 1)
           break
-        case 'n':
-          ui[_lastKey._id] = {}
+        case 'new':
+          _ui = {}
           list[_index].ui = {}
           break
-        case 'c':
-          ui[_lastKey._id] = _newUi[_lastKey._id]
-          list[_index].ui = _newUi[_lastKey._id]
+        case 'change':
+          if (!_ui || isObjEmpty(_ui)) _ui = _newUi[_id]
+          else {
+            console.log('_lastChange:', _lastChange)
+            console.log('_ui:', _ui)
+            _lastChange.keys.map(_key => {
+              _ui[_key].new = _newUi[_id][_key].new
+              _ui[_key].logs = _ui[_key].logs.concat(_newUi[_id][_key].logs)
+            })
+          }
+          list[_index].ui = _ui
+          break
+        case 'check':
+          delete _ui[_lastChange.key]
+          delete list[_index].ui[_lastChange.key]
           break
       }
       commit('setState', { key: 'list', data: list })
     }
-    //   list = list.reduce((acc, current) => {
-    //     const _key = current._id
-    //     if (ui[_key]) current.ui = ui[_key]
-    //     else if (!ui[_key] && current.ui) delete current.ui
-    //     if (current.dropped && !current.ui) return acc
-    //     acc.push(current)
-    //     return acc
-    //   }, [])
-    //   commit('setState', { key: 'list', data: list })
-    // }
   }
 }
 
@@ -194,7 +198,7 @@ const subscribeInsert = changeEvent => {
 }
 
 const subscribeUpdate = (changeEvent, _checkKeys) => {
-  console.log('insert$: ', changeEvent)
+  console.log('update$: ', changeEvent)
   const _$doc = { ...changeEvent.data.v }
   let _needUpdateUserState = false
   if (ui[_$doc._id]) _$doc.ui = ui[_$doc._id]
@@ -207,19 +211,25 @@ const subscribeUpdate = (changeEvent, _checkKeys) => {
       if (!_$doc.dropped) {
         // if (!_$doc.ui) _$doc.ui = {}
         const _currentUi = ui[_$doc._id]
+        const _info = { type: 'change', _id: _$doc._id, keys: [] }
         _checkKeys.map(key => {
           if (doc[key] !== _$doc[key]) {
             const _change = { old: doc[key], new: _$doc[key], logs: filter_rev(_$doc.logs, doc._rev) }
-            _$doc.ui[key] = _change
-            _currentUi[key] = _change
+            if (!_currentUi[key] || isObjEmpty(_currentUi[key])) _currentUi[key] = _change
+            else {
+              _currentUi[key].new = _change.new
+              _currentUi[key].logs = _currentUi[key].logs.concat(_change.logs)
+            }
+            _info.keys.push(key)
+            _$doc.ui[key] = _currentUi[key]
             console.log('_$doc._id:', _$doc._id)
             console.log('key:', key)
             console.log('change:', _change)
             _needUpdateUserState = true
           }
         })
+        if (_needUpdateUserState) updateUserState(_info)
       }
-      if (_needUpdateUserState) updateUserState({ type: 'c', _id: _$doc._id })
       list[index] = _$doc
       commit('replaceAt', { key: 'list', data: _$doc, idx: index })
     }
@@ -232,31 +242,32 @@ const subscribeUpdate = (changeEvent, _checkKeys) => {
 const preInsert = (docObj, needReturn) => {
   docObj.createdAt = Date.now()
   docObj.createdBy = user._id
-  docObj.logs.unshift({ type: 'Create', _rev: null, at: docObj.createdAt, by: user._id, note: docObj.note })
+  docObj.logs.unshift({ type: 'Create', _rev: null, order_rev: docObj.orderRev, at: docObj.createdAt, by: user._id, note: docObj.note })
   delete docObj.note
+  delete docObj.orderRev
   if (needReturn) return docObj
 }
 
-const allNewOrderCheck = ({ datas, indexs }) => datas.map((data, i) => newOrderCheck({ data, index: indexs[i] }))
+const allNewCheck = ({ datas, indexs }) => datas.map((data, i) => newCheck({ data, index: indexs[i] }))
 
-const allDroppedOrderCheck = ({ datas, indexs }) => datas.map((data, i) => droppedOrderCheck({ data, index: indexs[i] }, true))
+const allDroppedCheck = ({ datas, indexs }) => datas.map((data, i) => droppedCheck({ data, index: indexs[i] }, true))
 
-const newOrderCheck = ({ data, index }) => {
+const newCheck = ({ data, index }) => {
   data.icon = 'pi-check color-green'
   list[index] = data
   data.ui = {}
   ui[data._id] = {}
-  updateUserState({ type: 'n', _id: data._id }).then(() => {
+  updateUserState({ type: 'new', _id: data._id }).then(() => {
     commit('replaceAt', { key: 'list', data, idx: index })
     delete data.icon
-    setTimeout(() => commitRoot('setStateDeep', { dotPath: 'Order.Film.list', key: index, value: data }), 3000)
+    setTimeout(() => commitRoot('setStateDeep', { dotPath: 'Prod.Film.list', key: index, value: data }), 3000)
   })
 }
 
-const droppedOrderCheck = ({ data, index }, isMulti) => {
+const droppedCheck = ({ data, index }, isMulti) => {
   list.splice(index, 1)
   delete ui[data._id]
-  updateUserState({ type: 'd', _id: data._id }).then(() => {
+  updateUserState({ type: 'drop', _id: data._id }).then(() => {
     if (isMulti) commit('splice', { key: 'list', _id: data._id })
     else commit('spliceAt', { key: 'list', idx: index })
   })
@@ -265,7 +276,7 @@ const droppedOrderCheck = ({ data, index }, isMulti) => {
 const changeCheck = ({ _id, key, index }) => {
   delete list[index].ui[key]
   delete ui[_id][key]
-  updateUserState({ type: 'c', _id: _id }).then(() => commit('replaceAt', { key: 'list', data: list[index], idx: index }))
+  updateUserState({ type: 'check', _id: _id }).then(() => commit('replaceAt', { key: 'list', data: list[index], idx: index }))
 }
 
 const updateUserState = info => {
@@ -278,4 +289,4 @@ const updateUserState = info => {
   })
 }
 
-const func = { init, getStatus, newItem, drop, findAndDrop, allNewOrderCheck, newOrderCheck, droppedOrderCheck, allDroppedOrderCheck, changeCheck }
+const func = { init, getStatus, newItem, drop, findAndDrop, allNewCheck, newCheck, droppedCheck, allDroppedCheck, changeCheck }
