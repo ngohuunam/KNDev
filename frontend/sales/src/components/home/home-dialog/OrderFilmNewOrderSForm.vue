@@ -4,7 +4,7 @@
       <!-------------------- < Column: Remove Order > --------------------->
       <Column headerStyle="width: 2.6em; text-align: center" bodyStyle="text-align: center; overflow: visible; padding: 4px 0">
         <template #body="slotProps">
-          <Button type="button" icon="pi pi-minus" class="p-button-danger margin-right" @click="remove(slotProps.data)"></Button>
+          <Button type="button" icon="pi pi-minus" class="p-button-danger margin-right" @click="remove(slotProps.index)"></Button>
         </template>
       </Column>
       <!-------------------- < Column: Foreign Title > --------------------->
@@ -80,11 +80,11 @@
 </template>
 
 <script>
-import defaultState from '@/assets/defaultState'
+import { order } from '@/assets/defaultState'
 import { dateToUnix } from '@/tools'
 
 const randomOrderId = () => Date.now() + Math.floor(Math.random() * 100 + 1)
-const randomNewOrder = () => ({ ...defaultState.newOrder, ...{ _id: randomOrderId(), note: '' } })
+const randomNewOrder = () => ({ ...order.film.new, ...{ _id: randomOrderId(), note: '' } })
 
 export default {
   name: 'OrderFilmNewOrderSForm',
@@ -109,9 +109,11 @@ export default {
       this.orders.push(_newRow)
       this.errors.push({ _id: false, rowId: _newRow._id, team: false, foreginTitle: false })
     },
-    remove(data) {
-      this.orders = this.orders.filter(v => v._id !== data._id)
-      this.errors = this.errors.filter(v => v.rowId !== data._id)
+    remove(index) {
+      this.orders.splice(index, 1)
+      this.errors.splice(index, 1)
+      // this.orders = this.orders.filter(v => v._id !== data._id)
+      // this.errors = this.errors.filter(v => v.rowId !== data._id)
     },
     confirm() {
       let _requiredErr = false
@@ -121,16 +123,12 @@ export default {
           this.errors[i].foreignTitle = true
           _requiredErr = true
         } else {
-          v._id = v.foreignTitle.toDataId()
+          v._id = v.foreignTitle.to_id()
           this.errors[i].rowId = v._id
-          if (this.$store.getters['Order/Film/isExisted'](v._id)) {
+          if (this.list.some(({ _id }) => _id === v._id)) {
             this.errors[i]._id = true
             _existedIds.push(v._id)
           }
-        }
-        if (!v.foreignTitle) {
-          this.errors[i].foreignTitle = true
-          _requiredErr = true
         }
         if (!v.team) {
           this.errors[i].team = true
@@ -143,17 +141,23 @@ export default {
       else if (_requiredErr && _existedIds.length) _mess = _existedIds.join(', ') + ' Existed && Orange Field Required'
 
       if (_mess) this.dialogMess = { text: _mess, severity: 'error' }
-      else this.doCreate()
+      else this.doCreate(true)
     },
-    doCreate() {
-      // this.$store.dispatch('Order/Film/newOrdersSave', this.orders)
-      this.$store.dispatch('Order/Film/Worker', { name: 'newOrders', payload: this.orders })
+    doCreate(isChecked) {
+      if (!isChecked) {
+        if (this.orders.some(o => !o.foreignTitle)) this.dialogMess = { text: 'All Foreign Title required', severity: 'error' }
+        else if (this.list.some(o => this.orders.some(({ foreignTitle }) => foreignTitle.to_id() === o._id))) this.dialogMess = { text: 'Some Title Existed', severity: 'error' }
+      }
+      if (this.dialogMess.severity !== 'error') this.$store.dispatch('Order/Film/Worker', { name: 'newOrders', payload: this.orders })
     },
   },
   computed: {
+    list() {
+      return this.$store.state.Order.Film.list
+    },
     dialogMess: {
       get() {
-        return this.$store.state.dialog.message
+        return this.$store.state.Dialog.message
       },
       set(value) {
         this.$store.commit('Dialog/setMess', value)
@@ -161,9 +165,6 @@ export default {
     },
   },
   created: function() {
-    this.orders = []
-    this.errors = []
-    this.log = ''
     this.add()
   },
   beforeDestroy: function() {

@@ -1,6 +1,6 @@
 export default {
-  title: 'film schema',
-  description: 'describes a film order',
+  title: 'Prod - film schema',
+  description: 'describes a film product',
   version: 0,
   type: 'object',
   properties: {
@@ -8,22 +8,25 @@ export default {
       type: 'string',
       primary: true,
     },
-    client: {
+    name: {
       type: 'string',
-      default: 'Film',
       final: true,
     },
-    team: {
+    orderId: {
+      type: 'string',
+      index: true,
+    },
+    orderRev: {
+      type: 'string',
+    },
+    type: {
       type: 'string',
     },
     createdAt: {
       type: 'number',
-      default: 1586368186000,
-      index: true,
     },
     createdBy: {
       type: 'string',
-      final: true,
     },
     endAt: {
       type: 'number',
@@ -31,23 +34,16 @@ export default {
     finishAt: {
       type: 'number',
     },
-    foreignTitle: {
+    details: {
       type: 'string',
-      final: true,
-    },
-    vietnameseTitle: {
-      type: 'string',
-    },
-    premiereDate: {
-      type: 'number',
     },
     status: {
       type: 'string',
     },
-    products: {
+    jobs: {
       type: 'array',
     },
-    productNames: {
+    jobNames: {
       type: 'string',
     },
     dropped: {
@@ -62,5 +58,6 @@ export default {
       },
     },
   },
-  compoundIndexes: [['status', 'vietnameseTitle']],
+  required: ['name', 'orderId'],
+  compoundIndexes: [['status', 'type']],
 }

@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "start": "node ./host/bin/www",
-    "dev": "SET DEBUG=kn-sv-0001:* & nodemon --inspect ./host/bin/www",
-    "pm2": "pm2-dev start ecosystem.config.js myapp-debug"
+    "dev": "nodemon --inspect ./host/bin/www",
+    "pm2": "pm2-dev start ecosystem.config.js"
   },
   "_moduleAliases": {
     "@shared": "shared/index",
@@ -29,9 +29,9 @@
     "dotenv": "^8.2.0",
     "express": "~4.17.1",
     "express-async-errors": "^3.1.1",
+    "express-basic-auth": "^1.2.0",
     "express-http-proxy": "^1.6.0",
-    "express-pouchdb": "^4.2.0",
-    "http-pouchdb": "^4.2.0",
+    "http-proxy-middleware": "^1.0.3",
     "http-status-codes": "^1.4.0",
     "jsonwebtoken": "^8.5.1",
     "mime-types": "^2.1.26",
@@ -41,18 +41,13 @@
     "passport": "^0.4.1",
     "passport-jwt": "^4.0.0",
     "passport-local": "^1.0.0",
-    "pouchdb": "^7.2.1",
-    "pouchdb-adapter-http": "^7.2.1",
-    "pouchdb-adapter-memory": "^7.2.1",
-    "rxdb": "^8.8.0",
-    "rxjs": "^6.5.5",
     "socket.io": "^2.3.0",
     "winston": "^3.2.1"
   },
   "devDependencies": {
     "eslint": "^6.8.0",
     "eslint-config-prettier": "^6.10.1",
-    "eslint-plugin-prettier": "^3.1.2",
+    "eslint-plugin-prettier": "^3.1.3",
     "prettier": "^1.19.1"
   }
 }

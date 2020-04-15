@@ -3,7 +3,7 @@
 /**
  * Module dependencies.
  */
-require('dotenv').config({ path: `../../env/development.env` })
+require('dotenv').config()
 require('module-alias/register')
 const app = require('@host')
 const { initLogger, socket } = require('../../shared')
@@ -11,16 +11,12 @@ const http = require('http')
 const https = require('https')
 const { readFileSync } = require('fs')
 
-const isHttps = true
-const httpPort = '3000'
-const httpsPort = '3003'
-
 const wwwLogger = initLogger('www')
 /**
  * Get port from environment and store in Express.
  */
 
-const port = normalizePort(process.env.PORT || isHttps ? httpsPort : httpPort)
+const port = normalizePort(process.env.PORT)
 app.set('port', port)
 
 /**
@@ -39,7 +35,7 @@ const options = {
   requestCert: false,
   rejectUnauthorized: false,
 }
-const server = isHttps ? https.createServer(options, app) : http.createServer(app)
+const server = process.env.NODE_ENV === 'production' ? http.createServer(app) : https.createServer(options, app)
 
 /**
  * Listen on provided port, on all network interfaces.

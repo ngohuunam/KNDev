@@ -3,7 +3,7 @@ const { StringDecoder } = require('string_decoder')
 const { createReadStream, createWriteStream } = require('fs')
 const { promisify } = require('util')
 const { pipeline } = require('stream')
-const { createGzip } = require('zlib')
+const { createBrotliCompress, createGzip } = require('zlib')
 const { initLogger } = require('./logger')
 
 const streamLogger = initLogger('shared/stream')
@@ -72,40 +72,45 @@ class InsertTokenStream extends Transform {
     // Convert the Buffer chunks to String.
     if (encoding === 'buffer') chunk = this._decoder.write(chunk)
 
+    function getAllIndexes(string, substring) {
+      var a = [],
+        i = -1
+      while ((i = string.indexOf(substring, i + 1)) > -1) a.push(i)
+      return a.reverse()
+    }
+
     this.regexs.map(r => {
-      if (this.replaced !== r) {
-        const index = chunk.indexOf(r)
-        // console.log('InsertTokenStream index: ', index)
-        if (index > -1) {
-          // console.log('InsertTokenStream chunk: ', chunk)
-          const startIndex = chunk.lastIndexOf('"', index) + 1
-          const found = chunk.substring(startIndex, index + 10)
-          // console.log('InsertTokenStream found: ', found)
+      const indexs = getAllIndexes(chunk, r)
+      // console.log('InsertTokenStream indexs: ', indexs)
+      // console.log('InsertTokenStream chunk: ', chunk)
+      indexs.map(index => {
+        // console.log('index: ', index)
+        // console.log('chunk[index]: ', chunk[index])
+        const startIndex = chunk.lastIndexOf('"', index) + 1
+        const found = chunk.substring(startIndex, index + 10)
+        // console.log('InsertTokenStream found: ', found)
 
-          // console.log('InsertTokenStream this.token: ', this.token)
-          const replace = this.token.concat('/', found)
-          // console.log('InsertTokenStream replace: ', replace)
+        // console.log('InsertTokenStream this.token: ', this.token)
+        const replace = this.token.concat('/', found)
+        // console.log('InsertTokenStream replace: ', replace)
 
-          chunk = chunk.replace(found, replace)
-          // console.log('InsertTokenStream chunk replaced: ', chunk)
-          this.replaced = r
-        }
-      }
+        chunk = chunk.replace(found, replace)
+        // console.log('InsertTokenStream chunk replaced: ', chunk)})
+      })
     })
-
     // Pass the chunk on.
     callback(null, chunk)
   }
 }
 
 const pipe = promisify(pipeline)
-const doGzip = async (input, output, regex, replace) => {
-  const cgzip = createGzip()
+const doCompress = async (input, output, isBrotli, regex, replace) => {
+  const compress = isBrotli ? createBrotliCompress() : createGzip()
   const source = createReadStream(input)
   const destination = createWriteStream(output)
   const replaceStream = new ReplaceStringStream(null, regex, replace)
-  if (regex instanceof RegExp && typeof replace === 'string') await pipe(source, replaceStream, cgzip, destination)
-  else await pipe(source, cgzip, destination)
+  if (regex instanceof RegExp && typeof replace === 'string') await pipe(source, replaceStream, compress, destination)
+  else await pipe(source, compress, destination)
 }
 
 const readReplaceRes = async (input, regex, replace, res) => {
@@ -150,7 +155,7 @@ const redirectToLogin = (res, code, mess) => {
 module.exports = {
   ReplaceStringStream,
   readReplaceRes,
-  doGzip,
+  doCompress,
   streamRender,
   redirectToLogin,
   readReplaceMultiRes,

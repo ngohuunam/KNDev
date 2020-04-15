@@ -1,7 +1,8 @@
 const passport = require('passport')
-const { secret, staffs, nextErr } = require('../shared')
+const { secret, staffs, nextErr, btoa } = require('../shared')
 const JWTstrategy = require('passport-jwt').Strategy
 const ExtractJWT = require('passport-jwt').ExtractJwt
+const basicAuth = 'Basic ' + btoa(process.env.COUCH_BASIC_AUTH)
 
 passport.use(
   'jwt-api',
@@ -29,6 +30,7 @@ const handleAuthJwt = (req, res, next, logger) => {
       return res.status(401).json(info.message)
     }
     req.user = user
+    req.headers['authorization'] = basicAuth
     return next()
   })(req, res, next)
 }

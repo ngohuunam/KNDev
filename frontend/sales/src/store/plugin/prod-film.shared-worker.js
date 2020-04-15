@@ -1,8 +1,6 @@
-// import io from 'socket.io-client'
-// import { Store, get } from 'idb-keyval'
 import initRxDB from './rxdb'
-import schema from './schema/order-film'
-import { pushSortBy_id, newOrder as repareNewOrder, queryBy_id, year, filter_rev } from '../../tools'
+import schema from './schema/prod-film'
+import { pushSortBy_id, queryBy_id, year, filter_rev } from '../../tools'
 
 const { console } = self
 
@@ -12,7 +10,7 @@ let list = []
 const ports = []
 let RxCollection, RxReplicationState
 let ready = false
-const checkKeys = ['team', 'endAt', 'finishAt', 'foreignTitle', 'vietnameseTitle', 'premiereDate', 'status', 'productNames']
+const checkKeys = ['type', 'endAt', 'finishAt', 'details', 'status', 'jobNames']
 
 const postMessage = msg => {
   const len = ports.length
@@ -21,23 +19,21 @@ const postMessage = msg => {
   }
 }
 
-const commit = (type, payload) => postMessage({ action: 'commit', type: `Order/Film/${type}`, payload })
+const commit = (type, payload) => postMessage({ action: 'commit', type: `Prod/Film/${type}`, payload })
 
 const commitRoot = (type, payload) => postMessage({ action: 'commit', type, payload })
 
 const init = (token, user_id) => {
-  console.log('token:', token)
-  console.log('user_id:', user_id)
-  return initRxDB('order', 'film', schema, token, user_id, 'order_film_2020').then(db => {
+  return initRxDB('prod', 'film', schema, token, user_id, 'prod_film_2020').then(db => {
     db.col.database.waitForLeadership().then(() => console.log('isLeader now'))
     RxCollection = db.col
     RxReplicationState = db.replicationState
     rxUser = db.user
     user = rxUser.toJSON()
-    film = user.state[year].order.film
+    film = user.state[year].prod.film
     ui = film.ui
-    // console.log('rxUser', rxUser)
-    // console.log('ui: ', ui)
+    console.log('rxUser', rxUser)
+    console.log('ui: ', ui)
     list = db.json.reduce((acc, current) => {
       const _key = current._id
       if (ui[_key]) current.ui = ui[_key]
@@ -45,8 +41,8 @@ const init = (token, user_id) => {
       acc.push(current)
       return acc
     }, [])
-    // console.log('RxCollection: ', RxCollection)
-    // console.log('list: ', list)
+    console.log('RxCollection: ', RxCollection)
+    console.log('list: ', list)
     RxReplicationState.change$.subscribe(changeObj => {
       console.log('change$: ', changeObj)
       // commit('setSeq', changeObj.change.last_seq)
@@ -61,7 +57,6 @@ const init = (token, user_id) => {
     rxUser.collection.update$.subscribe(rxUserUpdateSubcribe)
     commit('setStates', { keys: ['list', 'loading'], datas: [list, false] })
     // commitRoot('setState', { key: 'loading', data: false })
-    // initSocketIo(url)
     ready = true
   })
 }
@@ -91,23 +86,23 @@ const rxUserUpdateSubcribe = changeEvent => {
       }
       commit('setState', { key: 'list', data: list })
     }
+    //   list = list.reduce((acc, current) => {
+    //     const _key = current._id
+    //     if (ui[_key]) current.ui = ui[_key]
+    //     else if (!ui[_key] && current.ui) delete current.ui
+    //     if (current.dropped && !current.ui) return acc
+    //     acc.push(current)
+    //     return acc
+    //   }, [])
+    //   commit('setState', { key: 'list', data: list })
+    // }
   }
 }
 
-// const initSocketIo = url => {
-//   const cloneUser = { ...user }
-//   delete cloneUser.password
-//   socket = io(url)
-//   socket.on('connect', () => commitRoot('setStates', { keys: ['socket', 'user', 'loading'], datas: [socket.id, cloneUser, false] }))
-//   socket.on('connect_error', error => console.error(error))
-//   socket.on('connect_timeout', timeout => console.error(new Error({ message: 'timeout', timeout: timeout })))
-//   socket.on('error', error => console.error(error))
-//   socket.on('disconnect', () => postMessage({ type: 'disconnect' }))
-//   socket.on('reload', () => postMessage({ action: 'reload' }))
-// }
-
 self.onconnect = e => {
+  console.dir(e)
   const port = e.ports[0]
+  console.dir(port)
   ports.push(port)
 
   port.onmessage = ({ data }) => {
@@ -132,26 +127,11 @@ const getStatus = ({ token, _id }) => {
   }
 }
 
-const newProd = prod => {
-  console.log(prod)
-  prod = preInsert(prod, true)
-  const _order_id = prod.orderId
-  const _query = queryBy_id(_order_id, list)
-  const _order = { ..._query.doc }
-  _order.products.unshift(prod._id)
-  _order.productNames = _order.products.join(', ')
-  _order.logs.unshift({ type: 'Add prod', _rev: _order._rev, at: prod.createdAt, by: user._id, note: prod.note })
-  delete _order.ui
-  return RxCollection.upsert(_order)
-    .then(() => commitCloseDialog('Create'))
-    .catch(e => console.error(e))
-}
-
-const newOrder = (order, isMulti) => {
-  return RxCollection.insert(order)
+const newItem = (_item, _isMulti) => {
+  return RxCollection.insert(_item)
     .then(_doc => {
       console.log(_doc)
-      if (!isMulti) {
+      if (!_isMulti) {
         commit('setStates', { keys: ['new', 'converted'], datas: [null, null] })
         commitCloseDialog('Create')
       }
@@ -159,30 +139,21 @@ const newOrder = (order, isMulti) => {
     })
     .catch(e => {
       console.error(e)
-      if (e.message.includes('conflict')) commitRoot('pushToasts', { severity: 'error', summary: 'CONFLICT', detail: `${order._id} existed`, life: 10000 })
+      if (e.message.includes('conflict')) commitRoot('pushToasts', { severity: 'error', summary: 'CONFLICT', detail: `${_item._id} existed`, life: 10000 })
       else commitRoot('pushToasts', { severity: 'error', summary: 'ERROR', detail: `${e.message}`, life: 10000 })
-      if (!isMulti) commitCloseDialog('')
+      if (!_isMulti) commitCloseDialog('')
     })
 }
 
-const newOrders = orders => {
-  const _newOrders = orders.map(o => repareNewOrder({ ...o }))
-  return Promise.all(_newOrders.map(_newOrder => newOrder(_newOrder, true)))
-    .then(_docs => {
-      console.log('newOrders _docs: ', _docs)
-      const _docOks = _docs.map(_doc => {
-        if (_doc) return _doc._id
-      })
-      if (_docOks.length) commitCloseDialog(`${_docOks.join(', ')} created`)
-      else commitCloseDialog(``)
-    })
-    .catch(e => console.error(e))
+const findAndDrop = ({ _ids, note }) => {
+  const docs = list.filter(({ _id }) => _ids.includes(_id))
+  drop({ docs, note })
 }
 
 const drop = ({ docs, note }) => {
-  Promise.all(
-    docs.map(order => {
-      const edited = { ...order, ...{ dropped: Date.now() } }
+  return Promise.all(
+    docs.map(_doc => {
+      const edited = { ..._doc, ...{ dropped: Date.now() } }
       edited.logs.unshift({ type: 'Drop', _rev: edited._rev, at: Date.now(), by: user._id, note: note })
       delete edited.ui
       return RxCollection.upsert(edited)
@@ -223,7 +194,7 @@ const subscribeInsert = changeEvent => {
 }
 
 const subscribeUpdate = (changeEvent, _checkKeys) => {
-  console.log('update$: ', changeEvent)
+  console.log('insert$: ', changeEvent)
   const _$doc = { ...changeEvent.data.v }
   let _needUpdateUserState = false
   if (ui[_$doc._id]) _$doc.ui = ui[_$doc._id]
@@ -307,4 +278,4 @@ const updateUserState = info => {
   })
 }
 
-const func = { init, getStatus, newOrder, newOrders, drop, allNewOrderCheck, newOrderCheck, droppedOrderCheck, allDroppedOrderCheck, changeCheck, newProd }
+const func = { init, getStatus, newItem, drop, findAndDrop, allNewOrderCheck, newOrderCheck, droppedOrderCheck, allDroppedOrderCheck, changeCheck }

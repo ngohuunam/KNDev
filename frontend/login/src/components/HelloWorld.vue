@@ -2,12 +2,12 @@
   <div class="login-page">
     <img alt="Logo" default-src="../assets/logoKN.png" src="../assets/logoKN.png" />
     <div class="form">
-      <div name="loginform" class="login-form">
+      <form name="loginform" class="login-form">
         <input type="email" name="email" placeholder="email" v-model="email" />
-        <input type="password" name="password" placeholder="password" v-model="password" />
-        <button type="submit" @click="submit">login</button>
+        <input type="password" name="password" placeholder="password" v-model="password" autocomplete="on" />
+        <button type="submit" @click="submit($event)">login</button>
         <p>{{ msg }}</p>
-      </div>
+      </form>
     </div>
   </div>
 </template>
@@ -16,34 +16,50 @@
 export default {
   name: 'HelloWorld',
   props: {},
-  data: () => ({
-    email: 'huunam@kimnamdesign.com',
-    password: '123',
-    msg: 'Type Email & Password and Login',
-  }),
+  data() {
+    return {
+      email: 'huunam@kimnamdesign.com',
+      password: '123',
+      msg: 'Type Email & Password and Login',
+    }
+  },
   methods: {
-    submit() {
+    submit(e) {
+      e.preventDefault()
       const host = `${window.location.origin}`
-      const opttion = {
+      const opt = {
         method: 'post',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ email: this.email, password: this.password }),
       }
-      this.$root.$children[0].isLoading = true
-      fetch(host, opttion).then(res => {
-        console.log(res)
-        res.json().then(async json => {
-          console.log(json)
-          if (res.status === 200) {
-            await this.$idbSet('user', json, this.$idbStore)
-            this.msg = `${this.email} login success, wait for redirect`
-            setTimeout(() => (window.location.href = `${window.location.origin}/${json.dept}/${json.page}/${json.token}`), 1000)
-          } else this.msg = `Response ${res.status}: ${json}`
-          this.$root.$children[0].isLoading = false
+      this.isLoading = true
+      fetch(host, opt)
+        .then(res => {
+          console.log(res)
+          res.json().then(json => {
+            console.log(json)
+            if (res.status === 200) {
+              window.localStorage.setItem('user', JSON.stringify(json))
+              this.msg = `${this.email} login success, redirect...`
+              const { dept, page, token } = json
+              setTimeout(() => (window.location.href = `${host}/${dept}/${page}/${token}`), 500)
+            } else this.msg = `Response ${res.status}: ${json}`
+          })
         })
-      })
+        .catch(e => (this.msg = `Fetch Error${e.message}`))
+        .finally(() => (this.isLoading = false))
+    },
+  },
+  computed: {
+    loading: {
+      get() {
+        return this.$root.$children[0].isLoading
+      },
+      set(v) {
+        this.$root.$children[0].isLoading = v
+      },
     },
   },
 }

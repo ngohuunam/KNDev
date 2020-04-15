@@ -37,7 +37,7 @@
 </template>
 
 <script>
-import defaultState from '@/assets/defaultState'
+import { prod } from '@/assets/defaultState'
 
 export default {
   name: 'OrderFilmNewProdForm',
@@ -53,39 +53,51 @@ export default {
       default: false,
     },
   },
-  data: () => ({
-    log: '',
-  }),
+  data() {
+    return { note: '' }
+  },
   methods: {
+    checkId() {
+      if (this.newProd.name) {
+        const _newId = `${this.cp._id}:${this.newProd.name.to_id()}`
+        if (this.cp.products.some(fp => fp === _newId)) return _newId + ' EXISTED'
+        else {
+          this.newProd._id = _newId
+          this.newProd.orderId = this.cp._id
+          this.newProd.orderRev = this.cp._rev
+          this.newProd.note = this.note
+          return ''
+        }
+      }
+      return 'Product Name'
+    },
     confirm() {
-      let _newId = 'abc'
-      let _requiredMess = ''
       let _idExistedMess = ''
       let _validateMess = ''
-      if (this.newProd.name) {
-        _newId = this.cp._id + '.' + this.newProd.name.toProperCase().replace(/\s/g, '')
-        if (this.cp.products.some(fp => fp === _newId)) _idExistedMess = _newId + ' EXISTED'
-      } else _requiredMess = 'Product Name'
-      if (!this.newProd.type) _requiredMess += _requiredMess ? ' + Type ' : 'Type'
-      if (_requiredMess) _requiredMess = `${_requiredMess} ${_requiredMess.indexOf('+') > -1 ? 'ARE' : 'IS'} REQUIRED`
+      let _requiredMess = this.checkId()
+      if (!this.newProd.type) _requiredMess.concat(_requiredMess ? ' + Type are required' : 'Type is required')
       if (_idExistedMess && !_requiredMess) _validateMess = _idExistedMess
-      else if (!_idExistedMess && _requiredMess) _validateMess = _requiredMess
+      else if (_requiredMess && !_idExistedMess) _validateMess = _requiredMess
       else if (_idExistedMess && _requiredMess) _validateMess = `${_idExistedMess} - ${_requiredMess}`
       if (_validateMess) this.dialogMess = { text: _validateMess, severity: 'error' }
-      else {
-        this.$store.commit('Order/Film/createNewProd', { _id: _newId, user: this.$store.state.user, orderId: this.cp._id, orderRev: this.cp._rev, log: this.log })
-        this.$emit('switch-comp', 'newProdConfirm', 'Save', 'Save new product confirm')
-        if (this.dialogMess.text) this.dialogMess = { text: '', severity: '' }
-      }
+      else this.doCreate(true)
+    },
+    doCreate(idChecked) {
+      if (!idChecked) this.checkId()
+      if (this.newProd._id) {
+        this.$store.commit('Prod/Film/create')
+        this.$emit('switch-comp', 'newProdConfirm', 'Save', 'Save new product confirm', this.cp)
+        this.dialogMess = { text: '', severity: '' }
+      } else this.dialogMess = { text: "Product's name required", severity: 'error' }
     },
   },
   computed: {
     newProdLabels() {
-      return this.$store.state.filmOrdersList.newProdLabels
+      return this.$store.state.Prod.Film.labels
     },
     dialogMess: {
       get() {
-        return this.$store.state.dialog.message
+        return this.$store.state.Dialog.message
       },
       set(value) {
         this.$store.commit('Dialog/setMess', value)
@@ -93,17 +105,17 @@ export default {
     },
     newProd: {
       get() {
-        return this.$store.state.filmOrdersList.newProd
+        return this.$store.state.Prod.Film.new
       },
       set(value) {
-        this.$store.commit('Order/Film/setState', { key: 'newProd', data: value })
+        this.$store.commit('Prod/Film/setState', { key: 'new', data: value })
       },
     },
   },
-  created: function() {
-    this.newProd = defaultState.newProd
+  created() {
+    if (!this.newProd) this.newProd = { ...prod.film.new }
   },
-  beforeDestroy: function() {},
+  beforeDestroy() {},
 }
 </script>
 

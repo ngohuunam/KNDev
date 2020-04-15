@@ -14,7 +14,7 @@ export default {
   methods: {
     confirm() {
       // this.$store.dispatch('Order/Film/newOrder')
-      this.$store.dispatch('Order/Film/Worker', { name: 'newOrder', payload: { ...this.$store.state.Order.Film.newOrderConverted } })
+      this.$store.dispatch('Order/Film/Worker', { name: 'newOrder', payload: { ...this.$store.state.Order.Film.converted } })
     },
   },
   computed: {
@@ -22,7 +22,7 @@ export default {
       return this.$store.getters['Order/Film/newOrderConfirmTableProperties']
     },
     newOrderLabels() {
-      return this.$store.state.Order.Film.newOrderLabels
+      return this.$store.state.Order.Film.labels
     },
   },
   mounted: function() {},

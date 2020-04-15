@@ -4,8 +4,12 @@
 
 const OrderFilmPlugin = async store => {
   // const idbstore = new Store('kn', 'data')
-  const dbKey = 'order-film'
-  const { commit } = store
+  const {
+    commit,
+    state: {
+      user: { token, _id },
+    },
+  } = store
   // const GET = get(dbKey, idbstore)
   // const SET = value => set(dbKey, value, idbstore)
   const { log, error } = console
@@ -28,9 +32,9 @@ const OrderFilmPlugin = async store => {
   // const worker_other = new SharedWorker('./order-other.shared-worker.js', { name: 'order-other', type: 'module' })
   // console.log('worker_other: ', worker_other)
   worker.port.start()
-  worker.port.postMessage({ name: 'getStatus' })
+  worker.port.postMessage({ name: 'getStatus', payload: { token, _id } })
   worker.port.onmessage = ({ data }) => {
-    log('worker monmessage - data: ', data)
+    log('order-film worker monmessage - data: ', data)
     const { action, type, payload } = data
     switch (action) {
       case 'commit':
@@ -62,7 +66,7 @@ const OrderFilmPlugin = async store => {
     //   }
     // }
   })
-  if (worker) commit('pushState', { state: 'worker', value: dbKey })
+  if (worker) commit('pushState', { state: 'worker', value: 'order-film' })
   log('store: ', store)
 }
 

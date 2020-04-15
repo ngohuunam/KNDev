@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="p-grid p-fluid" v-for="item in newOrderLabels" :key="item.label">
+    <div class="p-grid p-fluid" v-for="item in labels" :key="item.label">
       <div class="p-col-4" style="margin: auto;">
         <label>{{ item.label }}</label>
       </div>
@@ -44,7 +44,7 @@
 </template>
 
 <script>
-import defaultState from '@/assets/defaultState'
+import { order } from '@/assets/defaultState'
 // Object.freeze(defaultState.newOrder)
 
 export default {
@@ -60,9 +60,9 @@ export default {
       let _idExistedMess = ''
       let _validateMess = ''
       if (this.newOrder.foreignTitle) {
-        _newId = this.newOrder.foreignTitle.toDataId()
+        _newId = this.newOrder.foreignTitle.to_id()
         if (this.$store.state.Order.Film.list.some(fo => fo._id === _newId)) _idExistedMess = _newId + ' EXISTED'
-      } else _requiredMess = 'Short Title'
+      } else _requiredMess = 'Foreign Title'
       if (!this.newOrder.team) _requiredMess += _requiredMess ? ' + Team ' : 'Team'
       if (!this.newOrder.foreignTitle) _requiredMess += _requiredMess ? ' + Foreign Title' : 'Foreign Title'
       if (_requiredMess) _requiredMess = `${_requiredMess} ${_requiredMess.indexOf('+') > -1 ? 'ARE' : 'IS'} REQUIRED`
@@ -73,14 +73,16 @@ export default {
       else this.doCreate()
     },
     doCreate() {
-      this.$store.commit('Order/Film/createNewOrder', { note: this.note })
-      this.$emit('switch-comp', 'newOrderConfirm', 'Save', 'Save new order confirm')
-      this.dialogMess = { text: '', severity: '' }
+      if (this.newOrder.foreignTitle) {
+        this.$store.commit('Order/Film/create', { note: this.note })
+        this.$emit('switch-comp', 'newOrderConfirm', 'Save', 'Save new order confirm')
+        this.dialogMess = { text: '', severity: '' }
+      } else this.dialogMess = { text: 'Foreign Title required', severity: 'error' }
     },
   },
   computed: {
-    newOrderLabels() {
-      return this.$store.state.Order.Film.newOrderLabels
+    labels() {
+      return this.$store.state.Order.Film.labels
     },
     dialogMess: {
       get() {
@@ -92,16 +94,15 @@ export default {
     },
     newOrder: {
       get() {
-        return this.$store.state.Order.Film.newOrder
+        return this.$store.state.Order.Film.new
       },
       set(value) {
-        this.$store.commit('Order/Film/setState', { key: 'newOrder', data: value })
+        this.$store.commit('Order/Film/setState', { key: 'new', data: value })
       },
     },
   },
   created: function() {
-    console.log(defaultState)
-    this.newOrder = { ...defaultState.order.film.new }
+    if (!this.newOrder) this.newOrder = { ...order.film.new }
   },
   beforeDestroy: function() {},
 }

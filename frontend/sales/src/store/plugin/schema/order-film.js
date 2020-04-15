@@ -1,5 +1,5 @@
-const order_film = {
-  title: 'film schema',
+export default {
+  title: 'Order - film schema',
   description: 'describes a film order',
   version: 0,
   type: 'object',
@@ -64,5 +64,3 @@ const order_film = {
   },
   compoundIndexes: [['status', 'vietnameseTitle']],
 }
-
-module.exports = order_film

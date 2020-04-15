@@ -1,4 +1,4 @@
-import Default from './assets/defaultState'
+import { order } from './assets/defaultState'
 
 const toProperCase = function() {
   return this.replace(/([^\W_]+[^\s-]*) */g, function(txt) {
@@ -7,16 +7,14 @@ const toProperCase = function() {
 }
 
 String.prototype.toProperCase = toProperCase
-String.prototype.toDataId = function() {
+String.prototype.to_id = function() {
   return this.toProperCase().replace(/\s/g, '')
 }
 
 export const date = new Date()
 export const year = date.getFullYear()
 
-export const parseInt_rev = _rev => {
-  return parseInt(_rev.slice(0, _rev.indexOf('-')))
-}
+export const parseInt_rev = _rev => parseInt(_rev.slice(0, _rev.indexOf('-')))
 
 export const filter_rev = (logs, start_rev) => {
   const startIndex = logs.findIndex(log => log._rev === start_rev)
@@ -52,7 +50,7 @@ export const pushAtSort = (array, item, compareFunction) => {
 }
 
 export const queryBy_id = (id, source) => {
-  let _idx
+  let _idx = -1
   const _doc = source.find(({ _id }, idx) => {
     _idx = idx
     return _id === id
@@ -110,6 +108,14 @@ export const dateToUnix = (dateStr, hasTime) => {
   return 0
 }
 
+export const guid = () => {
+  const s4 = () =>
+    Math.floor((1 + Math.random()) * 0x10000)
+      .toString(16)
+      .substring(1)
+  return `${s4() + s4()}-${s4()}-${s4()}-${s4()}-${s4() + s4() + s4()}`
+}
+
 export const unixTime = time => (time ? (typeof time === 'string' ? dateToUnix(time) : time.getTime()) : 0)
 
 export const tToString = (timestamp, addTime, nullString, yFormat) => {
@@ -127,8 +133,8 @@ export const htmlStrip = html => {
   return doc.body.textContent || ''
 }
 
-export const newOrder = order => {
-  const _newOrder = { ...Default.order.film.new, ...order, ...{ status: 'Created' } }
+export const newOrder = _order => {
+  const _newOrder = { ...order.film.new, ..._order, ...{ status: 'Created' } }
   _newOrder.foreignTitle = _newOrder.foreignTitle.toProperCase()
   _newOrder._id = _newOrder.foreignTitle.replace(/\s/g, '')
   _newOrder.vietnameseTitle = _newOrder.vietnameseTitle.toProperCase()
@@ -141,5 +147,3 @@ export const isObjEmpty = obj => {
   for (let key in obj) return false
   return true
 }
-
-export const filmState = { ...Default.order.film }

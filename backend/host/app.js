@@ -3,7 +3,7 @@ require('express-async-errors')
 
 // Root Express App
 // ----------------
-
+console.log(process.env.PORT)
 const app = express()
 
 // Show routes called in console during development

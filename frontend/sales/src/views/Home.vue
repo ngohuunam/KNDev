@@ -25,10 +25,12 @@
       </BlockUI>
 
       <template #footer>
-        <Button v-if="confirmBtnLabel === 'Create'" label="Force Create" icon="pi pi-angle-double-up" @click="forceCreate" />
-        <Button v-if="confirmBtnLabel === 'Save'" label="Back" icon="pi pi-angle-double-left" @click="backDialog" />
-        <Button :label="confirmBtnLabel" :icon="buttonIcon" @click="dialogConfirm" class="p-button-success" />
-        <Button label="Cancel" icon="pi pi-times" @click="closeDialog" class="p-button-danger" />
+        <BlockUI v-if="dialogComponent" :blocked="loading">
+          <Button v-if="confirmBtnLabel === 'Create'" label="Force Create" icon="pi pi-angle-double-up" @click="forceCreate" />
+          <Button v-if="confirmBtnLabel === 'Save'" label="Back" icon="pi pi-angle-double-left" @click="backDialog" />
+          <Button :label="confirmBtnLabel" :icon="buttonIcon" @click="dialogConfirm" class="p-button-success" />
+          <Button label="Cancel" icon="pi pi-times" @click="closeDialog" class="p-button-danger" />
+        </BlockUI>
       </template>
     </NewDialog>
   </div>
@@ -76,7 +78,7 @@ export default {
       this.dialogMess = { text: '', severity: '' }
     },
     backDialog() {
-      if (this.compRef.indexOf('SimpleProd') > -1) this.openDialog('newProdForm', 'Create', 'Add new Product', this.compProps)
+      if (this.compRef.includes('ProdConfirm')) this.openDialog('newProdForm', 'Create', 'Add new Product', this.compProps)
       else this.openDialog('newOrderForm', 'Create', 'Add new film')
     },
     openDialog(comp, label, header, props, width, disableKeyTab) {

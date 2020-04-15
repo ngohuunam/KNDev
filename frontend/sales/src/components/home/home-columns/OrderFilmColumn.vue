@@ -68,8 +68,7 @@
           <InputText type="text" v-model="filters['foreignTitle']" class="p-column-filter" />
         </template>
         <template #body="slotProps">
-          <Button v-if="cellHasChanged(slotProps, 'foreignTitle')" :label="slotProps.data.foreignTitle" @click="changedAccept($event, slotProps.data._id, 'foreignTitle')" />
-          <div v-else style="position: relative">
+          <div style="position: relative">
             <span><i v-if="slotProps.data.icon" :class="`pi ${slotProps.data.icon} icon-loading`"></i> {{ slotProps.data.foreignTitle }} </span>
           </div>
         </template>
@@ -81,9 +80,10 @@
         </template>
         <template #body="slotProps">
           <Button
-            v-if="cellHasChanged(slotProps, 'premiereDate')"
+            v-if="slotProps.data.ui && slotProps.data.ui.premiereDate"
+            :icon="slotProps.data.ui.premiereDate.checking ? 'pi pi-spin pi-spinner' : ''"
             :label="$tToString(slotProps.data.premiereDate, false, '')"
-            @click="changedAccept($event, slotProps.data._id, 'premiereDate')"
+            @click="checkChange($event, slotProps)"
           />
           <span v-else> {{ $tToString(slotProps.data.premiereDate, false, '') }} </span>
         </template>
@@ -110,7 +110,12 @@
           <InputText type="text" v-model="filters['productNames']" class="p-column-filter" />
         </template>
         <template #body="slotProps">
-          <Button v-if="cellHasChanged(slotProps, 'productNames')" :label="slotProps.data.productNames" @click="changedAccept($event, slotProps.data._id, 'productNames')" />
+          <Button
+            v-if="slotProps.data.ui && slotProps.data.ui.productNames"
+            :icon="slotProps.data.ui.productNames.checking ? 'pi pi-spin pi-spinner' : ''"
+            :label="slotProps.data.productNames"
+            @click="checkChange($event, slotProps)"
+          />
           <span v-else> {{ slotProps.data.productNames }} </span>
         </template>
       </Column>
@@ -121,9 +126,10 @@
         </template>
         <template #body="slotProps">
           <Button
-            v-if="cellHasChanged(slotProps, 'createdAt')"
-            :label="$tToString(slotProps.data.createdAt, true, '')"
-            @click="changedAccept($event, slotProps.data._id, 'createdAt')"
+            v-if="slotProps.data.ui && slotProps.data.ui.createAt"
+            :icon="slotProps.data.ui.createAt.checking ? 'pi pi-spin pi-spinner' : ''"
+            :label="$tToString(slotProps.data.createAt, true, '')"
+            @click="checkChange($event, slotProps)"
           />
           <span v-else> {{ $tToString(slotProps.data.createdAt, true, '') }} </span>
         </template>
@@ -134,7 +140,12 @@
           <InputText type="text" v-model="filters['endAt']" class="p-column-filter" />
         </template>
         <template #body="slotProps">
-          <Button v-if="cellHasChanged(slotProps, 'endAt')" :label="$tToString(slotProps.data.endAt, true, '')" @click="changedAccept($event, slotProps.data._id, 'endAt')" />
+          <Button
+            v-if="slotProps.data.ui && slotProps.data.ui.endAt"
+            :icon="slotProps.data.ui.endAt.checking ? 'pi pi-spin pi-spinner' : ''"
+            :label="$tToString(slotProps.data.endAt, true, '')"
+            @click="checkChange($event, slotProps)"
+          />
           <span v-else> {{ $tToString(slotProps.data.endAt, true, '') }} </span>
         </template>
       </Column>
@@ -145,9 +156,10 @@
         </template>
         <template #body="slotProps">
           <Button
-            v-if="cellHasChanged(slotProps, 'finishAt')"
+            v-if="slotProps.data.ui && slotProps.data.ui.finishAt"
+            :icon="slotProps.data.ui.finishAt.checking ? 'pi pi-spin pi-spinner' : ''"
             :label="$tToString(slotProps.data.finishAt, true, '')"
-            @click="changedAccept($event, slotProps.data._id, 'finishAt')"
+            @click="checkChange($event, slotProps)"
           />
           <span v-else> {{ $tToString(slotProps.data.finishAt, true, '') }} </span>
         </template>
@@ -159,9 +171,10 @@
         </template>
         <template #body="slotProps">
           <Button
-            v-if="cellHasChanged(slotProps, 'vietnameseTitle')"
+            v-if="slotProps.data.ui && slotProps.data.ui.vietnameseTitle"
+            :icon="slotProps.data.ui.vietnameseTitle.checking ? 'pi pi-spin pi-spinner' : ''"
             :label="slotProps.data.vietnameseTitle"
-            @click="changedAccept($event, slotProps.data._id, 'vietnameseTitle')"
+            @click="checkChange($event, slotProps)"
           />
           <span v-else> {{ slotProps.data.vietnameseTitle }} </span>
         </template>
@@ -172,11 +185,7 @@
       </template>
       <template #empty><div class="text-center">No records found.</div></template>
     </DataTable>
-    <!-- <ProgressSpinner v-if="filmOrdersListLoading" /> -->
     <ContextMenu :model="menuModel" ref="cm" />
-    <!-- <OverlayPanel ref="op" :showCloseIcon="true" :dismissable="true">
-      OK
-    </OverlayPanel> -->
   </div>
 </template>
 
@@ -196,6 +205,8 @@ export default {
       menuModelNormal: [
         { label: ``, icon: 'pi pi-dollar' },
         { separator: true },
+        { separator: true },
+        { label: 'Add product', icon: 'pi pi-fw pi-upload', command: () => this.addSimpleProd(this.rowClickData) },
         { label: 'View', icon: 'pi pi-fw pi-search', command: () => this.editOrder(this.rowClickData) },
         { label: 'Delete', icon: 'pi pi-fw pi-times', command: () => this.deleteThisOrder({ ...this.rowClickData }) },
       ],
@@ -231,15 +242,16 @@ export default {
         target: { classList, parentElement },
       } = originalEvent
       if (!classList.contains('p-checkbox-box') && !parentElement.classList.contains('p-checkbox-box')) {
-        this.menuModelNormal[0].label = data._id
+        this.menuModelNormal[0].label = 'Title: '.concat(data._id)
         this.menuModel = data.dropped ? this.menuDroppedRowModel : data.ui ? this.menuModelNormal : this.menuNewRowModel
         this.$refs.cm.show(originalEvent)
         this.rowClickData = { data, index }
       }
     },
-    addSimpleProd(order) {
-      console.log(order._id)
-      this.$emit('open-dialog', 'newProdForm', 'Create', 'Add new Product', order)
+    addSimpleProd({ data, index }) {
+      console.log(data._id)
+      console.log(index)
+      this.$emit('open-dialog', 'newProdForm', 'Create', 'Add new Product', data)
     },
     editOrder(_id) {
       console.log(_id)
@@ -290,10 +302,10 @@ export default {
       console.log('onRowSelect: ', e)
     },
     onRowUnselect(e) {
-      if (this.prodList.length) this.$store.commit('Order/Film/filterSomeByIndexOf', { state: 'prodList', _id: e.data._id })
+      console.log('onRowUnSelect: ', e)
     },
-    onRowUnselectAll() {
-      if (this.prodList.length) this.$store.commit('Order/Film/setState', { key: 'prodList', data: [] })
+    onRowUnselectAll(e) {
+      console.log('onRowSelectAll: ', e)
     },
     rowClass(data) {
       return data.dropped ? 'r-deleted' : data.ui ? '' : 'r-new'
@@ -340,7 +352,7 @@ export default {
     ...mapState({
       list: state => state.Order.Film.list,
       loading: state => state.Order.Film.loading,
-      prodList: state => state.Order.Film.prodList,
+      prodList: state => state.Prod.Film.list,
       seq: state => state.Order.Film.seq,
     }),
   },

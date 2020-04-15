@@ -1,47 +1,47 @@
 import { tToString, htmlStrip } from '@/tools'
 
-export const openDialog = state => {
-  return state.createNewOrder || state.wantDelOrder
-}
+// export const openDialog = state => {
+//   return state.createNewOrder || state.wantDelOrder
+// }
 
-export const newOrders = state => {
-  return state.changes.filter(o => o.new)
-}
+// export const newOrders = state => {
+//   return state.changes.filter(o => o.new)
+// }
 
-export const hasNewOrder = (state, getters) => {
-  return getters.newOrders.length > 0
-}
+// export const hasNewOrder = (state, getters) => {
+//   return getters.newOrders.length > 0
+// }
 
-export const isNewOrder = (state, getters) => _id => {
-  return getters.newOrders.some(o => o._id === _id)
-}
+// export const isNewOrder = (state, getters) => _id => {
+//   return getters.newOrders.some(o => o._id === _id)
+// }
 
-export const droppedOrders = state => {
-  return state.list.filter(o => o.dropped)
-}
+// export const droppedOrders = state => {
+//   return state.list.filter(o => o.dropped)
+// }
 
-export const isDroppedOrder = (state, getters) => _id => {
-  return getters.droppedOrders.some(o => o._id === _id)
-}
+// export const isDroppedOrder = (state, getters) => _id => {
+//   return getters.droppedOrders.some(o => o._id === _id)
+// }
 
-export const hasOrderChanged = state => {
-  return state.changes.length > 0
-}
+// export const hasOrderChanged = state => {
+//   return state.changes.length > 0
+// }
 
-export const isExisted = state => _id => {
-  return state.list.some(o => o._id === _id)
-}
+// export const isExisted = state => _id => {
+//   return state.list.some(o => o._id === _id)
+// }
 
-export const newOrderConfirmTableProperties = state => {
-  if (state.newOrderConverted)
+export const newOrderConfirmTableProperties = ({ converted }) => {
+  if (converted)
     return [
-      { name: 'ID', value: state.newOrderConverted._id },
-      { name: 'Foreign Title', value: state.newOrderConverted.foreignTitle },
-      { name: 'Vietnamese Title', value: state.newOrderConverted.vietnameseTitle },
-      { name: 'Client', value: state.newOrderConverted.client },
-      { name: 'Team', value: state.newOrderConverted.team },
-      { name: 'NKC', value: tToString(state.newOrderConverted.premiereDate, false, '', 'numeric') },
-      { name: 'Deadline', value: tToString(state.newOrderConverted.endAt, true, 'Empty', 'numeric') },
+      { name: 'ID', value: converted._id },
+      { name: 'Foreign Title', value: converted.foreignTitle },
+      { name: 'Vietnamese Title', value: converted.vietnameseTitle },
+      { name: 'Client', value: converted.client },
+      { name: 'Team', value: converted.team },
+      { name: 'NKC', value: tToString(converted.premiereDate, false, '', 'numeric') },
+      { name: 'Deadline', value: tToString(converted.endAt, true, 'Empty', 'numeric') },
     ]
   else return []
 }

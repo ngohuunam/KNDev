@@ -167,27 +167,16 @@ import VueSocketIOExt from 'vue-socket.io-extended'
 import io from 'socket.io-client'
 import * as globalInstance from './globalInstance'
 
-// let info = window.localStorage.getItem('info')
-// info = JSON.parse(info)
-// const token = info.token
-// const url = `${window.location.origin}/${info.dept}/${info.page}?token=${token}`
-const url = `${window.location.origin}`
-// console.log('url', url)
+let user = window.localStorage.getItem('user')
+const { dept, page, token } = JSON.parse(user)
+const url = `${window.location.origin}/${dept}/${page}?token=${token}`
+// const url = `${window.location.origin}`
+console.log('url', url)
+console.log('store', store)
 
 const socket = io(url)
 Vue.use(VueSocketIOExt, socket, { store })
 Vue.use(globalInstance)
-
-// const toProperCase = function() {
-//   return this.replace(/([^\W_]+[^\s-]*) */g, function(txt) {
-//     return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()
-//   })
-// }
-
-// String.prototype.toProperCase = toProperCase
-// String.prototype.toDataId = function() {
-//   return this.toProperCase().replace(/\s/g, '')
-// }
 
 new Vue({
   router,

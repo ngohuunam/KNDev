@@ -1,26 +1,31 @@
 const { staffs, secret, dbOpt, dbLog, initDB, getDb, attachDB, couchUrl } = require('./database')
 const { encrypt, decrypt } = require('./crypto')
-const { sendGzip, sendLogin } = require('./send-file')
-const { streamRender, redirectToLogin, readReplaceRes, readReplaceMultiRes, doGzip, insertTokenRes } = require('./stream')
+const { sendCompressed, sendLogin } = require('./send-file')
+const { streamRender, redirectToLogin, readReplaceRes, readReplaceMultiRes, doCompress, insertTokenRes } = require('./stream')
 const socket = require('./socket')
 const { initLogger } = require('./logger')
 const { nextErr, throwErr } = require('./error')
 const { attachHeaderBearer, consoleLogReq, consoleLogRes, consoleLogReqRes } = require('./middle')
 
+const atob = data => Buffer.from(data, 'base64').toString('ascii')
+const btoa = string => Buffer.from(string).toString('base64')
+
 module.exports = {
+  atob,
+  btoa,
   staffs,
   initDB,
   getDb,
   attachDB,
   encrypt,
   decrypt,
-  sendGzip,
+  sendCompressed,
   sendLogin,
   streamRender,
   redirectToLogin,
   readReplaceRes,
   readReplaceMultiRes,
-  doGzip,
+  doCompress,
   insertTokenRes,
   secret,
   dbOpt,

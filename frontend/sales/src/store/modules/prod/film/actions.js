@@ -5,6 +5,11 @@ export const Worker = async ({ commit, rootState }, payload) => {
   commit('Worker', payload)
 }
 
+export const newItem = async ({ state, commit, rootState }) => {
+  rootState.Dialog.loading = true
+  commit('Worker', { name: 'newItem', payload: state.converted })
+}
+
 export const allNewOrderCheck = ({ state, commit }) => {
   state.btnIcon['allNewOrderCheck'] = true
   const payload = { datas: [], indexs: [] }

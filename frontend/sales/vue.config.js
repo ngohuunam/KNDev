@@ -7,13 +7,17 @@ const { publicPath } = require('./package.json')
 module.exports = {
   publicPath: publicPath,
   outputDir: `../../backend/web/pages${publicPath}`,
-  productionSourceMap: true,
+  productionSourceMap: false,
   filenameHashing: false,
   chainWebpack: config => {
     config.module
       .rule('images')
       .use('url-loader')
       .tap(options => Object.assign({}, options, { name: '[name].[ext]' }))
+    config.plugin('html').tap(args => {
+      args[0].title = new Date().toLocaleString('vi')
+      return args
+    })
     // config.module
     //   .rule('worker')
     //   .test(/\.worker\.js$/)
@@ -55,20 +59,32 @@ module.exports = {
     },
     plugins: [
       new WorkerPlugin({ globalObject: 'self', sharedWorker: true, worker: false, filename: '[name].worker.js' }),
-      new CompressionPlugin({
-        filename: '[path].gz[query]',
-        algorithm: 'gzip',
-        test: /\.vue$|\.js$|\.css$$|\.html$|\.eot$|\.ttf$|\.woff$|\.woff2$|\.ico$/,
-        cache: true,
-        minRatio: 0.8,
-        compressionOptions: { level: 9 },
-      }),
       new HtmlWebpackPlugin({
         filename: 'index_.html',
+        title: new Date().toLocaleString('vi'),
         template: 'public/template.html', // this is important - a template file to use for insertion
         inlineSource: '.(js|css)$', // embed all javascript and css inline
       }),
       new HtmlWebpackInlineSourcePlugin(HtmlWebpackPlugin),
+      // new CompressionPlugin({
+      //   filename: '[path].gz[query]',
+      //   algorithm: 'gzip',
+      //   test: /\.vue$|\.js$|\.css$|\.html$|\.eot$|\.ttf$|\.woff$|\.woff2$|\.ico$/,
+      //   cache: true,
+      //   minRatio: 0.8,
+      //   threshold: 10240,
+      //   deleteOriginalAssets: false,
+      // }),
+      new CompressionPlugin({
+        filename: '[path].br[query]',
+        algorithm: 'brotliCompress',
+        test: /\.vue$|\.js$|\.css$|\.html$|\.eot$|\.ttf$|\.woff$|\.woff2$|\.ico$/,
+        cache: true,
+        minRatio: 0.8,
+        compressionOptions: { level: 11 },
+        threshold: 10240,
+        deleteOriginalAssets: false,
+      }),
     ],
   },
 }

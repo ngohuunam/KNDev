@@ -9,7 +9,7 @@
       <keep-alive><router-view /></keep-alive>
     </div>
     <NewToast @close="toastClose" />
-    <div class="version">V.132</div>
+    <!-- <div class="version">V0.132</div> -->
   </div>
 </template>
 

@@ -1,17 +1,12 @@
 import Vue from 'vue'
-import { queryBy_id, newOrder, pushSortBy_id } from '@/tools'
+import { queryBy_id, pushSortBy_id } from '@/tools'
 
-export const createNewProd = state => {
-  const _newProd = { ...state.newProd }
+export const create = state => {
+  const _newProd = { ...state.new }
   _newProd.name = _newProd.name.toProperCase()
   _newProd.endAt = _newProd.endAt ? _newProd.endAt.getTime() : 0
   _newProd.status = 'Created'
-  state.newProdConverted = _newProd
-}
-
-export const create = (state, note) => {
-  const _newOrder = { ...state.new, ...note }
-  state.converted = newOrder(_newOrder)
+  state.converted = _newProd
 }
 
 export const allChangedAccept = state => {

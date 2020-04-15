@@ -5,6 +5,8 @@ module.exports = {
       script: './host/bin/www',
       // Options reference: https://pm2.keymetrics.io/docs/usage/application-declaration/
       node_args: ['--harmony', '--inspect'],
+      exec_mode: 'cluster',
+      instances: 'max',
       error_file: './logs/pm2-error.log',
       out_file: './logs/pm2.log',
       pid_file: './logs/pm2.pid',

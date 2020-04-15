@@ -1,6 +1,6 @@
 const { resolve } = require('path')
 const { lookup } = require('mime-types')
-const { doGzip } = require('./stream')
+const { doCompress } = require('./stream')
 const { initLogger } = require('./logger')
 
 const sendFileLogger = initLogger('shared/send-file')
@@ -18,27 +18,33 @@ const sendFile = (res, next, path, options) => {
 }
 
 /**
- * Search gzip encode is accepted, if not send original file
- * Search file gzip to send
- * if file gzip not existed, send orignal file
- * and make new gzip file
+ * Search brotli or gzip encode is accepted, if not send original file
+ * brotli is prioriti than gzip
+ * Search file brotli or gzip to send
+ * if file brotli or gzip not existed, send original file
+ * and make new brotli or gzip file
  */
-const sendGzip = (input, headers, res, next, contentType) => {
+const sendCompressed = (input, headers, res, next, contentType) => {
+  const isBrotliAccepted = headers['accept-encoding'].includes('br')
   const isGzipAccepted = headers['accept-encoding'].includes('gzip')
-  if (isGzipAccepted) {
+  const encoding = isBrotliAccepted ? 'br' : isGzipAccepted ? 'gzip' : ''
+  const fileExt = isBrotliAccepted ? '.br' : isGzipAccepted ? '.gz' : ''
+  const _contentType = contentType || lookup(input)
+  // console.log('_contentType:', _contentType)
+  if (isBrotliAccepted || isGzipAccepted) {
     const options = {
       headers: {
-        'Content-Type': contentType || lookup(input),
-        'Content-Encoding': 'gzip',
+        'Content-Type': _contentType,
+        'Content-Encoding': encoding,
       },
     }
-    const output = input + '.gz'
+    const output = input + fileExt
     res.sendFile(resolve(output), options, async err => {
       if (err) {
         if (err.message.indexOf('no such file') > -1) {
           try {
             sendFile(res, next, input)
-            await doGzip(input, output)
+            await doCompress(input, output, isBrotliAccepted)
           } catch (e) {
             handleErr('PROMISE (do_gzip) ERROR: ', e)
           }
@@ -53,7 +59,7 @@ const sendGzip = (input, headers, res, next, contentType) => {
  */
 const sendLogin = ({ headers }, res, next) => {
   const input = 'web/pages/login/index.html'
-  sendGzip(input, headers, res, next, 'text/html')
+  sendCompressed(input, headers, res, next, 'text/html')
 }
 
-module.exports = { sendGzip, sendLogin }
+module.exports = { sendCompressed, sendLogin }
