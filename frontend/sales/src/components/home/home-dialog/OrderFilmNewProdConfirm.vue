@@ -1,5 +1,5 @@
 <template>
-  <DataTable :value="value" data-key="_id">
+  <DataTable v-if="value.length" :value="value" data-key="_id">
     <Column field="name" header="Field"> </Column>
     <Column field="value" header="Detail"> </Column>
     <template #empty><div class="text-center">No records found.</div></template>
@@ -13,24 +13,21 @@ export default {
   data: () => ({}),
   methods: {
     confirm() {
-      this.$store.dispatch('Order/Film/Worker', { name: 'newProd', payload: this.converted })
-      this.$store.dispatch('Prod/Film/Worker', { name: 'newItem', payload: this.converted })
+      this.$store.dispatch('order/film/Worker', { name: 'newProd', payload: this.converted })
+      this.$store.dispatch('prod/film/Worker', { name: 'create', payload: this.converted })
     },
   },
   computed: {
     converted() {
-      return this.$store.state.Prod.Film.converted
+      return this.$store.state.prod.film.converted
     },
     value() {
-      return this.$store.getters['Prod/Film/newProdConfirmTableProperties'](this.converted)
-    },
-    newProdLabels() {
-      return this.$store.state.Order.Film.newProdLabels
+      return this.$store.getters['prod/film/newProdConfirmTableProperties']
     },
   },
   mounted: function() {},
   beforeDestroy: function() {
-    this.$store.commit('Prod/Film/setState', { key: 'converted', data: null })
+    this.$store.commit('prod/film/setState', { key: 'converted', data: null })
   },
 }
 </script>

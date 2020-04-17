@@ -1,14 +1,14 @@
 import Vue from 'vue'
 
-export const Worker = async ({ commit, rootState }, payload) => {
-  rootState.Dialog.loading = true
+export const Worker = ({ commit, rootState }, payload) => {
+  rootState.dialog.loading = true
   commit('Worker', payload)
 }
 
-export const newItem = async ({ state, commit, rootState }) => {
-  rootState.Dialog.loading = true
-  commit('Worker', { name: 'newItem', payload: state.converted })
-}
+// export const newItem = async ({ state, commit, rootState }) => {
+//   rootState.Dialog.loading = true
+//   commit('Worker', { name: 'newItem', payload: state.converted })
+// }
 
 export const allNewCheck = ({ state, commit }) => {
   state.btnIcon['allNewCheck'] = true

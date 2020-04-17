@@ -3,7 +3,7 @@ export default {
   selected: [],
   seq: null,
   loading: true,
-  btnIcon: {},
+  icon: { header: {}, row: {}, cell: {} },
   new: null,
   labels: [
     { label: 'Foreign Title:', inputType: 'text', key: 'foreignTitle' },

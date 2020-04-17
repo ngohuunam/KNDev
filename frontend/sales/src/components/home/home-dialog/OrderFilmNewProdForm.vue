@@ -85,7 +85,7 @@ export default {
     doCreate(idChecked) {
       if (!idChecked) this.checkId()
       if (this.newProd._id) {
-        this.$store.commit('Prod/Film/create', this.newProd)
+        this.$store.commit('prod/film/create', this.newProd)
         this.$emit('switch-comp', 'newProdConfirm', 'Save', 'Save new product confirm', this.cp)
         this.dialogMess = { text: '', severity: '' }
       } else this.dialogMess = { text: "Product's name required", severity: 'error' }
@@ -93,22 +93,22 @@ export default {
   },
   computed: {
     newProdLabels() {
-      return this.$store.state.Prod.Film.labels
+      return this.$store.state.prod.film.labels
     },
     dialogMess: {
       get() {
-        return this.$store.state.Dialog.message
+        return this.$store.state.dialog.message
       },
       set(value) {
-        this.$store.commit('Dialog/setMess', value)
+        this.$store.commit('dialog/setMess', value)
       },
     },
     newProd: {
       get() {
-        return this.$store.state.Prod.Film.new
+        return this.$store.state.prod.film.new
       },
       set(value) {
-        this.$store.commit('Prod/Film/setState', { key: 'new', data: value })
+        this.$store.commit('prod/film/setState', { key: 'new', data: value })
       },
     },
   },

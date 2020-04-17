@@ -79,7 +79,7 @@
             loader: 'K:\\KNDev\\frontend\\sales\\node_modules\\cache-loader\\dist\\cjs.js',
             options: {
               cacheDirectory: 'K:\\KNDev\\frontend\\sales\\node_modules\\.cache\\vue-loader',
-              cacheIdentifier: '39d7dba7'
+              cacheIdentifier: '40f7364a'
             }
           },
           {
@@ -89,7 +89,7 @@
                 whitespace: 'condense'
               },
               cacheDirectory: 'K:\\KNDev\\frontend\\sales\\node_modules\\.cache\\vue-loader',
-              cacheIdentifier: '39d7dba7'
+              cacheIdentifier: '40f7364a'
             }
           }
         ]
@@ -1065,15 +1065,14 @@
       {
         test: /\.m?jsx?$/,
         exclude: [
-          function () { /* omitted long function */ },
-          /\.worker\.js$/
+          function () { /* omitted long function */ }
         ],
         use: [
           {
             loader: 'K:\\KNDev\\frontend\\sales\\node_modules\\cache-loader\\dist\\cjs.js',
             options: {
               cacheDirectory: 'K:\\KNDev\\frontend\\sales\\node_modules\\.cache\\babel-loader',
-              cacheIdentifier: '6e98367c'
+              cacheIdentifier: '5f44c45a'
             }
           },
           {
@@ -1099,23 +1098,11 @@
                 '.vue'
               ],
               cache: true,
-              cacheIdentifier: '12acdc7a',
+              cacheIdentifier: 'd122bb94',
               emitWarning: false,
               emitError: false,
               eslintPath: 'K:\\KNDev\\frontend\\sales\\node_modules\\eslint',
               formatter: undefined
-            }
-          }
-        ]
-      },
-      /* config.module.rule('worker') */
-      {
-        test: /\.worker\.js$/,
-        use: [
-          {
-            loader: 'worker-loader',
-            options: {
-              name: '[name].[ext]'
             }
           }
         ]
@@ -1147,7 +1134,7 @@
           chunkFilter: () => true,
           warningsFilter: () => true,
           extractComments: false,
-          sourceMap: true,
+          sourceMap: false,
           cache: true,
           cacheKeys: defaultCacheKeys => defaultCacheKeys,
           parallel: true,
@@ -1223,7 +1210,7 @@
     /* config.plugin('html') */
     new HtmlWebpackPlugin(
       {
-        title: 'sales',
+        title: '08:29:45, 16/4/2020',
         templateParameters: function () { /* omitted long function */ },
         template: 'K:\\KNDev\\frontend\\sales\\public\\index.html'
       }
@@ -1265,18 +1252,10 @@
     ),
     {
       options: {
-        test: /\.vue$|\.js$|\.css$$|\.html$|\.eot$|\.ttf$|\.woff$|\.woff2$|\.ico$/,
-        include: undefined,
-        exclude: undefined,
-        cache: true,
-        algorithm: function () { /* omitted long function */ },
-        compressionOptions: {
-          level: 9
-        },
-        filename: '[path].gz[query]',
-        threshold: 0,
-        minRatio: 0.8,
-        deleteOriginalAssets: false
+        globalObject: 'self',
+        sharedWorker: true,
+        worker: false,
+        filename: '[name].worker.js'
       }
     },
     {
@@ -1298,18 +1277,33 @@
         chunksSortMode: 'auto',
         meta: {},
         base: false,
-        title: 'Webpack App',
+        title: '08:29:41, 16/4/2020',
         xhtml: false,
         inlineSource: '.(js|css)$'
       },
       childCompilerHash: undefined,
-      childCompilationOutputName: undefined,
       assetJson: undefined,
       hash: undefined,
       version: 4
     },
     {
       htmlWebpackPlugin: function () { /* omitted long function */ }
+    },
+    {
+      options: {
+        test: /\.vue$|\.js$|\.css$|\.html$|\.eot$|\.ttf$|\.woff$|\.woff2$|\.ico$/,
+        include: undefined,
+        exclude: undefined,
+        cache: true,
+        algorithm: function () { /* omitted long function */ },
+        compressionOptions: {
+          level: 11
+        },
+        filename: '[path].br[query]',
+        threshold: 10240,
+        minRatio: 0.8,
+        deleteOriginalAssets: false
+      }
     }
   ],
   entry: {

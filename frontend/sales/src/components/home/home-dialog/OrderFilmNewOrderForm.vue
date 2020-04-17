@@ -61,7 +61,7 @@ export default {
       let _validateMess = ''
       if (this.newOrder.foreignTitle) {
         _newId = this.newOrder.foreignTitle.to_id()
-        if (this.$store.state.Order.Film.list.some(fo => fo._id === _newId)) _idExistedMess = _newId + ' EXISTED'
+        if (this.$store.state.order.film.list.some(fo => fo._id === _newId)) _idExistedMess = _newId + ' EXISTED'
       } else _requiredMess = 'Foreign Title'
       if (!this.newOrder.team) _requiredMess += _requiredMess ? ' + Team ' : 'Team'
       if (!this.newOrder.foreignTitle) _requiredMess += _requiredMess ? ' + Foreign Title' : 'Foreign Title'
@@ -74,7 +74,7 @@ export default {
     },
     doCreate() {
       if (this.newOrder.foreignTitle) {
-        this.$store.commit('Order/Film/create', { note: this.note })
+        this.$store.commit('order/film/create', { note: this.note })
         this.$emit('switch-comp', 'newOrderConfirm', 'Save', 'Save new order confirm')
         this.dialogMess = { text: '', severity: '' }
       } else this.dialogMess = { text: 'Foreign Title required', severity: 'error' }
@@ -82,22 +82,22 @@ export default {
   },
   computed: {
     labels() {
-      return this.$store.state.Order.Film.labels
+      return this.$store.state.order.film.labels
     },
     dialogMess: {
       get() {
-        return this.$store.state.Dialog.message
+        return this.$store.state.dialog.message
       },
       set(value) {
-        this.$store.commit('Dialog/setMess', value)
+        this.$store.commit('dialog/setMess', value)
       },
     },
     newOrder: {
       get() {
-        return this.$store.state.Order.Film.new
+        return this.$store.state.order.film.new
       },
       set(value) {
-        this.$store.commit('Order/Film/setState', { key: 'new', data: value })
+        this.$store.commit('order/film/setState', { key: 'new', data: value })
       },
     },
   },

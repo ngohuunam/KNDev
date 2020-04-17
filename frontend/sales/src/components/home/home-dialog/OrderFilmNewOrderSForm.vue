@@ -13,8 +13,12 @@
           <InputText v-model="slotProps.data.foreignTitle" />
         </template>
         <template #body="slotProps">
-          <span v-if="!slotProps.data[slotProps.column.field] && !errors[slotProps.index][slotProps.column.field]" style="color: gray;"> - EDIT - </span>
-          <span v-else-if="!slotProps.data[slotProps.column.field] && errors[slotProps.index][slotProps.column.field]" style="color: orange;"> MUST FILL </span>
+          <span v-if="!slotProps.data[slotProps.column.field] && !errors[slotProps.index][slotProps.column.field]" style="color: gray;">
+            - EDIT -
+          </span>
+          <span v-else-if="!slotProps.data[slotProps.column.field] && errors[slotProps.index][slotProps.column.field]" style="color: orange;">
+            MUST FILL
+          </span>
           <span v-else> {{ slotProps.data[slotProps.column.field] }} </span>
         </template>
       </Column>
@@ -24,8 +28,12 @@
           <Dropdown v-model="slotProps.data.team" :options="options" />
         </template>
         <template #body="slotProps">
-          <span v-if="!slotProps.data[slotProps.column.field] && !errors[slotProps.index][slotProps.column.field]" style="color: gray;"> - EDIT - </span>
-          <span v-else-if="!slotProps.data[slotProps.column.field] && errors[slotProps.index][slotProps.column.field]" style="color: orange;"> MUST FILL </span>
+          <span v-if="!slotProps.data[slotProps.column.field] && !errors[slotProps.index][slotProps.column.field]" style="color: gray;">
+            - EDIT -
+          </span>
+          <span v-else-if="!slotProps.data[slotProps.column.field] && errors[slotProps.index][slotProps.column.field]" style="color: orange;">
+            MUST FILL
+          </span>
           <span v-else> {{ slotProps.data[slotProps.column.field] }} </span>
         </template>
       </Column>
@@ -36,8 +44,12 @@
           <InputMask v-model="slotProps.data[slotProps.column.field]" mask="99/99/2029" slotChar="dd/mm/yyyy" />
         </template>
         <template #body="slotProps">
-          <span v-if="!slotProps.data[slotProps.column.field] && !errors[slotProps.index][slotProps.column.field]" style="color: gray;"> - EDIT - </span>
-          <span v-else-if="!slotProps.data[slotProps.column.field] && errors[slotProps.index][slotProps.column.field]" style="color: orange;"> WRONG FORMAT </span>
+          <span v-if="!slotProps.data[slotProps.column.field] && !errors[slotProps.index][slotProps.column.field]" style="color: gray;">
+            - EDIT -
+          </span>
+          <span v-else-if="!slotProps.data[slotProps.column.field] && errors[slotProps.index][slotProps.column.field]" style="color: orange;">
+            WRONG FORMAT
+          </span>
           <span v-else> {{ $tToString(parseDateTime(slotProps, false), false, 'INVALID', 'numeric') }} </span>
         </template>
       </Column>
@@ -48,8 +60,12 @@
           <InputMask v-model="slotProps.data[slotProps.column.field]" mask="99/99/2029 99:99" slotChar="dd/mm/yyyy hh:mm" />
         </template>
         <template #body="slotProps">
-          <span v-if="!slotProps.data[slotProps.column.field] && !errors[slotProps.index][slotProps.column.field]" style="color: gray;"> - EDIT - </span>
-          <span v-else-if="!slotProps.data[slotProps.column.field] && errors[slotProps.index][slotProps.column.field]" style="color: orange;"> WRONG FORMAT </span>
+          <span v-if="!slotProps.data[slotProps.column.field] && !errors[slotProps.index][slotProps.column.field]" style="color: gray;">
+            - EDIT -
+          </span>
+          <span v-else-if="!slotProps.data[slotProps.column.field] && errors[slotProps.index][slotProps.column.field]" style="color: orange;">
+            WRONG FORMAT
+          </span>
           <span v-else> {{ $tToString(parseDateTime(slotProps, true), true, 'INVALID', 'numeric') }} </span>
         </template>
       </Column>
@@ -148,19 +164,19 @@ export default {
         if (this.orders.some(o => !o.foreignTitle)) this.dialogMess = { text: 'All Foreign Title required', severity: 'error' }
         else if (this.list.some(o => this.orders.some(({ foreignTitle }) => foreignTitle.to_id() === o._id))) this.dialogMess = { text: 'Some Title Existed', severity: 'error' }
       }
-      if (this.dialogMess.severity !== 'error') this.$store.dispatch('Order/Film/Worker', { name: 'newOrders', payload: this.orders })
+      if (this.dialogMess.severity !== 'error') this.$store.dispatch('order/film/Worker', { name: 'creates', payload: this.orders })
     },
   },
   computed: {
     list() {
-      return this.$store.state.Order.Film.list
+      return this.$store.state.order.film.list
     },
     dialogMess: {
       get() {
-        return this.$store.state.Dialog.message
+        return this.$store.state.dialog.message
       },
       set(value) {
-        this.$store.commit('Dialog/setMess', value)
+        this.$store.commit('dialog/setMess', value)
       },
     },
   },

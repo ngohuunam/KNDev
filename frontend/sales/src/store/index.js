@@ -1,11 +1,17 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 // import createPersistedState from 'vuex-persistedstate'
-import OrderFilmPlugin from './plugin/order-film.plugin'
-import OrderFilmProdPlugin from './plugin/prod-film.plugin'
+
+import UserModule from './modules/user'
+import UserPlugin from './modules/user/plugin'
 
 import OrderModule from './modules/order'
+// import OrderFilmPlugin from './modules/order/film/plugin'
+import OrderPlugin from './modules/order/plugin'
+
 import ProdModule from './modules/prod'
+import ProdPlugin from './modules/prod/plugin'
+
 import HomeModule from './modules/home'
 import DialogModule from './modules/dialog'
 
@@ -17,16 +23,16 @@ import * as getters from './getters'
 import * as actions from './actions'
 
 const store = new Vuex.Store({
-  modules: { Order: OrderModule, Prod: ProdModule, Home: HomeModule, Dialog: DialogModule },
+  modules: { user: UserModule, order: OrderModule, prod: ProdModule, home: HomeModule, dialog: DialogModule },
   state,
   mutations,
   getters,
   actions,
-  plugins: [OrderFilmPlugin, OrderFilmProdPlugin],
+  plugins: [UserPlugin, OrderPlugin, ProdPlugin],
   // plugins: [createPersistedState({ paths: ['OrderFilm.list', 'OrderFilm.seq'], fetchBeforeUse: true })],
 })
 
-const hotReloadElements = ['./state', './mutations', './getters', './actions', './modules/order/', './modules/prod', './modules/Home', './modules/Dialog']
+const hotReloadElements = ['./state', './mutations', './getters', './actions', './modules/user', './modules/order', './modules/prod', './modules/Home', './modules/Dialog']
 
 if (module.hot) {
   module.hot.accept(hotReloadElements, () => {
@@ -34,6 +40,7 @@ if (module.hot) {
     const newGetters = require('./getters').default
     const newActions = require('./actions').default
     const newState = require('./state').default
+    const newUserModule = require('./modules/user').default
     const newOrderModule = require('./modules/order').default
     const newProdModule = require('./modules/prod').default
     const newHomeModule = require('./modules/home').default
@@ -44,10 +51,11 @@ if (module.hot) {
       getters: newGetters,
       actions: newActions,
       modules: {
-        Order: newOrderModule,
-        Prod: newProdModule,
-        Home: newHomeModule,
-        Dialog: newDialogModule,
+        user: newUserModule,
+        order: newOrderModule,
+        prod: newProdModule,
+        home: newHomeModule,
+        dialog: newDialogModule,
       },
     })
   })

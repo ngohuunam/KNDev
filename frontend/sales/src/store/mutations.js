@@ -1,5 +1,5 @@
 import Vue from 'vue'
-import { pushAtSortPosition } from 'array-push-at-sort-position'
+import { objectDeep } from '../tools'
 
 export const setState = (state, { key, data }) => {
   state[key] = data
@@ -10,28 +10,36 @@ export const setStates = (state, { keys, datas }) => {
 }
 
 export const setStateDeep = (state, { dotPath, key, value }) => {
-  const deepState = dotPath.split('.').reduce((o, i) => o[i], state)
-  // console.log(deepState)
+  const deepState = objectDeep(dotPath, state)
+  // console.log('setStateDeep deepState', deepState)
   Vue.set(deepState, key, value)
 }
 
+export const checkAndSetStateDeepNested = (state, { dotPath, keyCheck, field, key, value }) => {
+  const deepState = objectDeep(dotPath, state)
+  const clone = { ...deepState[key] }
+  if (!clone[keyCheck] || typeof clone[keyCheck] !== 'object') clone[keyCheck] = {}
+  clone[keyCheck][field] = value
+  Vue.set(deepState, key, clone)
+}
+
+export const checkAndSetStateDeep = (state, { dotPath, keyCheck, key, value }) => {
+  let deepState = objectDeep(dotPath, state)
+  // console.log('setStateDeep deepState', deepState)
+  if (!deepState[keyCheck] || typeof deepState[keyCheck] !== 'object') deepState[keyCheck] = {}
+  Vue.set(deepState[keyCheck], key, value)
+}
+
 export const load = (state, { from, dotPath, key, prop }) => {
-  const deepStateFrom = from.split('.').reduce((o, i) => o[i], state)
+  const deepStateFrom = objectDeep(from, state)
   const _filter = deepStateFrom.map(item => item[prop])
-  let deepStateTo = dotPath.split('.').reduce((o, i) => o[i], state)
+  let deepStateTo = objectDeep(dotPath, state)
   Vue.set(deepStateTo, key, _filter)
   console.log(deepStateTo)
 }
 
 export const pushState = (state, payload) => {
   state[payload.state].push(payload.value)
-}
-
-export const push_sort = (state, { key, data, sortKey }) => {
-  const _state = state[key]
-  const _idx = _state.findIndex(v => v._id === data._id)
-  if (_idx < 0) pushAtSortPosition(_state, data, (a, b) => (a[sortKey] > b[sortKey] ? 1 : b[sortKey] > a[sortKey] ? -1 : 0), true)
-  else if (_state[_idx]._rev !== data._rev) Vue.set(_state, _idx, data)
 }
 
 export const pushToasts = (state, toast) => {

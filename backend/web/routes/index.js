@@ -1,6 +1,6 @@
 const express = require('express')
 const router = express.Router()
-const { attachHeaderBearer, sendLogin, initLogger } = require('../../shared')
+const { attachHeaderBearer, sendLogin, resetPage, initLogger } = require('../../shared')
 const { handleAuthJwt } = require('../auth')
 
 const webJwtAuthLogger = initLogger('auth/jwt/web')
@@ -9,6 +9,9 @@ const authJwt = (req, res, next) => handleAuthJwt(req, res, next, webJwtAuthLogg
 
 /* GET Login as home page. */
 router.get('/', sendLogin)
+
+/* GET Login as home page. */
+router.get('/reset', resetPage)
 
 /* POST login info page. */
 router.post('/', require('./login'))

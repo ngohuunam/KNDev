@@ -168,7 +168,13 @@ import io from 'socket.io-client'
 import * as globalInstance from './globalInstance'
 
 let user = window.localStorage.getItem('user')
+if (!user) window.location.href = `${window.location.origin}/reset`
+
 const { dept, page, token } = JSON.parse(user)
+if (!token) {
+  window.localStorage.removeItem('user')
+  window.location.href = `${window.location.origin}/reset`
+}
 const url = `${window.location.origin}/${dept}/${page}?token=${token}`
 // const url = `${window.location.origin}`
 console.log('url', url)

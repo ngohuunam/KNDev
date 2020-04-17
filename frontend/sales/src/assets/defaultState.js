@@ -53,11 +53,12 @@ export const prod = {
       converted: null,
       messages: [],
     },
+    checkKeys: ['type', 'endAt', 'finishAt', 'details', 'status', 'jobNames'],
     new: {
       _id: '',
       name: '',
       orderId: '',
-      orderRev: '',
+      orderDropped: 0,
       type: '',
       createdAt: 0,
       createdBy: 0,

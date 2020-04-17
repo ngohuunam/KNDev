@@ -99,7 +99,7 @@ tr.r-deleted:hover {
 .r-deleted > td > button:hover,
 .r-deleted > td > div.p-checkbox.p-component,
 .r-deleted > td > div.p-checkbox.p-component:hover {
-  visibility: hidden;
+  display: none;
 }
 .r-new {
   background-color: #d4ecff !important;
@@ -148,4 +148,10 @@ tr.r-deleted:hover {
 }
 .margin-top {
   margin-top: 4px !important;
+}
+p {
+  margin: 0;
+}
+.r-hide {
+  visibility: collapse !important;
 }

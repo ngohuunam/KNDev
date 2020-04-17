@@ -42,16 +42,19 @@ export default {
   }),
   methods: {
     confirm() {
-      // if (this.willDelete.length === this.selected.length) this.$store.dispatch('Order/Film/deleteOrders', this.willDelete)
-      if (this.willDelete.length === this.selected.length) this.$store.dispatch('Order/Film/Worker', { name: 'drop', payload: { docs: this.selected, note: this.note } })
-      if (this.willDelete.length === this.selected.length)
-        this.$store.dispatch('Prod/Film/Worker', { name: 'findAndDrop', payload: { _ids: this.selected.reduce((acc, o) => [...acc, ...o.products], []), note: this.note } })
-      else this.$store.commit('Dialog/setMess', { text: 'Select All to Confirm', severity: 'error' })
+      // if (this.willDelete.length === this.selected.length) this.$store.dispatch('order/film/deleteOrders', this.willDelete)
+      if (this.willDelete.length === this.selected.length) {
+        this.$store.dispatch('order/film/Worker', { name: 'drop', payload: { docs: this.selected, note: this.note } })
+        this.$store.dispatch('prod/film/Worker', {
+          name: 'findAndDrop',
+          payload: { _ids: this.selected.reduce((acc, o) => [...acc, ...o.products], []), note: this.note },
+        })
+      } else this.$store.commit('dialog/setMess', { text: 'Select All to Confirm', severity: 'error' })
     },
   },
   computed: {
     selected() {
-      return this.$store.state.Order.Film.selected
+      return this.$store.state.order.film.selected
     },
   },
   mounted: function() {},

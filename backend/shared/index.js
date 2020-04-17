@@ -1,7 +1,7 @@
 const { staffs, secret, dbOpt, dbLog, initDB, getDb, attachDB, couchUrl } = require('./database')
 const { encrypt, decrypt } = require('./crypto')
 const { sendCompressed, sendLogin } = require('./send-file')
-const { streamRender, redirectToLogin, readReplaceRes, readReplaceMultiRes, doCompress, insertTokenRes } = require('./stream')
+const { streamRender, redirectToLogin, readReplaceRes, readReplaceMultiRes, doCompress, insertTokenRes, resetPage } = require('./stream')
 const socket = require('./socket')
 const { initLogger } = require('./logger')
 const { nextErr, throwErr } = require('./error')
@@ -27,6 +27,7 @@ module.exports = {
   readReplaceMultiRes,
   doCompress,
   insertTokenRes,
+  resetPage,
   secret,
   dbOpt,
   dbLog,

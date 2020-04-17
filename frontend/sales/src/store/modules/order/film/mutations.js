@@ -100,15 +100,16 @@ export const spliceMess = (state, idx) => {
   state.messages.splice(idx, 1)
 }
 
-export const setSeq = (state, seq) => {
-  state.seq = seq
+export const setRowIcon = ({ icon: { row } }, { _id, icon }) => {
+  row[_id] = icon
+}
+
+export const setHeaderIcon = ({ icon: { header } }, { _id, icon }) => {
+  header[_id] = icon
+}
+
+export const setCellIcon = ({ icon: { cell } }, { _id, icon }) => {
+  cell[_id] = icon
 }
 
 export const Worker = () => {}
-
-export const dropOrdersOk = (state, { _ids }) => {
-  _ids.sort()
-  state.list.map(fo => {
-    if (_ids.includes(fo._id)) fo.dropped = Date.now()
-  })
-}

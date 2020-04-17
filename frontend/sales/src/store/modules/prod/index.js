@@ -6,7 +6,7 @@ import OrderFilmModule from './film'
 
 export default {
   namespaced: true,
-  modules: { Film: OrderFilmModule },
+  modules: { film: OrderFilmModule },
   state,
   getters,
   actions,

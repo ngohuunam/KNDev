@@ -62,7 +62,7 @@
         </template>
         <template #body="slotProps">
           <Button
-            v-if="slotProps.data.ui && slotProps.data.ui.type"
+            v-if="ui[slotProps.data._id] && ui[slotProps.data._id].type"
             :icon="slotProps.data.ui.type.checking ? 'pi pi-spin pi-spinner' : ''"
             :label="slotProps.data.type"
             @click="checkChange($event, slotProps)"
@@ -175,12 +175,12 @@
 import { mapState } from 'vuex'
 
 export default {
-  name: 'OrderFilmColumn',
+  name: 'ProdFilmColumn',
   components: {},
   data() {
     return {
       filters: {},
-      sectedOrdersHasProd: false,
+      selectedHasJob: false,
       enlarge: true,
       socketError: 'Disconnected',
       menuModel: [],
@@ -188,12 +188,12 @@ export default {
         { label: ``, icon: 'pi pi-dollar' },
         { separator: true },
         { separator: true },
-        { label: 'Add product', icon: 'pi pi-fw pi-upload', command: () => this.addJob(this.rowClickData) },
+        { label: 'Add plan', icon: 'pi pi-fw pi-upload', command: () => this.addJob(this.rowClickData) },
         { label: 'View', icon: 'pi pi-fw pi-search', command: () => this.edit(this.rowClickData) },
         { label: 'Delete', icon: 'pi pi-fw pi-times', command: () => this.deleteThis({ ...this.rowClickData }) },
       ],
-      menuNewRowModel: [{ label: 'Check', icon: 'pi pi-thumbs-up', command: () => this.$store.dispatch('Prod/Film/newCheck', this.rowClickData) }],
-      menuDroppedRowModel: [{ label: 'Check', icon: 'pi pi-thumbs-up', command: () => this.$store.dispatch('Prod/Film/droppedCheck', this.rowClickData) }],
+      menuNewRowModel: [{ label: 'Check', icon: 'pi pi-thumbs-up', command: () => this.$store.dispatch('prod/film/newCheck', this.rowClickData) }],
+      menuDroppedRowModel: [{ label: 'Check', icon: 'pi pi-thumbs-up', command: () => this.$store.dispatch('prod/film/droppedCheck', this.rowClickData) }],
       menuCellCheckChangeModel: [],
     }
   },
@@ -204,7 +204,10 @@ export default {
       const _field = slotProps.column.field
       const _ui = slotProps.data.ui
       const _change = _ui[_field]
-      const _logs = _change.logs.map(log => ({ label: `${log.type} - ${log.by} - ${this.$tToString(log.at, false)}${log.note ? ` - ${log.note}` : ''}`, icon: '' }))
+      const _logs = _change.logs.map(log => ({
+        label: `${log.type} - ${log.by} - ${this.$tToString(log.at, false)}${log.note ? ` - ${log.note}` : ''}`,
+        icon: '',
+      }))
       this.menuCellCheckChangeModel = [
         { label: `Old: ${_change.old}`, icon: 'pi pi-minus-circle' },
         { label: `New: ${_change.new}`, icon: 'pi pi-check-circle' },
@@ -213,7 +216,7 @@ export default {
         {
           label: 'Check',
           icon: 'pi pi-thumbs-up',
-          command: () => this.$store.dispatch('Prod/Film/changeCheck', { _id: slotProps.data._id, key: _field, index: slotProps.index }),
+          command: () => this.$store.dispatch('prod/film/changeCheck', { _id: slotProps.data._id, key: _field, index: slotProps.index }),
         },
       ]
       this.menuModel = this.menuCellCheckChangeModel
@@ -224,7 +227,7 @@ export default {
         target: { classList, parentElement },
       } = originalEvent
       if (!classList.contains('p-checkbox-box') && !parentElement.classList.contains('p-checkbox-box')) {
-        this.menuModelNormal[0].label = 'Title: '.concat(data._id)
+        this.menuModelNormal[0].label = 'Name: '.concat(data.name)
         this.menuModel = data.dropped ? this.menuDroppedRowModel : data.ui ? this.menuModelNormal : this.menuNewRowModel
         this.$refs.cm.show(originalEvent)
         this.rowClickData = { data, index }
@@ -239,27 +242,27 @@ export default {
       console.log(_id)
     },
     allNewCheck() {
-      this.$store.dispatch('Prod/Film/allNewCheck')
+      this.$store.dispatch('prod/film/allNewCheck')
     },
     allDroppedCheck() {
-      this.$store.dispatch('Prod/Film/allDroppedCheck')
+      this.$store.dispatch('prod/film/allDroppedCheck')
     },
     allChangedCheck() {
-      this.$store.commit('Prod/Film/allChangedCheck')
+      this.$store.commit('prod/film/allChangedCheck')
     },
     deleteThis(order) {
       console.log(order)
     },
     load() {
-      // this.$store.dispatch('Prod/Film/getOrderDetail')
+      // this.$store.dispatch('prod/film/getOrderDetail')
       let _prodList = []
       this.selected.map(fo => {
         _prodList = [..._prodList, ...fo.products]
       })
-      this.$store.commit('Prod/Film/setState', { key: 'prodList', data: _prodList })
+      this.$store.commit('prod/film/setState', { key: 'prodList', data: _prodList })
     },
     closeMessage(idx) {
-      this.$store.commit('Prod/Film/spliceMess', idx)
+      this.$store.commit('prod/film/spliceMess', idx)
     },
     onToggleEnlarge() {
       this.$emit('toggle-enlarge')
@@ -286,12 +289,18 @@ export default {
       return data.dropped ? 'r-deleted' : data.ui ? '' : 'r-new'
     },
     btnIcon(name, icon) {
-      return this.$store.state.Prod.Film.btnIcon[name] ? 'pi pi-spin pi-spinner' : 'pi ' + icon
+      return this.$store.state.prod.film.btnIcon[name] ? 'pi pi-spin pi-spinner' : 'pi ' + icon
     },
   },
   computed: {
+    year() {
+      return this.$store.state.year
+    },
+    ui() {
+      return this.$store.state.user.state[this.year].order.film.ui
+    },
     table() {
-      return this.$store.getters['Prod/Film/tableList']
+      return this.$store.getters['prod/film/tableList']
     },
     loadBtnProp() {
       let prop = { label: 'Load', icon: 'pi pi-download', disabled: false }
@@ -303,10 +312,10 @@ export default {
     },
     selected: {
       get() {
-        return this.$store.state.Prod.Film.selected
+        return this.$store.state.prod.film.selected
       },
       set(value) {
-        this.$store.commit('Prod/Film/setState', { key: 'selected', data: value })
+        this.$store.commit('prod/film/setState', { key: 'selected', data: value })
         this.selectedHasJob = value.some(v => v.jobs.length > 0)
       },
     },
@@ -321,22 +330,22 @@ export default {
     },
     messages: {
       get() {
-        return this.$store.state.Prod.Film.messages
+        return this.$store.state.prod.film.messages
       },
       set(value) {
-        this.$store.commit('Prod/Film/pushMess', value)
+        this.$store.commit('prod/film/pushMess', value)
       },
     },
     ...mapState({
-      loading: state => state.Prod.Film.loading,
-      jobList: state => state.Job.Film.list,
+      loading: state => state.prod.film.loading,
+      jobList: state => state.job.film.list,
     }),
   },
   created: function() {},
   mounted: function() {
     this.$nextTick(() => {
-      // if (this.seq) this.$store.dispatch('Prod/Film/sync')
-      // else this.$store.dispatch('Prod/Film/getAll')
+      // if (this.seq) this.$store.dispatch('prod/film/sync')
+      // else this.$store.dispatch('prod/film/getAll')
       this.$socket.$subscribe('error', payload => {
         console.log(payload)
         this.socketError = payload

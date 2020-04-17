@@ -131,29 +131,30 @@ export default {
   },
   computed: {
     hasProdFilmTable() {
-      return this.$store.getters['Prod/Film/tableList'].length > 0
+      // return this.$store.getters['prod/film/tableList'].length > 0
+      return false
     },
     isOpenDialog: {
       get() {
-        return this.$store.state.Dialog.isOpen
+        return this.$store.state.dialog.isOpen
       },
       set(value) {
-        this.$store.commit('Dialog/setState', { key: 'isOpen', data: value })
+        this.$store.commit('dialog/setState', { key: 'isOpen', data: value })
       },
     },
     dialogMess: {
       get() {
-        return this.$store.state.Dialog.message
+        return this.$store.state.dialog.message
       },
       set(value) {
-        this.$store.commit('Dialog/setMess', value)
+        this.$store.commit('dialog/setMess', value)
       },
     },
     buttonIcon() {
       return this.loading ? 'pi pi-spin pi-spinner' : 'pi pi-check'
     },
     loading() {
-      return this.$store.state.Dialog.loading
+      return this.$store.state.dialog.loading
     },
     orderFilmColumnClass: function() {
       return this.orderFilmColumnEnlarge ? 'p-col-12' : 'p-col-2'

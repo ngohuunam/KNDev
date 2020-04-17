@@ -152,6 +152,12 @@ const redirectToLogin = (res, code, mess) => {
   streamRender('relogin', [{ key: 'Type Email & Password and Login', value: `Res ${code}: ${mess}` }], res)
 }
 
+const resetPage = (req, res) => {
+  res.status(401)
+  streamLogger.info(`Reset page`)
+  streamRender('login', [{ key: 'Type Email & Password and Login', value: `No local saved info, relogin!!` }], res)
+}
+
 module.exports = {
   ReplaceStringStream,
   readReplaceRes,
@@ -160,4 +166,5 @@ module.exports = {
   redirectToLogin,
   readReplaceMultiRes,
   insertTokenRes,
+  resetPage,
 }
