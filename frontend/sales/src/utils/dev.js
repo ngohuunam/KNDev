@@ -1,11 +1,13 @@
-import { team, produce, randomName } from './index'
+import { team, produce, randomName } from '.'
 
 export const prods = ['Brochure', 'Poster', 'Flyer', 'Ticket', 'Envelope', 'Book', 'Invitation', 'Backdrop', 'Banner', '3DBooth', 'Namecard', 'Other']
 
 export const randomNo = (count, start) => Math.floor(Math.random() * count) + start || 0
-export const randomTeam = () => team[randomNo(5)]
-export const randomProd = () => prods[randomNo(12)]
-export const randomManufactureType = () => produce[randomNo(5)]
+export const randomTeam = () => team[randomNo(5, 0)]
+export const randomProd = () => prods[randomNo(12, 0)]
+export const randomManufactureType = () => produce[randomNo(5, 0)]
+
+export const randomNewProdFilm = construct => ({ ...construct, ...{ name: randomProd(), type: randomManufactureType(), endAt: randomDate(5) } })
 
 export const randomNewOrderFilm = (construct, toString) => {
   const endTime = randomDate()

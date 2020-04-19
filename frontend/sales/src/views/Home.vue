@@ -131,8 +131,8 @@ export default {
   },
   computed: {
     hasProdFilmTable() {
-      // return this.$store.getters['prod/film/tableList'].length > 0
-      return false
+      return this.$store.state.prod.film.list.length > 0
+      // return false
     },
     isOpenDialog: {
       get() {

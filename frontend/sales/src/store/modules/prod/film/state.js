@@ -1,10 +1,9 @@
 export default {
   list: [],
   selected: [],
-  table: [],
   seq: null,
   loading: true,
-  btnIcon: {},
+  icon: { header: {}, row: {}, cell: {} },
   new: null,
   labels: [
     { label: 'Product Name:', inputType: 'text', key: 'name' },

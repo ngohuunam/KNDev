@@ -3,6 +3,7 @@ import { newOrder } from '@/tools'
 
 export const create = (state, note) => {
   const _newOrder = { ...state.new, ...note }
+  console.log('note', note)
   state.converted = newOrder.film(_newOrder)
 }
 

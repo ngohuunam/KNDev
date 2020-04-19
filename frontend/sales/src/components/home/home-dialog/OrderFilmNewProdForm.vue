@@ -37,7 +37,7 @@
 </template>
 
 <script>
-import { prod } from '@/assets/defaultState'
+// import { prod } from '@/assets/defaultState'
 
 export default {
   name: 'OrderFilmNewProdForm',
@@ -65,7 +65,7 @@ export default {
           this.newProd._id = _newId
           this.newProd.orderId = this.cp._id
           this.newProd.orderRev = this.cp._rev
-          this.newProd.note = this.note
+          this.newProd.note = this.$randomSentence()
           return ''
         }
       }
@@ -103,6 +103,9 @@ export default {
         this.$store.commit('dialog/setMess', value)
       },
     },
+    construct() {
+      return this.$store.getters['prod/construct']('film')
+    },
     newProd: {
       get() {
         return this.$store.state.prod.film.new
@@ -113,9 +116,11 @@ export default {
     },
   },
   created() {
-    if (!this.newProd) this.newProd = { ...prod.film.new }
+    if (!this.newProd) this.newProd = this.$randomNewProdFilm(this.construct)
   },
-  beforeDestroy() {},
+  beforeDestroy() {
+    this.newProd = null
+  },
 }
 </script>
 

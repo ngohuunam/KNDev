@@ -25,7 +25,14 @@
               :icon="'pi ' + ($socket.connected ? 'pi-wifi' : 'pi-ban')"
               :class="'margin-right ' + ($socket.connected ? 'p-button-success' : 'p-button-danger')"
             />
-            <Button v-if="selected.length" :label="loadBtnProp.label" :icon="loadBtnProp.icon" @click="load" :disabled="loadBtnProp.disabled" class="margin-right" />
+            <Button
+              v-if="selected.length"
+              :label="loadBtnProp.label"
+              :icon="btnIcon('allChangedCheck', loadBtnProp.icon)"
+              @click="load"
+              :disabled="loadBtnProp.disabled"
+              class="margin-right"
+            />
             <Button v-if="selected.length" :label="enlarge ? 'Delete Orders' : ''" icon="pi pi-minus" @click="confirmDel" class="p-button-danger margin-right" />
             <!-- <ToggleButton v-if="!enlarge" v-model="enlarge" @change="onToggleEnlarge" onIcon="pi pi-angle-left" offIcon="pi pi-angle-right" /> -->
             <InputText v-if="enlarge" v-model="filters['global']" placeholder="Search" style="width: 20%" class="margin-right" />
@@ -242,7 +249,7 @@ export default {
       this.confirmDel()
     },
     load() {
-      this.$store.commit('load', { type: 'array_of__id', from: 'order.film.selected', dotPath: 'prod.film', key: 'table', prop: '_id' })
+      this.$store.commit('prod/film/Worker', { name: 'load', payload: { _ids: this.selected.reduce((pre, cur) => [...pre, ...cur.products], []) } })
     },
     closeMessage(idx) {
       this.$store.commit('order/film/spliceMess', idx)

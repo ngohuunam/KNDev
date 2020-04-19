@@ -1,11 +1,13 @@
-import { tToString, htmlStrip } from '@/tools'
+import { tToString, htmlStrip, year } from '@/tools'
 
-export const tableList = ({ list, table }) => {
-  console.log(table)
-  const res = list.filter(item => table.includes(item.orderId))
-  console.log(res)
-  return res
-}
+// export const tableList = ({ list, table }) => {
+//   console.log(table)
+//   const res = list.filter(item => table.includes(item.orderId))
+//   console.log(res)
+//   return res
+// }
+
+export const ui = (state, getters, { user }) => user.state[year].prod.film.ui
 
 export const newProdConfirmTableProperties = ({ converted }) => {
   if (converted)

@@ -17,8 +17,9 @@ const OrderPlugin = store => {
   console.log('OrderPlugin userDbState', userDbState)
   const worker = new SharedWorker('./order.shared-worker.js', { name: 'order', type: 'module' })
   const colNames = ['film']
+  const queryParams = { film: userDbState.film.ui }
   worker.port.start()
-  worker.port.postMessage({ name: 'getStatus', payload: { token, _id, colNames, userDbState } })
+  worker.port.postMessage({ name: 'getStatus', payload: { token, _id, colNames, queryParams } })
   worker.port.onmessage = ({ data }) => {
     console.log('order worker monmessage - data:', data)
     const { action, type, payload } = data
