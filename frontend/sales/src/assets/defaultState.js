@@ -72,3 +72,5 @@ export const prod = {
     },
   },
 }
+export const team = ['CJHK', 'Disney', 'Local', 'UIP', 'WB']
+export const manufactureType = ['Offset Print', 'Digital Print', 'Social Media', 'Web', 'Other']

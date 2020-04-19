@@ -1,44 +1,56 @@
+import { objectDeep, year } from '../../../tools'
+
 const OrderPlugin = store => {
   const {
     commit,
     state: {
-      user: { token, _id },
+      // order,
+      user: {
+        token,
+        _id,
+        state: {
+          [year]: { order: userDbState },
+        },
+      },
     },
   } = store
-  const { log, error } = console
+  console.log('OrderPlugin userDbState', userDbState)
   const worker = new SharedWorker('./order.shared-worker.js', { name: 'order', type: 'module' })
   const colNames = ['film']
   worker.port.start()
-  worker.port.postMessage({ name: 'getStatus', payload: { token, _id, colNames } })
+  worker.port.postMessage({ name: 'getStatus', payload: { token, _id, colNames, userDbState } })
   worker.port.onmessage = ({ data }) => {
-    log('order worker monmessage - data:', data)
+    console.log('order worker monmessage - data:', data)
     const { action, type, payload } = data
     switch (action) {
       case 'commit':
         commit(type, payload)
         break
+      case 'getState':
+        payload.state = objectDeep(type, store.state)
+        worker.port.postMessage(payload)
+        break
     }
   }
-  worker.port.onmessageerror = e => error('order worker.port onmessageerror:', e)
-  worker.onerror = e => error('order worker onerror:', e)
+  worker.port.onmessageerror = e => console.error('order worker.port onmessageerror:', e)
+  worker.onerror = e => console.error('order worker onerror:', e)
 
-  store.subscribe(async ({ type, payload }) => {
-    if (type.includes('order/') && type.includes('/Worker')) {
+  store.subscribe(async ({ type, payload: mutationPayload }) => {
+    console.log('(order plugin) mutation type:', type)
+    console.log('(order plugin) mutation payload:', mutationPayload)
+    if (type.includes('order/')) {
       const paths = type.split('/')
-      payload.colName = paths[1]
-      log('(order plugin) mutation type:', type)
-      log('(order plugin) mutation payload:', payload)
-      worker.port.postMessage(payload)
+      // const dbName = paths[0]
+      const colName = paths[1]
+      if (type.includes('/Worker')) worker.port.postMessage({ ...mutationPayload, ...{ colName } })
+      // else if (type.includes('List'))
+      //   worker.port.postMessage({
+      //     name: 'syncList',
+      //     payload: { ...mutationPayload, ...{ list: state[dbName][colName].list, userDbState: state.user.state[year][dbName][colName].ui } },
+      //   })
     }
-    // if (type.startsWith('order/film/Worker')) {
-    //   payload.colName = 'film'
-    //   log('(order plugin) mutation type:', type)
-    //   log('(order plugin) mutation payload:', payload)
-    //   worker.port.postMessage(payload)
-    // }
   })
   if (worker) commit('pushState', { state: 'worker', value: 'order' })
-  log('store: ', store)
 }
 
 export default OrderPlugin

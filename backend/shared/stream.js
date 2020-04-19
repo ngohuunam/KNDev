@@ -126,12 +126,14 @@ const readReplaceMultiRes = async (input, regexs_replaces, res) => {
 }
 
 const insertTokenRes = async (input, regexs, token, res) => {
+  res.set('Content-Type', 'application/javascript')
   const source = createReadStream(input)
   const replaceStream = new InsertTokenStream(null, regexs, token)
   await pipe(source, replaceStream, res)
 }
 
 const streamRender = async (path, keys_values, res, isSingle) => {
+  res.set('Content-Type', 'text/html')
   let regexs_replaces = []
   keys_values.map(({ key, value }) => {
     const regex = new RegExp(key, 'g')

@@ -1,13 +1,14 @@
-import { initDb, insertSubcribe, updateSubcribe, preInsert } from '../shared'
+import { initDb, pullData, insertSubcribe, updateSubcribe, preInsert } from '../shared'
 import { newOrder as repareNewOrder, queryBy_id } from '../../../tools'
-import { dbName, opts } from './options'
+import { dbName, opts, createQuery } from './options'
 
 const { console } = self
-let RxCol = {}
-let list = {}
+const RxCol = {}
+const list = {}
 let user_id
 const colNames = []
 const ports = []
+let token
 
 const postMessage = msg => {
   const len = ports.length
@@ -20,25 +21,36 @@ const commit = (type, payload, colName) => postMessage({ action: 'commit', type:
 
 const commitRoot = (type, payload) => postMessage({ action: 'commit', type, payload })
 
-const init = (token, userId) => {
+const init = (_token, userId, userDbState) => {
   user_id = userId
-  opts.forEach(opt =>
+  token = _token
+  Object.values(opts).forEach(opt => {
+    const { colName, checkKeys } = opt
+    const query = createQuery[colName](userDbState[colName].ui)
+    opt.query = query
+    console.log(`${dbName} ${colName} init query`, opt.query)
     initDb(dbName, opt, token)
-      .then(({ rxCol, sync, docs }) => {
-        const { colName, checkKeys } = opt
+      .then(({ rxCol, sync }) => {
+        const { sort } = opt
         colNames.push(colName)
-        list[colName] = docs
         RxCol[colName] = rxCol
+        RxCol[colName]
+          .find(query)
+          .sort(sort)
+          .exec()
+          .then(rxDocs => {
+            list[colName] = rxDocs.map(rxDoc => rxDoc.toJSON())
+            console.log('list', list)
+            commit('setStates', { keys: ['list', 'loading'], datas: [list[colName], false] }, colName)
+          })
         RxCol[colName].preInsert(docObj => preInsert(docObj, user_id), true)
         RxCol[colName].insert$.subscribe(changeEvent => insertSubcribe(changeEvent, list[colName], commit, colName))
         RxCol[colName].update$.subscribe(changeEvent => updateSubcribe(changeEvent, checkKeys, list[colName], commit, commitRoot, colName, dbName))
         sync.denied$.subscribe(docData => console.log('denied$: ', docData))
         sync.error$.subscribe(error => console.log('error$: ', error))
-        console.log('list', list)
-        commit('setStates', { keys: ['list', 'loading'], datas: [list[colName], false] }, colName)
       })
-      .catch(e => console.error(e)),
-  )
+      .catch(e => console.error(e))
+  })
 }
 
 const create = (doc, colName) => {
@@ -84,10 +96,7 @@ const drop = ({ docs, note }, colName) => {
       return RxCol[colName].upsert(doc)
     }),
   )
-    .then(() => {
-      commit('setState', { key: 'selected', data: [] }, colName)
-      commitCloseDialog('Delete')
-    })
+    .then(() => commitCloseDialog('Delete'))
     .catch(e => console.error(e))
 }
 
@@ -119,9 +128,9 @@ self.onconnect = e => {
   }
 }
 
-const getStatus = ({ token, _id, _colNames }) => {
+const getStatus = ({ token: _token, _id, _colNames, userDbState }) => {
   if (colNames.length) _colNames.forEach(_colName => commit('setStates', { keys: ['list', 'loading'], datas: [list[_colName] || [], false] }, _colName))
-  else init(token, _id)
+  else init(_token, _id, userDbState)
 }
 
 const commitCloseDialog = mess => {
@@ -133,4 +142,22 @@ const commitCloseDialog = mess => {
   }, 1000)
 }
 
-const func = { getStatus, create, creates, drop, newProd }
+const reSync = ({ ui }, colName) => {
+  const query = createQuery[colName](ui)
+  console.log('(resync) query', query)
+  pullData(RxCol[colName], opts[colName].endpoint, query, token)
+    .then(() =>
+      RxCol[colName]
+        .find(query)
+        .sort(opts[colName].sort)
+        .exec()
+        .then(rxDocs => {
+          list[colName] = rxDocs.map(rxDoc => rxDoc.toJSON())
+          console.log(`(resync) list ${colName}`, list[colName])
+          commit('setState', { key: 'list', data: list[colName] }, colName)
+        }),
+    )
+    .catch(e => console.error(e))
+}
+
+const func = { getStatus, create, creates, drop, newProd, reSync }

@@ -7,7 +7,7 @@
       <div class="p-col-8">
         <InputText v-if="item.inputType === 'text'" v-model="newOrder[item.key]" />
         <Calendar v-else-if="item.inputType === 'calendar-full'" v-model="newOrder[item.key]" dateFormat="dd/mm/yy" />
-        <Calendar v-else-if="item.inputType === 'calendar'" :showTime="true" v-model="newOrder[item.key]" dateFormat="dd/mm/y" />
+        <Calendar v-else-if="item.inputType === 'calendar'" :showTime="true" v-model="newOrder[item.key]" dateFormat="dd/mm/yy" />
         <Dropdown v-else-if="item.inputType === 'dropdown'" v-model="newOrder[item.key]" :options="item.options" />
       </div>
     </div>
@@ -44,7 +44,7 @@
 </template>
 
 <script>
-import { order } from '@/assets/defaultState'
+// import { order } from '@/assets/defaultState'
 // Object.freeze(defaultState.newOrder)
 
 export default {
@@ -74,7 +74,7 @@ export default {
     },
     doCreate() {
       if (this.newOrder.foreignTitle) {
-        this.$store.commit('order/film/create', { note: this.note })
+        this.$store.commit('order/film/create', { note: this.$randomSentence() })
         this.$emit('switch-comp', 'newOrderConfirm', 'Save', 'Save new order confirm')
         this.dialogMess = { text: '', severity: '' }
       } else this.dialogMess = { text: 'Foreign Title required', severity: 'error' }
@@ -92,6 +92,9 @@ export default {
         this.$store.commit('dialog/setMess', value)
       },
     },
+    construct() {
+      return this.$store.getters['order/construct']('film')
+    },
     newOrder: {
       get() {
         return this.$store.state.order.film.new
@@ -101,10 +104,12 @@ export default {
       },
     },
   },
-  created: function() {
-    if (!this.newOrder) this.newOrder = { ...order.film.new }
+  created() {
+    if (!this.newOrder) this.newOrder = this.$randomNewOrderFilm(this.construct)
   },
-  beforeDestroy: function() {},
+  beforeDestroy() {
+    this.newOrder = null
+  },
 }
 </script>
 

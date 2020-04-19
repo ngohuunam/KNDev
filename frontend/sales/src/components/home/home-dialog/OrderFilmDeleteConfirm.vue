@@ -53,13 +53,19 @@ export default {
     },
   },
   computed: {
-    selected() {
-      return this.$store.state.order.film.selected
+    selected: {
+      get() {
+        return this.$store.state.order.film.selected
+      },
+      set(value) {
+        this.$store.commit('order/film/setState', { key: 'selected', data: value })
+      },
     },
   },
   mounted: function() {},
   beforeDestroy: function() {
     this.willDelete = []
+    this.selected = []
   },
 }
 </script>

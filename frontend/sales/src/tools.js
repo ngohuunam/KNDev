@@ -66,6 +66,7 @@ export const sortBy_id = (a, b) => (a._id > b._id ? 1 : b._id > a._id ? -1 : 0)
 export const pushSortBy_id = (source, item) => pushAtSort(source, item, sortBy_id)
 
 export const pushSortBy_key = (source, item, key) => pushAtSort(source, item, (a, b) => (a[key] > b[key] ? 1 : b[key] > a[key] ? -1 : 0))
+export const pushSortBy_key_des = (source, item, key) => pushAtSort(source, item, (a, b) => (a[key] < b[key] ? 1 : b[key] < a[key] ? -1 : 0))
 
 export const daysInMonth = (m, y) => {
   // m is 0 indexed: 0-11
@@ -122,12 +123,13 @@ export const guid = () => {
 export const unixTime = time => (time ? (typeof time === 'string' ? dateToUnix(time) : time.getTime()) : 0)
 
 export const tToString = (timestamp, addTime, nullString, yFormat) => {
-  // console.log(timestamp)
-  if (Number.isNaN(timestamp) || timestamp < 1553048548000) return nullString
   const _yFormat = yFormat ? yFormat : '2-digit'
-  const _newDate = new Date(timestamp)
   const _opt = { day: '2-digit', month: '2-digit', year: _yFormat }
   const _optAddTime = { day: '2-digit', month: '2-digit', year: _yFormat, hour: '2-digit', minute: '2-digit' }
+  if (timestamp instanceof Date) return timestamp.toLocaleDateString('vi', addTime ? _optAddTime : _opt)
+  // console.log(timestamp)
+  if (Number.isNaN(timestamp) || timestamp < 1553048548000) return nullString
+  const _newDate = new Date(timestamp)
   return _newDate.toLocaleDateString('vi', addTime ? _optAddTime : _opt)
 }
 

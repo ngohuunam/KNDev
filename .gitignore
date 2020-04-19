@@ -8,6 +8,7 @@ _replicator
 _users
 pouch__all_dbs__
 env
+deploy
 
 # local env files
 .env.local
@@ -26,6 +27,7 @@ yarn-error.log*
 *.njsproj
 *.sln
 *.sw?
+*.md
 
 # Express
 backup

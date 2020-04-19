@@ -1,23 +1,6 @@
-import { tToString } from '@/tools'
+import { tToString, year } from '@/tools'
 
-// export const tableList = ({ list }, getters, { year, user }) => {
-//   const ui = user.state[year].order.film.ui
-//   const tableList = list.reduce((pre, cur) => [...pre, ...(ui[cur._id] && ui[cur._id].dropped ? [] : [cur])], [])
-//   console.log('tableList', tableList)
-//   return tableList
-// }
-
-// export const tableList = ({ list }, getters, { year, user }) => {
-//   const ui = user.state[year].order.film.ui
-//   const tableList = list.reduce((pre, cur, i) => {
-//     if (ui[cur._id] && ui[cur._id].dropped) return pre
-//     cur.index = i
-//     pre.push(cur)
-//     return pre
-//   }, [])
-//   console.log('tableList', tableList)
-//   return tableList
-// }
+export const ui = (state, getters, { user }) => user.state[year].order.film.ui
 
 export const newOrderConfirmTableProperties = ({ converted }) => {
   if (converted)
@@ -43,4 +26,23 @@ export const newOrderConfirmTableProperties = ({ converted }) => {
 //       { name: 'Deadline', value: tToString(state.newProdConverted.endAt, true, 'Not assign yet', 'numeric') },
 //     ]
 //   else return []
+// }
+
+// export const tableList = ({ list }, getters, { year, user }) => {
+//   const ui = user.state[year].order.film.ui
+//   const tableList = list.reduce((pre, cur) => [...pre, ...(ui[cur._id] && ui[cur._id].dropped ? [] : [cur])], [])
+//   console.log('tableList', tableList)
+//   return tableList
+// }
+
+// export const tableList = ({ list }, getters, { year, user }) => {
+//   const ui = user.state[year].order.film.ui
+//   const tableList = list.reduce((pre, cur, i) => {
+//     if (ui[cur._id] && ui[cur._id].dropped) return pre
+//     cur.index = i
+//     pre.push(cur)
+//     return pre
+//   }, [])
+//   console.log('tableList', tableList)
+//   return tableList
 // }

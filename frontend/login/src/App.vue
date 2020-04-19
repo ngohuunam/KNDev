@@ -16,11 +16,13 @@ export default {
     HelloWorld,
     Loading,
   },
-  data: () => ({
-    isLoading: true,
-    user: window.localStorage.getItem('user'),
-    count: 0,
-  }),
+  data: function() {
+    return {
+      isLoading: true,
+      user: window.localStorage.getItem('user'),
+      count: 0,
+    }
+  },
   methods: {
     login() {
       if (this.user) {

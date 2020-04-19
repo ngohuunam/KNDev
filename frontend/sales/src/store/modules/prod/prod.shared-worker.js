@@ -3,8 +3,9 @@ import { newOrder as repareNewOrder, queryBy_id } from '../../../tools'
 import { dbName, opts, preInsert } from './options'
 
 const { console } = self
-let RxCol = {}
-let list = {}
+const RxCol = {}
+const list = {}
+const RxQuery = {}
 let user_id
 const colNames = []
 const ports = []
@@ -20,25 +21,30 @@ const commit = (type, payload, colName) => postMessage({ action: 'commit', type:
 
 const commitRoot = (type, payload) => postMessage({ action: 'commit', type, payload })
 
-const init = (token, userId) => {
+const init = (token, userId, queries) => {
   user_id = userId
-  opts.forEach(opt =>
+  opts.forEach(opt => {
+    const { colName, checkKeys } = opt
+    opt.query = queries[colName]
     initDb(dbName, opt, token)
-      .then(({ rxCol, sync, docs }) => {
-        const { colName, checkKeys } = opt
+      .then(({ rxCol, sync }) => {
+        const { query, sort } = opt
         colNames.push(colName)
-        list[colName] = docs
         RxCol[colName] = rxCol
+        RxQuery[colName] = RxCol[colName].find(query).sort(sort)
+        RxQuery[colName].exec().then(rxDocs => {
+          list[colName] = rxDocs.map(rxDoc => rxDoc.toJSON())
+          console.log('list', list)
+          commit('setStates', { keys: ['list', 'loading'], datas: [list[colName], false] }, colName)
+        })
         RxCol[colName].preInsert(docObj => preInsert(docObj, user_id), true)
         RxCol[colName].insert$.subscribe(changeEvent => insertSubcribe(changeEvent, list[colName], commit, colName))
         RxCol[colName].update$.subscribe(changeEvent => updateSubcribe(changeEvent, checkKeys, list[colName], commit, commitRoot, colName, dbName))
         sync.denied$.subscribe(docData => console.log('denied$: ', docData))
         sync.error$.subscribe(error => console.log('error$: ', error))
-        console.log('list', list)
-        commit('setStates', { keys: ['list', 'loading'], datas: [list[colName], false] }, colName)
       })
-      .catch(e => console.error(e)),
-  )
+      .catch(e => console.error(e))
+  })
 }
 
 const create = (doc, colName) => {
@@ -119,9 +125,9 @@ self.onconnect = e => {
   }
 }
 
-const getStatus = ({ token, _id, _colNames }) => {
+const getStatus = ({ token, _id, _colNames, queries }) => {
   if (colNames.length) _colNames.forEach(_colName => commit('setStates', { keys: ['list', 'loading'], datas: [list[_colName] || [], false] }, _colName))
-  else init(token, _id)
+  else init(token, _id, queries)
 }
 
 const commitCloseDialog = mess => {

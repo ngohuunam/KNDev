@@ -9,6 +9,12 @@ export const setStates = (state, { keys, datas }) => {
   keys.map((key, idx) => (state[key] = datas[idx]))
 }
 
+export const mergeStateDeep = (state, { dotPath, key, value }) => {
+  const deepState = objectDeep(dotPath, state)
+  const clone = { ...deepState[key], ...value }
+  Vue.set(deepState, key, clone)
+}
+
 export const setStateDeep = (state, { dotPath, key, value }) => {
   const deepState = objectDeep(dotPath, state)
   // console.log('setStateDeep deepState', deepState)

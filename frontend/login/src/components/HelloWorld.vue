@@ -5,7 +5,7 @@
       <form name="loginform" class="login-form">
         <input type="email" name="email" placeholder="email" v-model="email" />
         <input type="password" name="password" placeholder="password" v-model="password" autocomplete="on" />
-        <button type="submit" @click="submit($event)">login</button>
+        <button type="submit" @click.prevent="submit">login</button>
         <p>{{ msg }}</p>
       </form>
     </div>
@@ -24,8 +24,7 @@ export default {
     }
   },
   methods: {
-    submit(e) {
-      e.preventDefault()
+    submit() {
       const host = `${window.location.origin}`
       const opt = {
         method: 'post',

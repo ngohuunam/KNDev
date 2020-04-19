@@ -2,7 +2,7 @@
 
 .version {
   position: absolute;
-  bottom: 16px;
+  top: 16px;
   left: 16px;
   font-size: 9pt;
   color: gray;

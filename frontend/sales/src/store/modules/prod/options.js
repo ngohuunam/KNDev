@@ -1,15 +1,15 @@
-import rxSchema from './schema'
+import schema from './schema'
 
 export const dbName = 'prod'
 export const opts = [
   {
     colName: 'film',
-    schema: rxSchema,
+    schema: schema.film,
     endpoint: 'prod_film_2020',
     checkKeys: ['type', 'endAt', 'finishAt', 'details', 'status', 'jobNames'],
     // methods: {},
-    // query: {},
-    needDumb: true,
+    query: {},
+    sort: { createdAt: -1 },
   },
 ]
 

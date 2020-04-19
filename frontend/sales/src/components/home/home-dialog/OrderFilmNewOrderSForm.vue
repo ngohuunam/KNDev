@@ -3,23 +3,23 @@
     <DataTable :value="orders" dataKey="_id" editMode="cell">
       <!-------------------- < Column: Remove Order > --------------------->
       <Column headerStyle="width: 2.6em; text-align: center" bodyStyle="text-align: center; overflow: visible; padding: 4px 0">
-        <template #body="slotProps">
-          <Button type="button" icon="pi pi-minus" class="p-button-danger margin-right" @click="remove(slotProps.index)"></Button>
+        <template #body="{index}">
+          <Button type="button" icon="pi pi-minus" class="p-button-danger margin-right" @click="remove(index)"></Button>
         </template>
       </Column>
       <!-------------------- < Column: Foreign Title > --------------------->
       <Column field="foreignTitle" header="Foreign Title">
-        <template #editor="slotProps">
-          <InputText v-model="slotProps.data.foreignTitle" />
+        <template #editor="{data, column: {field} }">
+          <InputText v-model="data[field]" />
         </template>
-        <template #body="slotProps">
-          <span v-if="!slotProps.data[slotProps.column.field] && !errors[slotProps.index][slotProps.column.field]" style="color: gray;">
+        <template #body="{data, column: {field}, index }">
+          <span v-if="!data[field] && !errors[index][field]" style="color: gray;">
             - EDIT -
           </span>
-          <span v-else-if="!slotProps.data[slotProps.column.field] && errors[slotProps.index][slotProps.column.field]" style="color: orange;">
+          <span v-else-if="!data[field] && errors[index][field]" style="color: orange;">
             MUST FILL
           </span>
-          <span v-else> {{ slotProps.data[slotProps.column.field] }} </span>
+          <span v-else> {{ data[field] }} </span>
         </template>
       </Column>
       <!-------------------- < Column: Team > --------------------->
@@ -27,66 +27,66 @@
         <template #editor="slotProps">
           <Dropdown v-model="slotProps.data.team" :options="options" />
         </template>
-        <template #body="slotProps">
-          <span v-if="!slotProps.data[slotProps.column.field] && !errors[slotProps.index][slotProps.column.field]" style="color: gray;">
+        <template #body="{data, column: {field}, index }">
+          <span v-if="!data[field] && !errors[index][field]" style="color: gray;">
             - EDIT -
           </span>
-          <span v-else-if="!slotProps.data[slotProps.column.field] && errors[slotProps.index][slotProps.column.field]" style="color: orange;">
+          <span v-else-if="!data[field] && errors[index][field]" style="color: orange;">
             MUST FILL
           </span>
-          <span v-else> {{ slotProps.data[slotProps.column.field] }} </span>
+          <span v-else> {{ data[field] }} </span>
         </template>
       </Column>
       <!-------------------- < Column: NKC > --------------------->
       <Column field="premiereDate" header="NKC">
-        <template #editor="slotProps">
+        <template #editor="{data, column: {field} }">
           <!-- <Calendar v-model="slotProps.data.premiereDate" dateFormat="dd/mm/yy" style="width: 100%" /> -->
-          <InputMask v-model="slotProps.data[slotProps.column.field]" mask="99/99/2029" slotChar="dd/mm/yyyy" />
+          <InputMask v-model="data[field]" mask="99/99/2029" slotChar="dd/mm/yyyy" />
         </template>
-        <template #body="slotProps">
-          <span v-if="!slotProps.data[slotProps.column.field] && !errors[slotProps.index][slotProps.column.field]" style="color: gray;">
+        <template #body="{data, column: {field}, index }">
+          <span v-if="!data[field] && !errors[index][field]" style="color: gray;">
             - EDIT -
           </span>
-          <span v-else-if="!slotProps.data[slotProps.column.field] && errors[slotProps.index][slotProps.column.field]" style="color: orange;">
+          <span v-else-if="!data[field] && errors[index][field]" style="color: orange;">
             WRONG FORMAT
           </span>
-          <span v-else> {{ $tToString(parseDateTime(slotProps, false), false, 'INVALID', 'numeric') }} </span>
+          <span v-else> {{ $tToString(parseDateTime(data[field], index, field, false), false, 'INVALID', 'numeric') }} </span>
         </template>
       </Column>
       <!-------------------- < Column: End Date > --------------------->
       <Column field="endAt" header="End Date">
-        <template #editor="slotProps">
+        <template #editor="{data, column: {field} }">
           <!-- <Calendar v-model="slotProps.data.endAt" dateFormat="dd/mm/yy" style="width: 100%" showTime /> -->
-          <InputMask v-model="slotProps.data[slotProps.column.field]" mask="99/99/2029 99:99" slotChar="dd/mm/yyyy hh:mm" />
+          <InputMask v-model="data[field]" mask="99/99/2029 99:99" slotChar="dd/mm/yyyy hh:mm" />
         </template>
-        <template #body="slotProps">
-          <span v-if="!slotProps.data[slotProps.column.field] && !errors[slotProps.index][slotProps.column.field]" style="color: gray;">
+        <template #body="{data, column: {field}, index }">
+          <span v-if="!data[field] && !errors[index][field]" style="color: gray;">
             - EDIT -
           </span>
-          <span v-else-if="!slotProps.data[slotProps.column.field] && errors[slotProps.index][slotProps.column.field]" style="color: orange;">
+          <span v-else-if="!data[field] && errors[index][field]" style="color: orange;">
             WRONG FORMAT
           </span>
-          <span v-else> {{ $tToString(parseDateTime(slotProps, true), true, 'INVALID', 'numeric') }} </span>
+          <span v-else> {{ $tToString(parseDateTime(data[field], index, field, true), true, 'INVALID', 'numeric') }} </span>
         </template>
       </Column>
       <!-------------------- < Column: Vietnamese Title > --------------------->
       <Column field="vietnameseTitle" header="Vietnamese Title">
-        <template #editor="slotProps">
-          <InputText v-model="slotProps.data[slotProps.column.field]" />
+        <template #editor="{data, column: {field} }">
+          <InputText v-model="data[field]" />
         </template>
-        <template #body="slotProps">
-          <span v-if="!slotProps.data[slotProps.column.field]" style="color: gray;"> - EDIT - </span>
-          <span v-else> {{ slotProps.data[slotProps.column.field] }} </span>
+        <template #body="{data, column: {field} }">
+          <span v-if="!data[field]" style="color: gray;"> - EDIT - </span>
+          <span v-else> {{ data[field] }} </span>
         </template>
       </Column>
       <!-------------------- < Column: Note > --------------------->
       <Column field="note" header="Note">
-        <template #editor="slotProps">
-          <InputText v-model="slotProps.data[slotProps.column.field]" />
+        <template #editor="{data, column: {field} }">
+          <InputText v-model="data[field]" />
         </template>
-        <template #body="slotProps">
-          <span v-if="!slotProps.data[slotProps.column.field]" style="color: gray;"> - EDIT - </span>
-          <span v-else> {{ slotProps.data[slotProps.column.field] }} </span>
+        <template #body="{data, column: {field} }">
+          <span v-if="!data[field]" style="color: gray;"> - EDIT - </span>
+          <span v-else> {{ data[field] }} </span>
         </template>
       </Column>
       <!-------------------- < Footer > --------------------->
@@ -96,11 +96,11 @@
 </template>
 
 <script>
-import { order } from '@/assets/defaultState'
+// import { order } from '@/assets/defaultState'
 import { dateToUnix } from '@/tools'
 
-const randomOrderId = () => Date.now() + Math.floor(Math.random() * 100 + 1)
-const randomNewOrder = () => ({ ...order.film.new, ...{ _id: randomOrderId(), note: '' } })
+// const randomOrderId = () => Date.now() + Math.floor(Math.random() * 100 + 1)
+// const randomNewOrder = () => ({ ...order.film.new, ...{ _id: randomOrderId(), note: '' } })
 
 export default {
   name: 'OrderFilmNewOrderSForm',
@@ -113,15 +113,15 @@ export default {
     errors: [],
   }),
   methods: {
-    parseDateTime(slotProps, hasTime) {
-      const _field = slotProps.column.field
-      const _str = slotProps.data[_field]
-      const _unix = dateToUnix(_str, hasTime)
+    parseDateTime(data, index, field, hasTime) {
+      if (data instanceof Date) return data
+      const _unix = dateToUnix(data, hasTime)
       if (_unix) return _unix
-      this.errors[slotProps.index][_field] = true
+      this.errors[index][field] = true
     },
     add() {
-      const _newRow = randomNewOrder()
+      const _newRow = this.$randomNewOrderFilm(this.construct)
+      _newRow.note = ''
       this.orders.push(_newRow)
       this.errors.push({ _id: false, rowId: _newRow._id, team: false, foreginTitle: false })
     },
@@ -160,6 +160,7 @@ export default {
       else this.doCreate(true)
     },
     doCreate(isChecked) {
+      if (this.dialogMess.severity) this.dialogMess = { text: '', severity: '' }
       if (!isChecked) {
         if (this.orders.some(o => !o.foreignTitle)) this.dialogMess = { text: 'All Foreign Title required', severity: 'error' }
         else if (this.list.some(o => this.orders.some(({ foreignTitle }) => foreignTitle.to_id() === o._id))) this.dialogMess = { text: 'Some Title Existed', severity: 'error' }
@@ -170,6 +171,9 @@ export default {
   computed: {
     list() {
       return this.$store.state.order.film.list
+    },
+    construct() {
+      return this.$store.getters['order/construct']('film')
     },
     dialogMess: {
       get() {

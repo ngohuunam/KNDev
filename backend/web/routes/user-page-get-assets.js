@@ -1,7 +1,7 @@
 const { sendCompressed, insertTokenRes } = require('../../shared')
 
 /* GET user page's assets. */
-const userPageGetAssets = async ({ params, headers }, res, next) => {
+const userPageGetAssets = ({ params, headers }, res, next) => {
   // console.log('userPageGetAssets headers', headers)
   const { folder, dept, page, file, token } = params
   const _input = folder ? `web/pages/${dept}/${page}/${folder}/${file}` : `web/pages/${dept}/${page}/${file}`

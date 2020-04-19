@@ -1,9 +1,9 @@
-import { initDb as _initDb, initSome as _initSome } from './rxdb'
-import { queryBy_id, pushSortBy_id, filter_rev, year } from '../../../tools'
+import { initDb as _initDb, pullData as _pullData } from './rxdb'
+import { queryBy_id, pushSortBy_key_des, filter_rev, year } from '../../../tools'
 
 export const initDb = _initDb
 
-export const initSome = _initSome
+export const pullData = _pullData
 
 export const insertSubcribe = (changeEvent, list, commit, colName) => {
   console.log('insert$: ', changeEvent)
@@ -11,7 +11,7 @@ export const insertSubcribe = (changeEvent, list, commit, colName) => {
   if (list.length) {
     const { doc, index } = queryBy_id(_$doc._id, list)
     if (!doc) {
-      const _idx = pushSortBy_id(list, _$doc)
+      const _idx = pushSortBy_key_des(list, _$doc, 'createdAt')
       commit('insertAt', { key: 'list', data: _$doc, idx: _idx }, colName)
     } else if (!doc._rev.startsWith('1-')) {
       list[index] = _$doc
@@ -30,7 +30,7 @@ export const updateSubcribe = (changeEvent, _checkKeys, list, commit, commitRoot
   if (list.length) {
     const { doc, index } = queryBy_id(_$doc._id, list)
     if (!doc) {
-      const _idx = pushSortBy_id(list, _$doc)
+      const _idx = pushSortBy_key_des(list, _$doc, 'createdAt')
       commit('insertAt', { key: 'list', data: _$doc, idx: _idx }, colName)
     } else if (doc._rev !== _$doc._rev) {
       if (!_$doc.dropped) {

@@ -167,20 +167,26 @@ import VueSocketIOExt from 'vue-socket.io-extended'
 import io from 'socket.io-client'
 import * as globalInstance from './globalInstance'
 
-let user = window.localStorage.getItem('user')
-if (!user) window.location.href = `${window.location.origin}/reset`
+// let user = window.localStorage.getItem('user')
+// if (!user) window.location.href = `${window.location.origin}/reset`
 
-const { dept, page, token } = JSON.parse(user)
-if (!token) {
-  window.localStorage.removeItem('user')
-  window.location.href = `${window.location.origin}/reset`
-}
-const url = `${window.location.origin}/${dept}/${page}?token=${token}`
+// const { dept, page, token } = JSON.parse(user)
+// if (!token) {
+//   window.localStorage.removeItem('user')
+//   window.location.href = `${window.location.origin}/reset`
+// }
+// const url = `${window.location.origin}/${dept}/${page}?token=${token}`
 // const url = `${window.location.origin}`
-console.log('url', url)
 console.log('store', store)
+const { user } = store.state
+const { dept, page, token } = user
+const url = `${window.location.origin}/${dept}/${page}?token=${token}`
+console.log('url', url)
 
-const socket = io(url)
+const socket = io(url, {
+  // WARNING: in that case, there is no fallback to long-polling
+  transports: ['websocket', 'polling'], // or [ 'websocket', 'polling' ], which is the same thing
+})
 Vue.use(VueSocketIOExt, socket, { store })
 Vue.use(globalInstance)
 

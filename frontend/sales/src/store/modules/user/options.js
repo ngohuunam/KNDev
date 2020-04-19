@@ -13,7 +13,6 @@ export const opts = [
     endpoint: 'staffs',
     checkKeys: [],
     // methods: {},
-    // query: {},
-    needDumb: false,
+    query: {},
   },
 ]

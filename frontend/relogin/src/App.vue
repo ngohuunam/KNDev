@@ -2,7 +2,6 @@
   <div id="app">
     <Loading v-if="isLoading" />
     <HelloWorld v-else />
-    <div class="version">V.132</div>
   </div>
 </template>
 
@@ -16,9 +15,12 @@ export default {
     HelloWorld,
     Loading,
   },
-  data: () => ({
-    isLoading: true,
-  }),
+  data: function() {
+    return {
+      isLoading: true,
+      user: window.localStorage.removeItem('user'),
+    }
+  },
   methods: {
     delLocalInfo() {
       return window.indexedDB.databases().then(infos => {

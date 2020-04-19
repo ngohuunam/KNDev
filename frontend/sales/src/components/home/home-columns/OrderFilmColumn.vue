@@ -25,14 +25,14 @@
               :icon="'pi ' + ($socket.connected ? 'pi-wifi' : 'pi-ban')"
               :class="'margin-right ' + ($socket.connected ? 'p-button-success' : 'p-button-danger')"
             />
-            <Button v-if="tempSelected.length" :label="loadBtnProp.label" :icon="loadBtnProp.icon" @click="load" :disabled="loadBtnProp.disabled" class="margin-right" />
-            <Button v-if="tempSelected.length" :label="enlarge ? 'Delete Orders' : ''" icon="pi pi-minus" @click="confirmDel" class="p-button-danger margin-right" />
+            <Button v-if="selected.length" :label="loadBtnProp.label" :icon="loadBtnProp.icon" @click="load" :disabled="loadBtnProp.disabled" class="margin-right" />
+            <Button v-if="selected.length" :label="enlarge ? 'Delete Orders' : ''" icon="pi pi-minus" @click="confirmDel" class="p-button-danger margin-right" />
             <!-- <ToggleButton v-if="!enlarge" v-model="enlarge" @change="onToggleEnlarge" onIcon="pi pi-angle-left" offIcon="pi pi-angle-right" /> -->
             <InputText v-if="enlarge" v-model="filters['global']" placeholder="Search" style="width: 20%" class="margin-right" />
-            <Button v-if="hasOrderChanged" :label="enlarge ? 'Sth Changed' : ''" :icon="btnIcon('allChangedCheck', 'pi-star')" @click="allChangedCheck" class="margin-right" />
-            <Button v-if="hasNewOrder" :label="enlarge ? 'New Order' : ''" :icon="btnIcon('allNewCheck', 'pi-file-o')" @click="allRowCheck('new')" class="margin-right" />
+            <Button v-if="hasChanged" :label="enlarge ? 'Sth Changed' : ''" :icon="btnIcon('allChangedCheck', 'pi-star')" @click="allChangedCheck" class="margin-right" />
+            <Button v-if="hasNew" :label="enlarge ? 'New Order' : ''" :icon="btnIcon('allNewCheck', 'pi-file-o')" @click="allRowCheck('new')" class="margin-right" />
             <Button
-              v-if="hasDroppedOrder"
+              v-if="hasDropped"
               :label="enlarge ? 'Dropped Order' : ''"
               :icon="btnIcon('allDroppedCheck', 'pi-file-o')"
               @click="allRowCheck('dropped')"
@@ -61,15 +61,19 @@
         </template>
       </Column> -->
       <!-------------------- < Column: Selection > --------------------->
-      <Column selectionMode="multiple" bodyStyle="padding: 0" headerStyle="width: 2.5em" :sortable="true" sortField="selected"></Column>
+      <Column selectionMode="multiple" bodyStyle="padding: 0" headerStyle="width: 2.5em"></Column>
       <!-------------------- < Column: Foreign Title > --------------------->
       <Column field="foreignTitle" :header="enlarge ? 'Foreign Title' : 'Title'" :headerStyle="enlarge ? 'width: 18%' : ''" filterMatchMode="contains" :sortable="true">
         <template #filter>
           <InputText type="text" v-model="filters['foreignTitle']" class="p-column-filter" />
         </template>
-        <template #body="slotProps">
+        <template #body="{ data: { _id, foreignTitle, dropped } }">
           <div style="position: relative">
-            <span><i v-if="icon.row[slotProps.data._id]" :class="`${icon.row[slotProps.data._id]} icon-loading`"></i> {{ slotProps.data.foreignTitle }} </span>
+            <span v-if="icon.row[_id] || rowError(_id, dropped)" class="icon-loading">
+              <i v-if="icon.row[_id]" :class="`${icon.row[_id]}`" />
+              <i v-if="rowError(_id, dropped)" class="pi pi-info color-red" />
+            </span>
+            <span> {{ foreignTitle }} </span>
           </div>
           <!-- <span>{{ slotProps.data.foreignTitle }} </span> -->
         </template>
@@ -79,14 +83,9 @@
         <template #filter>
           <InputText type="text" v-model="filters['premiereDate']" class="p-column-filter" />
         </template>
-        <template #body="slotProps">
-          <Button
-            v-if="cellBtnVisible(slotProps.data._id, slotProps.column.field)"
-            :icon="cellIcon(slotProps.data._id, slotProps.column.field)"
-            :label="slotProps.data[slotProps.column.field]"
-            @click="checkChange($event, slotProps)"
-          />
-          <span v-else> {{ $tToString(slotProps.data[slotProps.column.field], false, '') }} </span>
+        <template #body="{ data: { _id }, data, column: { field } }">
+          <Button v-if="cellBtnVisible(_id, field)" :icon="cellIcon(_id, field)" :label="data[field]" @click="checkChange($event, _id, field)" />
+          <span v-else> {{ $tToString(data[field], false, '') }} </span>
         </template>
       </Column>
       <!-------------------- < Column: Status > --------------------->
@@ -95,14 +94,9 @@
           <InputText type="text" v-model="filters['status']" class="p-column-filter" />
           <!-- <MultiSelect v-model="filters['status']" :options="orders" optionLabel="status" optionValue="status" placeholder="All" class="p-column-filter"></MultiSelect> -->
         </template>
-        <template #body="slotProps">
-          <Button
-            v-if="cellBtnVisible(slotProps.data._id, slotProps.column.field)"
-            :icon="cellIcon(slotProps.data._id, slotProps.column.field)"
-            :label="slotProps.data[slotProps.column.field]"
-            @click="checkChange($event, slotProps)"
-          />
-          <span v-else> {{ slotProps.data[slotProps.column.field] }} </span>
+        <template #body="{ data: { _id }, data, column: { field } }">
+          <Button v-if="cellBtnVisible(_id, field)" :icon="cellIcon(_id, field)" :label="data[field]" @click="checkChange($event, _id, field)" />
+          <span v-else> {{ data[field] }} </span>
         </template>
       </Column>
       <!-------------------- < Column: Product Names > --------------------->
@@ -110,14 +104,9 @@
         <template #filter>
           <InputText type="text" v-model="filters['productNames']" class="p-column-filter" />
         </template>
-        <template #body="slotProps">
-          <Button
-            v-if="cellBtnVisible(slotProps.data._id, slotProps.column.field)"
-            :icon="cellIcon(slotProps.data._id, slotProps.column.field)"
-            :label="slotProps.data[slotProps.column.field]"
-            @click="checkChange($event, slotProps)"
-          />
-          <span v-else> {{ slotProps.data[slotProps.column.field] }} </span>
+        <template #body="{ data: { _id }, data, column: { field } }">
+          <Button v-if="cellBtnVisible(_id, field)" :icon="cellIcon(_id, field)" :label="data[field]" @click="checkChange($event, _id, field)" />
+          <span v-else> {{ data[field] }} </span>
         </template>
       </Column>
       <!-------------------- < Column: Create At > --------------------->
@@ -125,8 +114,8 @@
         <template #filter>
           <InputText type="text" v-model="filters['createdAt']" class="p-column-filter" />
         </template>
-        <template #body="slotProps">
-          <span> {{ $tToString(slotProps.data[slotProps.column.field], true, '') }} </span>
+        <template #body="{ data, column: { field } }">
+          <span> {{ $tToString(data[field], true, '') }} </span>
         </template>
       </Column>
       <!-------------------- < Column: End At > --------------------->
@@ -134,14 +123,9 @@
         <template #filter>
           <InputText type="text" v-model="filters['endAt']" class="p-column-filter" />
         </template>
-        <template #body="slotProps">
-          <Button
-            v-if="cellBtnVisible(slotProps.data._id, slotProps.column.field)"
-            :icon="cellIcon(slotProps.data._id, slotProps.column.field)"
-            :label="slotProps.data[slotProps.column.field]"
-            @click="checkChange($event, slotProps)"
-          />
-          <span v-else> {{ $tToString(slotProps.data[slotProps.column.field], true, '') }} </span>
+        <template #body="{ data: { _id }, data, column: { field } }">
+          <Button v-if="cellBtnVisible(_id, field)" :icon="cellIcon(_id, field)" :label="data[field]" @click="checkChange($event, _id, field)" />
+          <span v-else> {{ $tToString(data[field], true, '') }} </span>
         </template>
       </Column>
       <!-------------------- < Column: Finish At > --------------------->
@@ -149,14 +133,9 @@
         <template #filter>
           <InputText type="text" v-model="filters['finishAt']" class="p-column-filter" />
         </template>
-        <template #body="slotProps">
-          <Button
-            v-if="cellBtnVisible(slotProps.data._id, slotProps.column.field)"
-            :icon="cellIcon(slotProps.data._id, slotProps.column.field)"
-            :label="slotProps.data[slotProps.column.field]"
-            @click="checkChange($event, slotProps)"
-          />
-          <span v-else> {{ $tToString(slotProps.data[slotProps.column.field], true, '') }} </span>
+        <template #body="{ data: { _id }, data, column: { field } }">
+          <Button v-if="cellBtnVisible(_id, field)" :icon="cellIcon(_id, field)" :label="data[field]" @click="checkChange($event, _id, field)" />
+          <span v-else> {{ $tToString(data[field], true, '') }} </span>
         </template>
       </Column>
       <!-------------------- < Column: Vietnamese Title > --------------------->
@@ -164,19 +143,14 @@
         <template #filter>
           <InputText type="text" v-model="filters['vietnameseTitle']" class="p-column-filter" />
         </template>
-        <template #body="slotProps">
-          <Button
-            v-if="cellBtnVisible(slotProps.data._id, slotProps.column.field)"
-            :icon="cellIcon(slotProps.data._id, slotProps.column.field)"
-            :label="slotProps.data[slotProps.column.field]"
-            @click="checkChange($event, slotProps)"
-          />
-          <span v-else> {{ slotProps.data[slotProps.column.field] }} </span>
+        <template #body="{ data: { _id }, data, column: { field } }">
+          <Button v-if="cellBtnVisible(_id, field)" :icon="cellIcon(_id, field)" :label="data[field]" @click="checkChange($event, _id, field)" />
+          <span v-else> {{ data[field] }} </span>
         </template>
       </Column>
       <!-------------------- < Footer > --------------------->
       <template v-if="messages.length" #footer>
-        <NewMessage v-for="(message, i) in messages" :key="i" @close-message="closeMessage" :index="i" :severity="message.severity">{{ message.text }}</NewMessage>
+        <NewMessage v-for="({ text, severity }, i) in messages" :key="i" @close-message="closeMessage" :index="i" :severity="severity">{{ text }}</NewMessage>
       </template>
       <template #empty><div class="text-center">No records found.</div></template>
     </DataTable>
@@ -217,10 +191,8 @@ export default {
       if (this.rowClickData.data.dropped) payload.type = 'dropped'
       this.$store.commit('user/Worker', { name: 'rowCheck', payload })
     },
-    checkChange(e, slotProps) {
-      console.log('checkChange slotProps:', slotProps)
-      const { field } = slotProps.column
-      const { _id } = slotProps.data
+    checkChange(e, _id, field) {
+      console.log('checkChange field:', field)
       const _change = this.ui[_id].changes[field]
       const _logs = _change.logs.map(log => ({
         label: `${log.type}${log.name ? ` - ${log.name}` : ''} - ${log.by.slice(0, log.by.indexOf('@'))} - ${this.$tToString(log.at, true)}${log.note ? ` - ${log.note}` : ''}`,
@@ -241,9 +213,12 @@ export default {
     },
     onRowClick({ originalEvent, data, index }) {
       const {
-        target: { classList, parentElement },
+        target: {
+          classList,
+          parentElement: { classList: pClassList },
+        },
       } = originalEvent
-      if (!classList.contains('p-checkbox-box') && !parentElement.classList.contains('p-checkbox-box')) {
+      if (!classList.contains('p-checkbox-box') && !pClassList.contains('p-checkbox-box')) {
         this.rowClickData = { data, index }
         this.menuModelNormal[0].label = 'Title: '.concat(data._id)
         this.menuModel = data.dropped || !this.ui[data._id] || !this.ui[data._id].new ? this.menuRowCheckModel : this.menuModelNormal
@@ -253,14 +228,14 @@ export default {
     addProd() {
       this.$emit('open-dialog', 'newProdForm', 'Create', 'Add new Product', this.rowClickData.data)
     },
-    edit(_id) {
-      console.log(_id)
+    edit() {
+      console.log(this.rowClickData)
     },
     allRowCheck(type) {
       this.$store.commit('user/Worker', { name: 'allRowCheck', payload: { type, year: this.year, db: 'order', col: 'film', list: this.list } })
     },
     allChangedCheck() {
-      this.$store.dispatch('order/film/allChangedCheck')
+      this.$store.commit('user/Worker', { name: 'allChangeCheck', payload: { year: this.year, db: 'order', col: 'film' } })
     },
     deleteThis() {
       this.tempSelected = [this.rowClickData.data]
@@ -293,19 +268,22 @@ export default {
     onRowUnselectAll(e) {
       console.log('onRowSelectAll: ', e)
     },
-    rowClass(data) {
-      return data.dropped ? (this.ui[data._id] && this.ui[data._id].dropped ? 'r-hide' : 'r-deleted') : this.ui[data._id] && this.ui[data._id].new ? '' : 'r-new'
+    rowClass({ dropped, _id }) {
+      // return data.dropped ? (this.ui[data._id] && this.ui[data._id].dropped ? 'r-hide' : 'r-deleted') : this.ui[data._id] && this.ui[data._id].new ? '' : 'r-new'
+      return dropped ? 'r-deleted' : this.ui[_id] && this.ui[_id].new ? '' : 'r-new'
+    },
+    rowError(_id, dropped) {
+      const err = dropped && this.ui[_id] && this.ui[_id].dropped
+      return err > 0
     },
     btnIcon(name, icon) {
       return this.icon.header[name] ? 'pi pi-spin pi-spinner' : 'pi ' + icon
     },
     cellIcon(_id, field) {
-      const icon = this.icon.cell[_id] && this.icon.cell[_id][field] ? this.icon.cell[_id][field] : ''
-      console.log('icon', icon)
-      return icon
+      return this.icon.cell[_id] && this.icon.cell[_id][field] ? this.icon.cell[_id][field] : ''
     },
     cellBtnVisible(_id, field) {
-      return this.ui[_id] && this.ui[_id].new && typeof this.ui[_id].changes[field] === 'object'
+      return this.ui[_id] && this.ui[_id].new && !this.ui[_id].dropped && typeof this.ui[_id].changes[field] === 'object'
     },
   },
   watch: {
@@ -314,23 +292,17 @@ export default {
     },
   },
   computed: {
-    icon() {
-      return this.$store.state.order.film.icon
-    },
-    year() {
-      return this.$store.state.year
-    },
     ui() {
-      return this.$store.getters.ui('order', 'film')
+      return this.$store.getters['order/film/ui']
     },
     // tableList() {
     //   return this.$store.getters['order/film/tableList']
     // },
     loadBtnProp() {
       let prop = { label: 'Load', icon: 'pi pi-download', disabled: false }
-      if (!this.selected.length && !this.prodList.length) prop = { label: 'No Select', icon: 'pi pi-download', disabled: true }
+      if (!this.selected.length && !this.hasProdList) prop = { label: 'No Select', icon: 'pi pi-download', disabled: true }
       else if (this.selected.length && !this.sectedOrdersHasProd) prop = { label: 'No Prod', icon: 'pi pi-ban', disabled: true }
-      else if (!this.selected.length && this.prodList.length) prop = { label: 'Clear', icon: 'pi pi-upload', disabled: false }
+      else if (!this.selected.length && this.hasProdList) prop = { label: 'Clear', icon: 'pi pi-upload', disabled: false }
       if (!this.enlarge) prop.label = ''
       return prop
     },
@@ -339,17 +311,17 @@ export default {
         return this.$store.state.order.film.selected
       },
       set(values) {
-        this.$store.commit('order/film/setState', { key: 'selected', data: values.filter(v => !v.dropped && this.ui[v._id].new) })
+        this.$store.commit('order/film/setState', { key: 'selected', data: values.filter(v => !v.dropped && this.ui[v._id] && this.ui[v._id].new) })
         this.sectedOrdersHasProd = values.some(v => v.products.length > 0)
       },
     },
-    hasNewOrder() {
-      return this.list.some(o => !this.ui[o._id] || !this.ui[o._id].new)
+    hasNew() {
+      return this.list.some(({ _id }) => !this.ui[_id] || !this.ui[_id].new)
     },
-    hasDroppedOrder() {
-      return this.list.some(o => o.dropped && !this.ui[o._id] && !this.ui[o._id].dropped)
+    hasDropped() {
+      return this.list.some(o => o.dropped && this.ui[o._id] && !this.ui[o._id].dropped)
     },
-    hasOrderChanged() {
+    hasChanged() {
       return this.list.some(({ _id }) => this.ui[_id] && this.$isObjEmpty(this.ui[_id].changes) === false && Object.values(this.ui[_id].changes).some(ch => typeof ch === 'object'))
     },
     messages: {
@@ -363,8 +335,10 @@ export default {
     ...mapState({
       list: state => state.order.film.list,
       loading: state => state.order.film.loading,
-      prodList: state => state.prod.film.list,
-      seq: state => state.order.film.seq,
+      icon: state => state.order.film.icon,
+      hasProdList: state => state.prod.film.list.length > 0,
+      // seq: state => state.order.film.seq,
+      year: state => state.year,
     }),
   },
   created: function() {},

@@ -1,26 +1,29 @@
+import { objectDeep } from '../../../tools'
 const UserPlugin = store => {
-  console.log('store', store)
   const {
     commit,
     state: {
       user: { token, _id },
     },
   } = store
-  const { log, error } = console
   const worker = new SharedWorker('./user.shared-worker.js', { name: 'user', type: 'module' })
   worker.port.start()
   worker.port.postMessage({ name: 'getStatus', payload: { token, _id } })
   worker.port.onmessage = ({ data }) => {
-    log('user worker onmessage - data: ', data)
+    console.log('user worker onmessage - data: ', data)
     const { action, type, payload } = data
     switch (action) {
       case 'commit':
         commit(type, payload)
         break
+      case 'getState':
+        payload.state = objectDeep(type, store.state)
+        worker.port.postMessage(payload)
+        break
     }
   }
-  worker.port.onmessageerror = e => error('user worker onmessageerror', e)
-  worker.onerror = e => error('user worker onerror', e)
+  worker.port.onmessageerror = e => console.error('user worker onmessageerror', e)
+  worker.onerror = e => console.error('user worker onerror', e)
 
   store.watch(
     ({ user }) => user,
@@ -30,8 +33,8 @@ const UserPlugin = store => {
 
   store.subscribe(({ type, payload }) => {
     if (type.startsWith('user/Worker')) {
-      log('user plugin mutation type: ', type)
-      log('user plugin mutation payload: ', payload)
+      console.log('user plugin mutation type: ', type)
+      console.log('user plugin mutation payload: ', payload)
       worker.port.postMessage(payload)
     }
   })
