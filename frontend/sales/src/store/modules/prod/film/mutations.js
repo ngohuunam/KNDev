@@ -9,6 +9,11 @@ export const create = (state, newProd) => {
   state.converted = _newProd
 }
 
+export const unshift = (state, { key, data }) => {
+  const _state = state[key]
+  _state.unshift(data)
+}
+
 export const spliceAt = (state, { key, idx }) => {
   const _state = state[key]
   _state.splice(idx, 1)

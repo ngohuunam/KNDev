@@ -10,6 +10,11 @@ String.prototype.toProperCase = toProperCase
 String.prototype.to_id = function() {
   return this.toProperCase().replace(/\s/g, '')
 }
+String.prototype.insert = function(index, string) {
+  if (index > 0) return this.substring(0, index) + string + this.substring(index, this.length)
+
+  return string + this
+}
 
 export const date = new Date()
 export const year = date.getFullYear()
@@ -17,9 +22,7 @@ export const year = date.getFullYear()
 export const parseInt_rev = _rev => parseInt(_rev.slice(0, _rev.indexOf('-')))
 
 export const filter_rev = (logs, start_rev) => {
-  console.log('filter_rev start_rev:', start_rev)
   const startIndex = logs.findIndex(log => log._rev === start_rev)
-  console.log('filter_rev startIndex:', startIndex)
   const filter = logs.slice(0, startIndex + 1)
   return filter
 }
@@ -138,15 +141,17 @@ export const htmlStrip = html => {
   return doc.body.textContent || ''
 }
 
-export const newOrder = {
-  film: _order => {
-    const _newOrder = { ...order.film.new, ..._order, ...{ status: 'Created' } }
-    _newOrder.foreignTitle = _newOrder.foreignTitle.toProperCase()
-    _newOrder._id = _newOrder.foreignTitle.replace(/\s/g, '')
-    _newOrder.vietnameseTitle = _newOrder.vietnameseTitle.toProperCase()
-    _newOrder.premiereDate = unixTime(_newOrder.premiereDate)
-    _newOrder.endAt = unixTime(_newOrder.endAt)
-    return _newOrder
+export const preInsert = {
+  order: {
+    film: _order => {
+      const _newOrder = { ...order.film.new, ..._order, ...{ status: 'Created' } }
+      _newOrder.foreignTitle = _newOrder.foreignTitle.toProperCase()
+      _newOrder._id = _newOrder.foreignTitle.replace(/\s/g, '')
+      _newOrder.vietnameseTitle = _newOrder.vietnameseTitle.toProperCase()
+      _newOrder.premiereDate = unixTime(_newOrder.premiereDate)
+      _newOrder.endAt = unixTime(_newOrder.endAt)
+      return _newOrder
+    },
   },
 }
 

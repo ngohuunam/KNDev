@@ -22,10 +22,12 @@ const prodSchema = {
       orderDropped: {
         type: 'number',
         default: 0,
+        check: true,
       },
       type: {
         type: 'string',
         default: '',
+        check: true,
       },
       createdAt: {
         type: 'number',
@@ -40,27 +42,33 @@ const prodSchema = {
         type: 'number',
         index: true,
         default: 0,
+        check: true,
       },
       finishAt: {
         type: 'number',
         default: 0,
+        check: true,
       },
       details: {
         type: 'string',
         default: '',
+        check: true,
       },
       status: {
         type: 'string',
         index: true,
         default: '',
+        check: true,
       },
       jobs: {
         type: 'array',
         default: [],
+        child: true,
       },
-      jobNames: {
-        type: 'string',
-        default: '',
+      plans: {
+        type: 'array',
+        default: [],
+        child: true,
       },
       dropped: {
         type: 'number',
@@ -77,15 +85,17 @@ const prodSchema = {
     },
     required: ['name', 'orderId'],
     compoundIndexes: [
-      ['createdAt', 'status'],
-      ['createdAt', 'endAt'],
-      ['status', 'endAt'],
-      ['createdAt', 'orderId'],
-      ['status', 'orderId'],
-      ['endAt', 'orderId'],
-      ['createdAt', 'name'],
-      ['status', 'name'],
-      ['endAt', 'name'],
+      // ['endAt', 'name'],
+      // ['endAt', 'status'],
+      // ['endAt', 'orderId'],
+      ['endAt', 'createdAt'],
+      // ['createdAt', 'orderId'],
+      // ['createdAt', 'status'],
+      // ['createdAt', 'endAt'],
+      // ['createdAt', 'name'],
+      // ['status', 'orderId'],
+      // ['status', 'endAt'],
+      // ['status', 'name'],
     ],
   },
 }

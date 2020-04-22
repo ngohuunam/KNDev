@@ -3,6 +3,7 @@ import RxDBNoValidateModule from 'rxdb/plugins/no-validate'
 import RxDBReplicationModule from 'rxdb/plugins/replication'
 import * as PouchdbAdapterHttp from 'pouchdb-adapter-http'
 import PouchdbAdapterIndexeddb from 'pouchdb-adapter-indexeddb'
+import UpdatePlugin from './update'
 import PouchDB from 'pouchdb-core'
 import { fetch } from 'pouchdb-fetch'
 
@@ -11,6 +12,7 @@ const loadPlugins = () => {
   plugin(RxDBReplicationModule)
   plugin(PouchdbAdapterHttp)
   plugin(PouchdbAdapterIndexeddb)
+  plugin(UpdatePlugin)
 }
 
 export const initDb = (dbName, { colName, schema, methods, endpoint, query }, token) => {
@@ -34,14 +36,14 @@ export const initDb = (dbName, { colName, schema, methods, endpoint, query }, to
   loadPlugins()
   return create(opt.db)
     .then(_rxdb => _rxdb.collection(opt.col))
-    .then(rxCol =>
-      pullData(rxCol, endpoint, query, token).then(_opt => {
+    .then(rxCol => {
+      return pullData(rxCol, endpoint, query, token).then(_opt => {
         _opt.direction.push = true
         _opt.options.live = true
         const sync = rxCol.sync(_opt)
         return { rxCol, sync }
-      }),
-    )
+      })
+    })
 }
 
 export const pullData = (rxCol, endpoint, query, token) => {

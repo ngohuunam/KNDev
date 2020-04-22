@@ -41,14 +41,23 @@ body .p-checkbox .p-checkbox-box .p-checkbox-icon {
 }
 body .p-datatable .p-datatable-thead > tr > th {
   padding: 4px 0.5em;
+  border: none;
 }
 body .p-button.p-button-text-only .p-button-text {
   padding: 0.429em 0.3em;
 }
+
 body .p-datatable .p-datatable-header,
 body .p-datatable .p-datatable-footer {
   padding: 8px;
+  border: none;
 }
+
+body .p-paginator,
+body .p-datatable .p-datatable-tbody > tr > td {
+  border: none;
+}
+
 body .p-button.p-button-icon-only {
   width: 1.8em;
 }
@@ -92,10 +101,19 @@ tr.r-deleted:hover {
   color: grey !important;
 }
 
+body .p-paginator .p-dropdown {
+  float: left;
+}
+
+body .p-paginator .p-paginator-current {
+  float: right;
+}
+
 .r-new > td > button,
 .r-new > td > button:hover,
 .r-new > td > div.p-checkbox.p-component,
-.r-new > td > div.p-checkbox.p-component:hover .r-deleted > td > button,
+.r-new > td > div.p-checkbox.p-component:hover,
+.r-deleted > td > button,
 .r-deleted > td > button:hover,
 .r-deleted > td > div.p-checkbox.p-component,
 .r-deleted > td > div.p-checkbox.p-component:hover {

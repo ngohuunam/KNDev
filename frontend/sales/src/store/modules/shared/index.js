@@ -62,6 +62,6 @@ export const preInsert = (docObj, user_id) => {
   docObj.createdAt = Date.now()
   docObj.createdBy = user_id
   console.log(docObj.note)
-  docObj.logs.unshift({ type: 'Create', _rev: null, at: docObj.createdAt, by: user_id, note: docObj.note })
+  docObj.logs.unshift({ type: 'Insert', _rev: '', at: docObj.createdAt, by: user_id, note: docObj.note })
   delete docObj.note
 }

@@ -14,14 +14,19 @@ const OrderPlugin = store => {
       },
     },
   } = store
-  console.log('OrderPlugin userDbState', userDbState)
-  const worker = new SharedWorker('./order.shared-worker.js', { name: 'order', type: 'module' })
+  let worker
+  if (window.SharedWorker) worker = new SharedWorker('./order.kimnam-worker.js', { name: 'order', type: 'module' })
+  else worker = new Worker('./order.kimnam-worker.js', { name: 'order', type: 'module' })
+  let myWorker = worker
+  if (worker.port) {
+    worker.port.start()
+    myWorker = worker.port
+  }
   const colNames = ['film']
   const queryParams = { film: userDbState.film.ui }
-  worker.port.start()
-  worker.port.postMessage({ name: 'getStatus', payload: { token, _id, colNames, queryParams } })
-  worker.port.onmessage = ({ data }) => {
-    console.log('order worker monmessage - data:', data)
+  myWorker.postMessage({ name: 'getStatus', payload: { token, _id, colNames, queryParams } })
+  myWorker.onmessage = ({ data }) => {
+    console.log('order worker onmessage - data:', data)
     const { action, type, payload } = data
     switch (action) {
       case 'commit':
@@ -29,29 +34,24 @@ const OrderPlugin = store => {
         break
       case 'getState':
         payload.state = objectDeep(type, store.state)
-        worker.port.postMessage(payload)
+        myWorker.postMessage(payload)
         break
     }
   }
-  worker.port.onmessageerror = e => console.error('order worker.port onmessageerror:', e)
+  myWorker.onmessageerror = e => console.error('order myWorker onmessageerror:', e)
   worker.onerror = e => console.error('order worker onerror:', e)
 
   store.subscribe(async ({ type, payload: mutationPayload }) => {
-    console.log('(order plugin) mutation type:', type)
-    console.log('(order plugin) mutation payload:', mutationPayload)
     if (type.includes('order/')) {
+      console.log('(order plugin) mutation type:', type)
+      console.log('(order plugin) mutation payload:', mutationPayload)
       const paths = type.split('/')
       // const dbName = paths[0]
       const colName = paths[1]
-      if (type.includes('/Worker')) worker.port.postMessage({ ...mutationPayload, ...{ colName } })
-      // else if (type.includes('List'))
-      //   worker.port.postMessage({
-      //     name: 'syncList',
-      //     payload: { ...mutationPayload, ...{ list: state[dbName][colName].list, userDbState: state.user.state[year][dbName][colName].ui } },
-      //   })
+      if (type.includes('/Worker')) myWorker.postMessage({ ...mutationPayload, ...{ colName } })
     }
   })
-  if (worker) commit('pushState', { state: 'worker', value: 'order' })
+  if (worker) commit('pushState', { state: 'worker', value: worker.port ? 'Shared - order' : 'order' })
 }
 
 export default OrderPlugin

@@ -149,6 +149,9 @@ Vue.component('FileUpload', FileUpload)
 import InputMask from 'primevue/inputmask'
 Vue.component('InputMask', InputMask)
 
+import Tooltip from 'primevue/tooltip'
+Vue.directive('tooltip', Tooltip)
+
 // import OverlayPanel from 'primevue/overlaypanel'
 // Vue.component('OverlayPanel', OverlayPanel)
 
@@ -167,16 +170,6 @@ import VueSocketIOExt from 'vue-socket.io-extended'
 import io from 'socket.io-client'
 import * as globalInstance from './globalInstance'
 
-// let user = window.localStorage.getItem('user')
-// if (!user) window.location.href = `${window.location.origin}/reset`
-
-// const { dept, page, token } = JSON.parse(user)
-// if (!token) {
-//   window.localStorage.removeItem('user')
-//   window.location.href = `${window.location.origin}/reset`
-// }
-// const url = `${window.location.origin}/${dept}/${page}?token=${token}`
-// const url = `${window.location.origin}`
 console.log('store', store)
 const { user } = store.state
 const { dept, page, token } = user

@@ -13,7 +13,7 @@ export default {
   data: () => ({}),
   methods: {
     confirm() {
-      this.$store.dispatch('order/film/Worker', { name: 'create', payload: { ...this.$store.state.order.film.converted } })
+      this.$store.dispatch('order/film/Worker', { name: 'insert', payload: { ...this.$store.state.order.film.converted } })
     },
   },
   computed: {

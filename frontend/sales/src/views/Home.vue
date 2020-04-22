@@ -4,7 +4,7 @@
 
     <div class="p-grid">
       <div :class="orderFilmColumnClass">
-        <OrderFilmColumn @toggle-enlarge="toggleOrderFilmColumnEnlarge" @open-dialog="openDialog" />
+        <OrderFilmColumn @toggle-enlarge="v => (orderFilmColumnEnlarge = v)" :_enlarge="orderFilmColumnEnlarge" @open-dialog="openDialog" />
       </div>
       <div v-if="hasProdFilmTable" :class="prodFilmColumnClass">
         <ProdFilmColumn @toggle-enlarge="toggleProdFilmColumnEnlarge" @open-dialog="openDialog" />
@@ -110,8 +110,8 @@ export default {
     forceCreate() {
       this.$refs[this.compRef].doCreate()
     },
-    toggleOrderFilmColumnEnlarge() {
-      this.orderFilmColumnEnlarge = !this.orderFilmColumnEnlarge
+    toggleOrderFilmColumnEnlarge(v) {
+      this.orderFilmColumnEnlarge = v
     },
     toggleProdFilmColumnEnlarge() {
       this.prodFilmColumnEnlarge = !this.prodFilmColumnEnlarge

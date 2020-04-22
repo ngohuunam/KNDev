@@ -1,10 +1,10 @@
 import Vue from 'vue'
-import { newOrder } from '@/tools'
+import { prepareInsert } from '../../../../utils'
 
 export const create = (state, note) => {
   const _newOrder = { ...state.new, ...note }
   console.log('note', note)
-  state.converted = newOrder.film(_newOrder)
+  state.converted = prepareInsert.order.film(_newOrder)
 }
 
 export const spliceListBy_id = ({ list }, { _id }) => {
@@ -17,14 +17,20 @@ export const spliceAt = (state, { key, idx }) => {
   _state.splice(idx, 1)
 }
 
-export const replaceAt = (state, { key, data, idx }) => {
+export const replace = (state, { key, data, field }) => {
   const _state = state[key]
+  const idx = _state.findIndex(item => item[field] === data[field])
   Vue.set(_state, idx, data)
 }
 
 export const insertAt = (state, { key, data, idx }) => {
   const _state = state[key]
   _state.splice(idx, 0, data)
+}
+
+export const unshift = (state, { key, data }) => {
+  const _state = state[key]
+  _state.unshift(data)
 }
 
 export const setState = (state, { key, data }) => {

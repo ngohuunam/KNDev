@@ -165,7 +165,7 @@ export default {
         if (this.orders.some(o => !o.foreignTitle)) this.dialogMess = { text: 'All Foreign Title required', severity: 'error' }
         else if (this.list.some(o => this.orders.some(({ foreignTitle }) => foreignTitle.to_id() === o._id))) this.dialogMess = { text: 'Some Title Existed', severity: 'error' }
       }
-      if (this.dialogMess.severity !== 'error') this.$store.dispatch('order/film/Worker', { name: 'creates', payload: this.orders })
+      if (this.dialogMess.severity !== 'error') this.$store.dispatch('order/film/Worker', { name: 'inserts', payload: this.orders })
     },
   },
   computed: {
@@ -188,9 +188,9 @@ export default {
     this.add()
   },
   beforeDestroy: function() {
-    this.orders = []
-    this.errors = []
-    this.log = ''
+    // this.orders = []
+    // this.errors = []
+    // this.log = ''
   },
 }
 </script>

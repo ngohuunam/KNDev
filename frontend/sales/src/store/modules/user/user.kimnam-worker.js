@@ -3,14 +3,38 @@ import { dbName, opts, objectDeep, initDb } from './options'
 // import { year, isObjEmpty } from '../../tools'
 const { console } = self
 
+console.log(self)
+
 const ports = []
 let rxUser
-
-const postMessage = msg => {
-  for (const port of ports) port.postMessage(msg)
+let postMess, worker
+if (self.SharedWorkerGlobalScope) {
+  postMess = function(msg) {
+    ports.map(port => port.postMessage(msg))
+  }
+  self.onconnect = e => {
+    const port = e.ports[0]
+    ports.push(port)
+    port.onmessage = e => onMess(e)
+    port.onmessageerror = e => onMessError(e)
+  }
+} else {
+  postMess = self.postMessage
+  self.onmessage = e => onMess(e)
+  self.onmessageerror = e => onMessError(e)
 }
 
-const commit = (type, payload) => postMessage({ action: 'commit', type, payload })
+const onMess = ({ data }) => {
+  console.log('onmessage data: ', data)
+  const { name, payload, colName } = data
+  if (func[name]) func[name](payload, colName)
+  else worker[name](payload, colName)
+}
+const onMessError = e => {
+  console.error('onmessageerror', e)
+}
+
+const commit = (type, payload) => postMess({ action: 'commit', type, payload })
 
 const updateSubcribe = changeEvent => {
   console.log('rxUser update$: ', changeEvent)
@@ -63,22 +87,22 @@ const updateSubcribe = changeEvent => {
   setTimeout(() => commit('setStateDeep', { dotPath: `user.state.${path}`, key, value }), 3000)
 }
 
-self.onconnect = e => {
-  console.dir(e)
-  const port = e.ports[0]
-  console.dir(port)
-  ports.push(port)
+// self.onconnect = e => {
+//   console.dir(e)
+//   const port = e.ports[0]
+//   console.dir(port)
+//   ports.push(port)
 
-  port.onmessage = ({ data }) => {
-    console.log('port.onmessage data: ', data)
-    const { name, payload } = data
-    if (func[name]) func[name](payload)
-  }
+//   port.onmessage = ({ data }) => {
+//     console.log('port.onmessage data: ', data)
+//     const { name, payload } = data
+//     if (func[name]) func[name](payload)
+//   }
 
-  port.onmessageerror = e => {
-    console.error('sw port onmessageerror', e)
-  }
-}
+//   port.onmessageerror = e => {
+//     console.error('sw port onmessageerror', e)
+//   }
+// }
 
 const user = () => {
   const _user = rxUser.toJSON()
@@ -144,7 +168,7 @@ const allRowCheck = ({ year, db, col, list, type }) => {
       else if (type === 'dropped') _ids = list.reduce((pre, cur) => [...pre, ...(cur.dropped && !ui[cur._id].dropped ? [cur._id] : [])], [])
       console.log(`(allRowCheck) type ${type} _ids`, _ids)
       _ids.map(_id => {
-        if (!ui[_id]) ui[_id] = { new: 0, changes: {}, dropped: 0 }
+        ui[_id] = ui[_id] || { new: 0, changes: {}, dropped: 0 }
         ui[_id][type] = state.timestamp
         _loadingIcon[_id] = iconLoading
         _successIcon[_id] = iconSuccess
@@ -168,7 +192,7 @@ const rowCheck = ({ year, db, col, _id, type }) => {
     .atomicUpdate(oldData => {
       const state = preUpdate(oldData)
       const ui = objectDeep(uiPath, state)
-      if (!ui[_id]) ui[_id] = { new: 0, changes: {}, dropped: 0 }
+      ui[_id] = ui[_id] || { new: 0, changes: {}, dropped: 0 }
       ui[_id][type] = state.timestamp
       state.last = { type: type, path: uiPath, storePath, _id: _id }
       return oldData
@@ -258,7 +282,7 @@ const change = payload => {
     const state = preUpdate(oldData)
     const uiPath = `${colPath}.ui`
     const ui = objectDeep(uiPath, state)
-    if (!ui[_id]) ui[_id] = { new: 0, changes: {}, dropped: 0 }
+    ui[_id] = ui[_id] || { new: 0, changes: {}, dropped: 0 }
     const current = ui[_id].changes
     console.log('(change) current', current)
     for (const key in changes) {
@@ -287,33 +311,5 @@ const rowCheckSaveError = (path, _id, type, e) => {
   commit('pushToasts', { severity: 'error', summary: 'SAVE ERROR', detail: `${_id} err: ${e.message}`, life: 10000 })
   setRowIconError(path, _id)
 }
-// const updateUserState = (type, uiPath, _id, keys, values) =>
-//   rxUser.atomicUpdate(oldData => {
-//     const state = preUpdate(oldData)
-//     const ui = objectDeep(uiPath, state)
-//     if (!ui[_id]) ui[_id] = { new: 0, changes: {}, dropped: 0 }
-//     if (values) {
-//       if (Array.isArray(values)) keys.map((key, i) => (ui[_id][key] = values[i]))
-//       else keys.map(key => (ui[_id][key] = values))
-//     } else keys.map(key => (ui[_id][key] = state.timestamp))
-//     state.last = { type: type, path: uiPath, _id: _id }
-//     return oldData
-//   })
-
-// const updateUserState_ids_values = (type, uiPath, colPath, _ids, key, values) =>
-//   rxUser.atomicUpdate(oldData => {
-//     const state = preUpdate(oldData)
-//     const ui = objectDeep(uiPath, state)
-//     // if (!ui[_id]) ui[_id] = {}
-//     _ids.map((_id, i) => {
-//       if (!ui[_id]) ui[_id] = { new: 0, changes: {}, dropped: 0 }
-//       if (values) {
-//         if (Array.isArray(values)) ui[_id][key] = values[i]
-//         else ui[_id][key] = values
-//       } else ui[_id][key] = state.timestamp
-//     })
-//     state.last = { type, path: colPath }
-//     return oldData
-//   })
 
 const func = { init, getStatus, rowCheck, allRowCheck, change, changeCheck, allChangeCheck }

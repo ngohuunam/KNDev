@@ -3,7 +3,7 @@
     <DataTable
       :value="list"
       dataKey="_id"
-      :selection.sync="tempSelected"
+      :selection.sync="selected"
       :filters="filters"
       :rowHover="true"
       :loading="loading"
@@ -13,39 +13,81 @@
       @row-unselect-all="onRowUnselectAll"
       :rowClass="rowClass"
       @row-click="onRowClick"
+      paginator
+      :rows="5"
+      paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+      :rowsPerPageOptions="[5, 10, 25, 50]"
+      currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+      removableSort
     >
       <!-------------------- < Header > --------------------->
       <template #header>
         <div class="table-header-container">
           <div style="text-align: left">
-            <Button :label="enlarge ? 'New Order' : ''" icon="pi pi-plus" @click="create" class="margin-right" />
-            <Button :label="enlarge ? 'Some New Order' : ''" icon="pi pi-bars" @click="creates" class="margin-right" />
+            <!-------------------- < Button Insert > --------------------->
+            <Button :label="enlarge ? 'Insert' : ''" icon="pi pi-plus" @click="create" class="margin-right" v-tooltip.top="'Insert'" />
+            <!-------------------- < Button Insert Multi > --------------------->
+            <Button :label="enlarge ? 'Insert multi' : ''" icon="pi pi-bars" @click="creates" class="margin-right" v-tooltip.top="'Insert multi'" />
+            <!-------------------- < Button Socket > --------------------->
             <Button
               :label="enlarge ? ($socket.connected ? 'Connected' : socketError || 'Disconnected') : ''"
               :icon="'pi ' + ($socket.connected ? 'pi-wifi' : 'pi-ban')"
               :class="'margin-right ' + ($socket.connected ? 'p-button-success' : 'p-button-danger')"
+              v-tooltip.top="$socket.connected ? 'Connected' : socketError || 'Disconnected'"
             />
+            <!-------------------- < Button Load > --------------------->
             <Button
-              v-if="selected.length"
               :label="loadBtnProp.label"
               :icon="btnIcon('allChangedCheck', loadBtnProp.icon)"
               @click="load"
               :disabled="loadBtnProp.disabled"
               class="margin-right"
+              v-tooltip.top="loadBtnProp.tooltip"
             />
-            <Button v-if="selected.length" :label="enlarge ? 'Delete Orders' : ''" icon="pi pi-minus" @click="confirmDel" class="p-button-danger margin-right" />
+            <!-------------------- < Button Delete > --------------------->
+            <Button
+              v-if="selected.length"
+              :label="enlarge ? 'Delete Selected' : ''"
+              icon="pi pi-minus"
+              @click="confirmDel"
+              class="p-button-danger margin-right"
+              v-tooltip.top="'Delete Selected'"
+            />
             <!-- <ToggleButton v-if="!enlarge" v-model="enlarge" @change="onToggleEnlarge" onIcon="pi pi-angle-left" offIcon="pi pi-angle-right" /> -->
             <InputText v-if="enlarge" v-model="filters['global']" placeholder="Search" style="width: 20%" class="margin-right" />
-            <Button v-if="hasChanged" :label="enlarge ? 'Sth Changed' : ''" :icon="btnIcon('allChangedCheck', 'pi-star')" @click="allChangedCheck" class="margin-right" />
-            <Button v-if="hasNew" :label="enlarge ? 'New Order' : ''" :icon="btnIcon('allNewCheck', 'pi-file-o')" @click="allRowCheck('new')" class="margin-right" />
+            <Button
+              v-if="hasChanged"
+              :label="enlarge ? 'Some properties Changed' : ''"
+              :icon="btnIcon('allChangedCheck', 'pi-star')"
+              @click="allChangedCheck"
+              class="margin-right"
+              v-tooltip.top="'Some properties Changed'"
+            />
+            <Button
+              v-if="hasNew"
+              :label="enlarge ? 'Some New' : ''"
+              :icon="btnIcon('allNewCheck', 'pi-file-o')"
+              @click="allRowCheck('new')"
+              class="margin-right"
+              v-tooltip.top="'Some New'"
+            />
             <Button
               v-if="hasDropped"
-              :label="enlarge ? 'Dropped Order' : ''"
+              :label="enlarge ? 'Some Dropped' : ''"
               :icon="btnIcon('allDroppedCheck', 'pi-file-o')"
               @click="allRowCheck('dropped')"
               class="margin-right"
+              v-tooltip.top="'Some Dropped'"
             />
-            <ToggleButton :onLabel="enlarge ? 'Collapse' : ''" offLabel=" " v-model="enlarge" @change="onToggleEnlarge" onIcon="pi pi-angle-left" offIcon="pi pi-angle-right" />
+            <Button :label="enlarge ? 'Resync' : ''" :icon="btnIcon('reSync', 'pi-refresh')" @click="reSync" class="margin-right" v-tooltip.top="'Resync'" />
+            <ToggleButton
+              :onLabel="enlarge ? 'Collapse' : ''"
+              offLabel=" "
+              v-model="enlarge"
+              onIcon="pi pi-angle-left"
+              offIcon="pi pi-angle-right"
+              v-tooltip.top="'Toggle collapse'"
+            />
             <InputText v-if="!enlarge" v-model="filters['global']" placeholder="Search" style="width: 100%" class="margin-top" />
           </div>
         </div>
@@ -91,7 +133,13 @@
           <InputText type="text" v-model="filters['premiereDate']" class="p-column-filter" />
         </template>
         <template #body="{ data: { _id }, data, column: { field } }">
-          <Button v-if="cellBtnVisible(_id, field)" :icon="cellIcon(_id, field)" :label="data[field]" @click="checkChange($event, _id, field)" />
+          <Button
+            v-if="cellBtnVisible(_id, field)"
+            v-tooltip.top="cellQuickLog(_id, field)"
+            :icon="cellIcon(_id, field)"
+            :label="data[field]"
+            @click="checkChange($event, _id, field)"
+          />
           <span v-else> {{ $tToString(data[field], false, '') }} </span>
         </template>
       </Column>
@@ -102,18 +150,30 @@
           <!-- <MultiSelect v-model="filters['status']" :options="orders" optionLabel="status" optionValue="status" placeholder="All" class="p-column-filter"></MultiSelect> -->
         </template>
         <template #body="{ data: { _id }, data, column: { field } }">
-          <Button v-if="cellBtnVisible(_id, field)" :icon="cellIcon(_id, field)" :label="data[field]" @click="checkChange($event, _id, field)" />
+          <Button
+            v-if="cellBtnVisible(_id, field)"
+            v-tooltip.top="cellQuickLog(_id, field)"
+            :icon="cellIcon(_id, field)"
+            :label="data[field]"
+            @click="checkChange($event, _id, field)"
+          />
           <span v-else> {{ data[field] }} </span>
         </template>
       </Column>
       <!-------------------- < Column: Product Names > --------------------->
-      <Column field="productNames" header="Products" filterMatchMode="in" :sortable="true">
+      <Column field="products" header="Products" filterMatchMode="in" :sortable="true">
         <template #filter>
-          <InputText type="text" v-model="filters['productNames']" class="p-column-filter" />
+          <InputText type="text" v-model="filters['products']" class="p-column-filter" />
         </template>
         <template #body="{ data: { _id }, data, column: { field } }">
-          <Button v-if="cellBtnVisible(_id, field)" :icon="cellIcon(_id, field)" :label="data[field]" @click="checkChange($event, _id, field)" />
-          <span v-else> {{ data[field] }} </span>
+          <Button
+            v-if="cellBtnVisible(_id, field)"
+            v-tooltip.top="cellQuickLog(_id, field)"
+            :icon="cellIcon(_id, field)"
+            :label="data[field].join(', ')"
+            @click="checkChange($event, _id, field)"
+          />
+          <span v-else> {{ data[field].join(', ') }} </span>
         </template>
       </Column>
       <!-------------------- < Column: Create At > --------------------->
@@ -131,7 +191,13 @@
           <InputText type="text" v-model="filters['endAt']" class="p-column-filter" />
         </template>
         <template #body="{ data: { _id }, data, column: { field } }">
-          <Button v-if="cellBtnVisible(_id, field)" :icon="cellIcon(_id, field)" :label="data[field]" @click="checkChange($event, _id, field)" />
+          <Button
+            v-if="cellBtnVisible(_id, field)"
+            v-tooltip.top="cellQuickLog(_id, field)"
+            :icon="cellIcon(_id, field)"
+            :label="data[field]"
+            @click="checkChange($event, _id, field)"
+          />
           <span v-else> {{ $tToString(data[field], true, '') }} </span>
         </template>
       </Column>
@@ -141,7 +207,13 @@
           <InputText type="text" v-model="filters['finishAt']" class="p-column-filter" />
         </template>
         <template #body="{ data: { _id }, data, column: { field } }">
-          <Button v-if="cellBtnVisible(_id, field)" :icon="cellIcon(_id, field)" :label="data[field]" @click="checkChange($event, _id, field)" />
+          <Button
+            v-if="cellBtnVisible(_id, field)"
+            v-tooltip.top="cellQuickLog(_id, field)"
+            :icon="cellIcon(_id, field)"
+            :label="data[field]"
+            @click="checkChange($event, _id, field)"
+          />
           <span v-else> {{ $tToString(data[field], true, '') }} </span>
         </template>
       </Column>
@@ -151,7 +223,13 @@
           <InputText type="text" v-model="filters['vietnameseTitle']" class="p-column-filter" />
         </template>
         <template #body="{ data: { _id }, data, column: { field } }">
-          <Button v-if="cellBtnVisible(_id, field)" :icon="cellIcon(_id, field)" :label="data[field]" @click="checkChange($event, _id, field)" />
+          <Button
+            v-if="cellBtnVisible(_id, field)"
+            v-tooltip.top="cellQuickLog(_id, field)"
+            :icon="cellIcon(_id, field)"
+            :label="data[field]"
+            @click="checkChange($event, _id, field)"
+          />
           <span v-else> {{ data[field] }} </span>
         </template>
       </Column>
@@ -171,15 +249,15 @@ import { mapState } from 'vuex'
 export default {
   name: 'OrderFilmColumn',
   components: {},
+  props: ['_enlarge'],
   data() {
     return {
       filters: {},
       sectedOrdersHasProd: false,
-      enlarge: true,
+      // enlarge: true,
       socketError: 'Disconnected',
       rowClickData: null,
       menuModel: [],
-      tempSelected: [],
       menuModelNormal: [
         { label: ``, icon: 'pi pi-dollar' },
         { separator: true },
@@ -193,10 +271,18 @@ export default {
     }
   },
   methods: {
+    reSync() {
+      this.$store.dispatch('order/film/reSync', this.ui)
+    },
     rowCheck() {
       const payload = { type: 'new', year: this.year, db: 'order', col: 'film', _id: this.rowClickData.data._id }
       if (this.rowClickData.data.dropped) payload.type = 'dropped'
       this.$store.commit('user/Worker', { name: 'rowCheck', payload })
+    },
+    cellQuickLog(_id, field) {
+      const _change = this.ui[_id].changes[field]
+      const log = _change.logs[0]
+      return `${log.by.slice(0, log.by.indexOf('@'))} - ${this.$tToString(log.at, true)}`
     },
     checkChange(e, _id, field) {
       console.log('checkChange field:', field)
@@ -233,7 +319,7 @@ export default {
       }
     },
     addProd() {
-      this.$emit('open-dialog', 'newProdForm', 'Create', 'Add new Product', this.rowClickData.data)
+      this.$emit('open-dialog', 'newProdForm', 'Add', 'Add new Product', this.rowClickData.data)
     },
     edit() {
       console.log(this.rowClickData)
@@ -245,23 +331,21 @@ export default {
       this.$store.commit('user/Worker', { name: 'allChangeCheck', payload: { year: this.year, db: 'order', col: 'film' } })
     },
     deleteThis() {
-      this.tempSelected = [this.rowClickData.data]
+      this.selected = [this.rowClickData.data]
       this.confirmDel()
     },
     load() {
-      this.$store.commit('prod/film/Worker', { name: 'load', payload: { _ids: this.selected.reduce((pre, cur) => [...pre, ...cur.products], []) } })
+      this.$store.commit('prod/film/Worker', { name: 'load', payload: { orderIds: this.selected.map(item => item._id) } })
+      if (this.enlarge) this.enlarge = false
     },
     closeMessage(idx) {
       this.$store.commit('order/film/spliceMess', idx)
     },
-    onToggleEnlarge() {
-      this.$emit('toggle-enlarge')
-    },
     create() {
-      this.$emit('open-dialog', 'newOrderForm', 'Create', 'Add new film')
+      this.$emit('open-dialog', 'newOrderForm', 'Insert', 'Add new film')
     },
     creates() {
-      this.$emit('open-dialog', 'newOrdersForm', 'Create', 'Add some new films', null, '1200px', true)
+      this.$emit('open-dialog', 'newOrdersForm', 'Insert', 'Add some new films', null, '1200px', true)
     },
     confirmDel() {
       this.$emit('open-dialog', 'deleteConfirm', this.selected.length > 1 ? 'Delete All' : 'Delete', 'Confirm Delete - This action is undone')
@@ -294,22 +378,27 @@ export default {
     },
   },
   watch: {
-    tempSelected(v) {
-      this.selected = v
+    prodList(v) {
+      if (v.length > this.selected.length) this.selected = this.list.filter(item => v.some(p => p.orderId === item._id))
     },
   },
   computed: {
     ui() {
       return this.$store.getters['order/film/ui']
     },
-    // tableList() {
-    //   return this.$store.getters['order/film/tableList']
-    // },
+    enlarge: {
+      get() {
+        return this._enlarge
+      },
+      set(v) {
+        this.$emit('toggle-enlarge', v)
+      },
+    },
     loadBtnProp() {
-      let prop = { label: 'Load', icon: 'pi pi-download', disabled: false }
-      if (!this.selected.length && !this.hasProdList) prop = { label: 'No Select', icon: 'pi pi-download', disabled: true }
-      else if (this.selected.length && !this.sectedOrdersHasProd) prop = { label: 'No Prod', icon: 'pi pi-ban', disabled: true }
-      else if (!this.selected.length && this.hasProdList) prop = { label: 'Clear', icon: 'pi pi-upload', disabled: false }
+      let prop = { label: 'Load', tooltip: 'Load', icon: 'pi pi-download', disabled: false }
+      if (!this.selected.length && !this.hasProdList) prop = { label: 'No Select', tooltip: 'No Select', icon: 'pi pi-download', disabled: true }
+      else if (this.selected.length && !this.sectedOrdersHasProd) prop = { label: 'No Prod', tooltip: 'No Prod', icon: 'pi pi-ban', disabled: true }
+      else if (!this.selected.length && this.hasProdList) prop = { label: 'Unload', tooltip: 'Unload', icon: 'pi pi-upload', disabled: false }
       if (!this.enlarge) prop.label = ''
       return prop
     },
@@ -318,7 +407,7 @@ export default {
         return this.$store.state.order.film.selected
       },
       set(values) {
-        this.$store.commit('order/film/setState', { key: 'selected', data: values.filter(v => !v.dropped && this.ui[v._id] && this.ui[v._id].new) })
+        this.$store.commit('order/film/setState', { key: 'selected', data: values })
         this.sectedOrdersHasProd = values.some(v => v.products.length > 0)
       },
     },
@@ -330,6 +419,9 @@ export default {
     },
     hasChanged() {
       return this.list.some(({ _id }) => this.ui[_id] && this.$isObjEmpty(this.ui[_id].changes) === false && Object.values(this.ui[_id].changes).some(ch => typeof ch === 'object'))
+    },
+    hasProdList() {
+      return this.prodList.length > 0
     },
     messages: {
       get() {
@@ -343,8 +435,7 @@ export default {
       list: state => state.order.film.list,
       loading: state => state.order.film.loading,
       icon: state => state.order.film.icon,
-      hasProdList: state => state.prod.film.list.length > 0,
-      // seq: state => state.order.film.seq,
+      prodList: state => state.prod.film.list,
       year: state => state.year,
     }),
   },

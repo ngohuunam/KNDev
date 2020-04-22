@@ -17,6 +17,7 @@ const orderSchema = {
       team: {
         type: 'string',
         default: 'Other',
+        check: true,
       },
       createdAt: {
         type: 'number',
@@ -32,10 +33,12 @@ const orderSchema = {
         type: 'number',
         index: true,
         default: 0,
+        check: true,
       },
       finishAt: {
         type: 'number',
         default: 0,
+        check: true,
       },
       foreignTitle: {
         type: 'string',
@@ -45,24 +48,31 @@ const orderSchema = {
       vietnameseTitle: {
         type: 'string',
         default: '',
+        check: true,
       },
       premiereDate: {
         type: 'number',
         index: true,
         default: 1609420532000,
+        check: true,
       },
       status: {
         type: 'string',
         index: true,
         default: 'Created',
+        check: true,
       },
       products: {
         type: 'array',
         default: [],
+        child: true,
+        check: true,
       },
-      productNames: {
-        type: 'string',
-        default: '',
+      plans: {
+        type: 'array',
+        default: [],
+        child: true,
+        check: true,
       },
       dropped: {
         type: 'number',
@@ -78,12 +88,21 @@ const orderSchema = {
       },
     },
     compoundIndexes: [
-      ['createdAt', 'status'],
-      ['createdAt', 'endAt'],
-      ['createdAt', 'premiereDate'],
-      ['endAt', 'premiereDate'],
-      ['endAt', 'status'],
-      ['premiereDate', 'status'],
+      ['endAt', 'premiereDate', 'createdAt'],
+      // ['endAt', 'premiereDate', 'status'],
+      // ['endAt', 'createdAt', 'premiereDate'],
+      // ['endAt', 'status', 'premiereDate'],
+      // ['status', 'endAt', 'premiereDate'],
+      // ['status', 'endAt', 'createdAt'],
+      // ['endAt', 'premiereDate', 'createdAt', 'status'],
+      // ['endAt', 'premiereDate', 'status', 'createdAt'],
+      // ['endAt', 'status', 'premiereDate', 'createdAt'],
+      // ['endAt', 'createdAt'],
+      // ['endAt', 'status'],
+      // ['createdAt', 'status'],
+      // ['createdAt', 'endAt'],
+      // ['createdAt', 'premiereDate'],
+      // ['premiereDate', 'status'],
     ],
   },
 }

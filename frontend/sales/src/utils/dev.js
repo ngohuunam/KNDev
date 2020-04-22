@@ -1,6 +1,6 @@
 import { team, produce, randomName } from '.'
 
-export const prods = ['Brochure', 'Poster', 'Flyer', 'Ticket', 'Envelope', 'Book', 'Invitation', 'Backdrop', 'Banner', '3DBooth', 'Namecard', 'Other']
+export const prods = ['Brochure', 'Poster', 'Flyer', 'Ticket', 'Envelope', 'Book', 'Invitation', 'Backdrop', 'Banner', '3 D Booth', 'Namecard', 'Other']
 
 export const randomNo = (count, start) => Math.floor(Math.random() * count) + start || 0
 export const randomTeam = () => team[randomNo(5, 0)]

@@ -37,7 +37,7 @@ module.exports = {
     output: {
       filename: '[name].js',
       chunkFilename: '[name].js',
-      // globalObject: 'this',
+      globalObject: 'this',
     },
     // optimization: {
     //   minimize: true,
@@ -57,7 +57,7 @@ module.exports = {
       hints: false,
     },
     plugins: [
-      new WorkerPlugin({ globalObject: 'self', sharedWorker: true, worker: false, filename: '[name].worker.js' }),
+      new WorkerPlugin({ globalObject: 'self', sharedWorker: true, worker: true, filename: '[name].worker.js' }),
       // new TerserPlugin({
       //   terserOptions: {
       //     compress: {
