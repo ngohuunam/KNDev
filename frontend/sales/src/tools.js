@@ -136,10 +136,10 @@ export const guid = () => {
 //   return _newDate.toLocaleDateString('vi', addTime ? _optAddTime : _opt)
 // }
 
-export const htmlStrip = html => {
-  const doc = new DOMParser().parseFromString(html, 'text/html')
-  return doc.body.textContent || ''
-}
+// export const htmlStrip = html => {
+//   const doc = new DOMParser().parseFromString(html, 'text/html')
+//   return doc.body.textContent || ''
+// }
 
 // export const preInsert = {
 //   order: {

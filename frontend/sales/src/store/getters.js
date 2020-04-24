@@ -1,2 +1,5 @@
-export const ui = ({ user, year }) => (db, col) => (col ? user.state[year][db][col].ui : user.state[year][db].ui)
-export const icon = state => (db, col) => (col ? state[db][col].icon : state[db].icon)
+import { objectDeep } from '../utils'
+
+export const ui = ({ user, year }) => path => objectDeep(`state.${year}.${path}`, user).ui
+export const icon = state => path => objectDeep(path, state).icon
+export const process = ({ processes }) => _id => processes.find(pro => pro._id === _id)

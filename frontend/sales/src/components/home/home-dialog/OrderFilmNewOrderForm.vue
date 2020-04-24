@@ -49,27 +49,32 @@
 export default {
   name: 'OrderFilmNewOrderForm',
   components: {},
-  data: () => ({
-    note: '',
-  }),
+  data() {
+    return { note: '' }
+  },
   methods: {
+    checkExisted() {
+      if (this.state.list.some(item => item.foreignTitle === this.newOrder.foreignTitle)) return this.newOrder.foreignTitle + ' existed'
+      return ''
+    },
+    checkRequired() {
+      const fields = ['foreignTitle', 'team']
+      const texts = ['Foreign Title', "Client's Team"]
+      const misses = fields.reduce((pre, field, i) => [...pre, ...(this.newOrder[field] ? [] : [texts[i]])], [])
+      return misses.length ? misses.join(', ') + ' can not empty' : ''
+    },
     confirm() {
-      let _newId = 'abc'
-      let _requiredMess = ''
-      let _idExistedMess = ''
-      let _validateMess = ''
-      if (this.newOrder.foreignTitle) {
-        _newId = this.newOrder.foreignTitle.to_id()
-        if (this.$store.state.order.film.list.some(fo => fo._id === _newId)) _idExistedMess = _newId + ' EXISTED'
-      } else _requiredMess = 'Foreign Title'
-      if (!this.newOrder.team) _requiredMess += _requiredMess ? ' + Team ' : 'Team'
-      if (!this.newOrder.foreignTitle) _requiredMess += _requiredMess ? ' + Foreign Title' : 'Foreign Title'
-      if (_requiredMess) _requiredMess = `${_requiredMess} ${_requiredMess.indexOf('+') > -1 ? 'ARE' : 'IS'} REQUIRED`
-      if (_idExistedMess && !_requiredMess) _validateMess = _idExistedMess
-      else if (!_idExistedMess && _requiredMess) _validateMess = _requiredMess
-      else if (_idExistedMess && _requiredMess) _validateMess = `${_idExistedMess} - ${_requiredMess}`
-      if (_validateMess) this.dialogMess = { text: _validateMess, severity: 'error' }
-      else this.doCreate()
+      let text = this.checkRequired()
+      if (text) this.dialogMess = { text, severity: 'error' }
+      else {
+        text = this.checkExisted()
+        if (text) this.dialogMess = { text, severity: 'error' }
+        else {
+          this.$store.commit('order/film/create', { note: this.$randomSentence() })
+          this.$emit('switch-comp', 'newOrderConfirm', 'Save', 'Save new order confirm')
+          this.dialogMess = { text: '', severity: '' }
+        }
+      }
     },
     doCreate() {
       if (this.newOrder.foreignTitle) {

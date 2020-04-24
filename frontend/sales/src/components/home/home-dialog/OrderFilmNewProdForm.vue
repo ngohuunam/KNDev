@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="p-grid p-fluid" v-for="item in newProdLabels" :key="item.label">
+    <div class="p-grid p-fluid" v-for="item in labels" :key="item.label">
       <div class="p-col-4" style="margin: auto;">
         <label>{{ item.label }}</label>
       </div>
@@ -57,42 +57,56 @@ export default {
     return { note: '' }
   },
   methods: {
-    checkId() {
-      if (this.newProd.name) {
-        if (this.cp.products.some(name => name === this.newProd.name)) return this.newProd.name + ' EXISTED'
-        else {
-          this.newProd._id = `${this.cp._id}:${this.newProd.name.to_id()}`
-          this.newProd.orderId = this.cp._id
-          this.newProd.orderRev = this.cp._rev
-          this.newProd.note = this.$randomSentence()
-          return ''
-        }
+    checkExisted() {
+      if (this.cp.products.some(name => name === this.newProd.name)) return this.newProd.name + ' existed'
+      else {
+        this.newProd._id = `${this.cp._id}:${this.newProd.name.to_id()}`
+        this.newProd.orderId = this.cp._id
+        this.newProd.orderRev = this.cp._rev
+        this.newProd.note = this.$randomSentence()
+        return ''
       }
-      return 'Product Name'
+    },
+    checkRequired() {
+      const fields = ['name', 'type', 'process']
+      const texts = ['Product name', 'Produce type', 'Process']
+      const misses = fields.reduce((pre, field, i) => [...pre, ...(this.newProd[field] ? [] : [texts[i]])], [])
+      return misses.length ? misses.join(', ') + ' can not empty' : ''
     },
     confirm() {
-      let _idExistedMess = ''
-      let _validateMess = ''
-      let _requiredMess = this.checkId()
-      if (!this.newProd.type) _requiredMess.concat(_requiredMess ? ' + Type are required' : 'Type is required')
-      if (_idExistedMess && !_requiredMess) _validateMess = _idExistedMess
-      else if (_requiredMess && !_idExistedMess) _validateMess = _requiredMess
-      else if (_idExistedMess && _requiredMess) _validateMess = `${_idExistedMess} - ${_requiredMess}`
-      if (_validateMess) this.dialogMess = { text: _validateMess, severity: 'error' }
-      else this.doCreate(true)
+      let text = this.checkRequired()
+      if (text) this.dialogMess = { text, severity: 'error' }
+      else {
+        text = this.checkExisted()
+        if (text) this.dialogMess = { text, severity: 'error' }
+        else {
+          this.$store.commit('prod/film/create', this.newProd)
+          this.$emit('switch-comp', 'newProdConfirm', 'Save', 'Save new product confirm', this.cp)
+          this.dialogMess = { text: '', severity: '' }
+        }
+      }
     },
-    doCreate(idChecked) {
-      if (!idChecked) this.checkId()
-      if (this.newProd._id) {
-        this.$store.commit('prod/film/create', this.newProd)
-        this.$emit('switch-comp', 'newProdConfirm', 'Save', 'Save new product confirm', this.cp)
-        this.dialogMess = { text: '', severity: '' }
-      } else this.dialogMess = { text: "Product's name required", severity: 'error' }
+    doCreate(checked) {
+      if (!checked) {
+        let text = this.checkRequired()
+        if (text) this.dialogMess = { text, severity: 'error' }
+        else {
+          text = this.checkExisted()
+          if (text) this.dialogMess = { text, severity: 'error' }
+          else {
+            this.$store.commit('prod/film/create', this.newProd)
+            this.$emit('switch-comp', 'newProdConfirm', 'Save', 'Save new product confirm', this.cp)
+            this.dialogMess = { text: '', severity: '' }
+          }
+        }
+      }
     },
   },
   computed: {
-    newProdLabels() {
-      return this.$store.state.prod.film.labels
+    labels() {
+      const labels = this.$store.state.prod.film.labels.slice(0)
+      labels[labels.length - 1].options = this.$store.state.processes.map(proc => proc._id)
+      return labels
     },
     dialogMess: {
       get() {

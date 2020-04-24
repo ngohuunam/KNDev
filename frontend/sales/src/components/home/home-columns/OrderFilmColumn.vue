@@ -98,21 +98,21 @@
         <ProgressBar mode="indeterminate" />
       </template>
       <!-------------------- < Column: Add Prod > --------------------->
-      <!-- <Column headerStyle="width: 2.6em; text-align: center" bodyStyle="text-align: center; overflow: visible; padding: 4px 0">
+      <!-- <NewColumn headerStyle="width: 2.6em; text-align: center" bodyStyle="text-align: center; overflow: visible; padding: 4px 0">
         <template #body="slotProps">
           <Button type="button" :icon="slotProps.data.ui ? 'pi pi-plus' : 'pi pi-thumbs-up'" @click="rowMenu(slotProps.data)"></Button>
         </template>
-      </Column> -->
+      </NewColumn> -->
       <!-------------------- < Column: Edit Order > --------------------->
-      <!-- <Column headerStyle="width: 2.6em; text-align: center" bodyStyle="text-align: center; overflow: visible; padding: 4px 0">
+      <!-- <NewColumn headerStyle="width: 2.6em; text-align: center" bodyStyle="text-align: center; overflow: visible; padding: 4px 0">
         <template #body="slotProps">
           <Button type="button" icon="pi pi-pencil" @click="edit(slotProps.data._id)"></Button>
         </template>
-      </Column> -->
+      </NewColumn> -->
       <!-------------------- < Column: Selection > --------------------->
-      <Column selectionMode="multiple" bodyStyle="padding: 0" headerStyle="width: 2.5em"></Column>
+      <Column selectionMode="multiple" bodyStyle="padding: 0" headerStyle="width: 2.5em" />
       <!-------------------- < Column: Foreign Title > --------------------->
-      <Column field="foreignTitle" :header="enlarge ? 'Foreign Title' : 'Title'" :headerStyle="enlarge ? 'width: 18%' : ''" filterMatchMode="contains" :sortable="true">
+      <NewColumn field="foreignTitle" :header="enlarge ? 'Foreign Title' : 'Title'" :headerStyle="enlarge ? 'width: 18%' : ''">
         <template #filter>
           <InputText type="text" v-model="filters['foreignTitle']" class="p-column-filter" />
         </template>
@@ -125,9 +125,9 @@
             <span> {{ foreignTitle }} </span>
           </div>
         </template>
-      </Column>
+      </NewColumn>
       <!-------------------- < Column: NKC > --------------------->
-      <Column v-if="enlarge" field="premiereDate" header="NKC" filterMatchMode="contains" :sortable="true">
+      <NewColumn v-if="enlarge" field="premiereDate" header="NKC">
         <template #filter>
           <InputText type="text" v-model="filters['premiereDate']" class="p-column-filter" />
         </template>
@@ -141,9 +141,9 @@
           />
           <span v-else> {{ $tToString(data[field], false, '') }} </span>
         </template>
-      </Column>
+      </NewColumn>
       <!-------------------- < Column: Status > --------------------->
-      <Column v-if="enlarge" field="status" header="Status" filterMatchMode="in" :sortable="true">
+      <NewColumn v-if="enlarge" field="status" header="Status" filterMatchMode="in">
         <template #filter>
           <InputText type="text" v-model="filters['status']" class="p-column-filter" />
           <!-- <MultiSelect v-model="filters['status']" :options="orders" optionLabel="status" optionValue="status" placeholder="All" class="p-column-filter"></MultiSelect> -->
@@ -158,39 +158,38 @@
           />
           <span v-else> {{ data[field] }} </span>
         </template>
-      </Column>
+      </NewColumn>
       <!-------------------- < Column: Product Names > --------------------->
-      <Column field="products" header="Products" filterMatchMode="in" :sortable="true">
+      <NewColumn field="products" header="Products">
         <template #filter>
           <InputText type="text" v-model="filters['products']" class="p-column-filter" />
         </template>
         <template #body="{ data: { _id, logs }, data, column: { field } }">
-          <div style="display: flex; flex-wrap: wrap;">
+          <div class="child-cell">
             <div v-for="(child_name, i) in data[field]" :key="i">
               <Button
-                class="margin-right margin-bot"
-                v-if="childBtnVisible(_id, child_name, 'prod', 'film')"
+                v-if="childBtnVisible(_id, child_name)"
                 v-tooltip.top="childQuickLog(logs, child_name)"
-                :icon="childIcon(_id, child_name, 'prod', 'film')"
+                :icon="childIcon(_id, child_name)"
                 :label="child_name"
-                @click="childCheck($event, _id, child_name, 'prod', 'film')"
+                @click="childCheck($event, _id, child_name, data[field])"
               />
-              <span v-else> {{ child_name }} </span>
+              <span v-else> {{ childText(child_name, i, data[field].length) }} </span>
             </div>
           </div>
         </template>
-      </Column>
+      </NewColumn>
       <!-------------------- < Column: Create At > --------------------->
-      <Column v-if="enlarge" field="createdAt" header="Create" headerStyle="width: 10%" filterMatchMode="contains" :sortable="true">
+      <NewColumn v-if="enlarge" field="createdAt" header="Create" headerStyle="width: 10%">
         <template #filter>
           <InputText type="text" v-model="filters['createdAt']" class="p-column-filter" />
         </template>
         <template #body="{ data, column: { field } }">
           <span> {{ $tToString(data[field], true, '') }} </span>
         </template>
-      </Column>
+      </NewColumn>
       <!-------------------- < Column: End At > --------------------->
-      <Column v-if="enlarge" field="endAt" header="End" headerStyle="width: 10%" filterMatchMode="contains" :sortable="true">
+      <NewColumn v-if="enlarge" field="endAt" header="End" headerStyle="width: 10%">
         <template #filter>
           <InputText type="text" v-model="filters['endAt']" class="p-column-filter" />
         </template>
@@ -204,9 +203,9 @@
           />
           <span v-else> {{ $tToString(data[field], true, '') }} </span>
         </template>
-      </Column>
+      </NewColumn>
       <!-------------------- < Column: Finish At > --------------------->
-      <Column v-if="enlarge" field="finishAt" header="Finish" headerStyle="width: 10%" filterMatchMode="contains" :sortable="true">
+      <NewColumn v-if="enlarge" field="finishAt" header="Finish" headerStyle="width: 10%">
         <template #filter>
           <InputText type="text" v-model="filters['finishAt']" class="p-column-filter" />
         </template>
@@ -220,9 +219,9 @@
           />
           <span v-else> {{ $tToString(data[field], true, '') }} </span>
         </template>
-      </Column>
+      </NewColumn>
       <!-------------------- < Column: Vietnamese Title > --------------------->
-      <Column v-if="enlarge" field="vietnameseTitle" header="Vietnamese Title" headerStyle="width: 18%" bodyStyle="text-align: left" filterMatchMode="contains" :sortable="true">
+      <NewColumn v-if="enlarge" field="vietnameseTitle" header="Vietnamese Title" headerStyle="width: 18%" bodyStyle="text-align: left">
         <template #filter>
           <InputText type="text" v-model="filters['vietnameseTitle']" class="p-column-filter" />
         </template>
@@ -236,7 +235,7 @@
           />
           <span v-else> {{ data[field] }} </span>
         </template>
-      </Column>
+      </NewColumn>
       <!-------------------- < Footer > --------------------->
       <template v-if="messages.length" #footer>
         <NewMessage v-for="({ text, severity }, i) in messages" :key="i" @close-message="closeMessage" :index="i" :severity="severity">{{ text }}</NewMessage>
@@ -279,26 +278,49 @@ export default {
       this.$store.dispatch('order/film/reSync', this.ui)
     },
     rowCheck() {
-      const payload = { type: 'new', year: this.year, db: 'order', col: 'film', _id: this.rowClickData.data._id }
+      const payload = { type: 'new', year: this.year, path: 'order.film', _id: this.rowClickData.data._id }
       if (this.rowClickData.data.dropped) payload.type = 'dropped'
       this.$store.commit('user/Worker', { name: 'rowCheck', payload })
+    },
+    childBtnVisible(_id, child_name) {
+      const child_id = _id.concat(':').concat(child_name.to_id())
+      const ui = this.$store.getters.ui('prod.film')
+      const ui_id = ui[child_id]
+      return !ui_id || !ui_id.new
+    },
+    childIcon(_id, child_name) {
+      const child_id = _id.concat(':').concat(child_name.to_id())
+      const icon = this.$store.getters.icon('prod.film')
+      return icon.row[child_id]
+    },
+    childText(child_name, i, len) {
+      return child_name + (i < len - 1 ? ', ' : '')
     },
     childQuickLog(logs, child_name) {
       const log = logs.find(_log => _log.type === 'Add' && _log.update?.$unshift?.products === child_name)
       return log ? `${log.by.slice(0, log.by.indexOf('@'))} - ${this.$tToString(log.at, true)}` : 'Error'
     },
-    childCheck(e, _id, child_name, db, col) {
+    childCheck(e, _id, child_name, products) {
+      console.log(products)
       const child_id = _id.concat(':').concat(child_name.to_id())
+      const visible = this.prodList.every(p => p._id !== child_id)
       this.menuModel = [
         {
           label: 'Load',
           icon: 'pi pi-download',
           command: () => this.load([child_id]),
+          visible,
         },
         {
           label: 'Check',
           icon: 'pi pi-thumbs-up',
-          command: () => this.$store.commit('user/Worker', { name: 'rowCheck', payload: { type: 'new', year: this.year, db, col, _id: child_id } }),
+          command: () => {
+            this.$store.commit('user/Worker', { name: 'rowCheck', payload: { type: 'new', year: this.year, path: 'prod.film', _id: child_id } })
+            const remains = products.filter(name => name !== child_name)
+            const allChecked = remains.every(name => !this.childBtnVisible(_id, name))
+            console.log('allChecked', allChecked)
+            if (allChecked) this.$store.commit('user/Worker', { name: 'changeCheck', payload: { _id, field: 'products', year: this.year, path: 'order.film' } })
+          },
         },
       ]
       this.$refs.cm.show(e)
@@ -322,7 +344,7 @@ export default {
         {
           label: 'Check',
           icon: 'pi pi-thumbs-up',
-          command: () => this.$store.commit('user/Worker', { name: 'changeCheck', payload: { _id, field, year: this.year, path: `order.film` } }),
+          command: () => this.$store.commit('user/Worker', { name: 'changeCheck', payload: { _id, field, year: this.year, path: 'order.film' } }),
         },
       ]
       this.menuModel = this.menuCellCheckChangeModel
@@ -349,17 +371,18 @@ export default {
       console.log(this.rowClickData)
     },
     allRowCheck(type) {
-      this.$store.commit('user/Worker', { name: 'allRowCheck', payload: { type, year: this.year, db: 'order', col: 'film', list: this.list } })
+      this.$store.commit('user/Worker', { name: 'allRowCheck', payload: { type, year: this.year, path: 'order.film', list: this.list } })
     },
     allChangedCheck() {
-      this.$store.commit('user/Worker', { name: 'allChangeCheck', payload: { year: this.year, db: 'order', col: 'film' } })
+      this.$store.commit('user/Worker', { name: 'allChangeCheck', payload: { year: this.year, path: 'order.film' } })
     },
     delete() {
       this.selected = [this.rowClickData.data]
       this.confirmDel()
     },
-    load(more) {
-      const _ids = this.selected.flatMap(item => item.products.map(name => item._id.concat(':').concat(name.to_id()))).concat(more || [])
+    load(child_ids) {
+      child_ids = child_ids && child_ids.length ? child_ids.filter(child_id => this.prodList.every(p => p._id !== child_id)) : []
+      const _ids = this.selected.flatMap(item => item.products.map(name => item._id.concat(':').concat(name.to_id()))).concat(child_ids)
       const queryObj = { _id: { $in: _ids } }
       this.$store.commit('prod/film/Worker', { name: 'query', payload: { queryObj } })
       this.$store.commit('user/Worker', { name: 'query', payload: { year: this.year, db: 'prod', col: 'film', query: queryObj } })
@@ -408,26 +431,15 @@ export default {
       const { dropped, changes } = ui_id
       return ui_id.new && !dropped && typeof changes[field] === 'object'
     },
-    childBtnVisible(_id, child_name, db, col) {
-      const child_id = _id.concat(':').concat(child_name.to_id())
-      const ui = this.$store.getters.ui(db, col)
-      const ui_id = ui[child_id]
-      return !ui_id || !ui_id.new
-    },
-    childIcon(_id, child_name, db, col) {
-      const child_id = _id.concat(':').concat(child_name.to_id())
-      const icon = this.$store.getters.icon(db, col)
-      return icon.row[child_id]
-    },
   },
   watch: {
     prodList(v) {
-      if (v.length > this.selected.length) this.selected = this.list.filter(item => v.some(p => p.orderId === item._id))
+      this.selected = this.list.filter(item => v.some(p => p.orderId === item._id))
     },
   },
   computed: {
     ui() {
-      return this.$store.getters.ui('order', 'film')
+      return this.$store.getters.ui('order.film')
     },
     enlarge: {
       get() {
@@ -482,7 +494,17 @@ export default {
       year: state => state.year,
     }),
   },
-  created: function() {},
+  created: function() {
+    const unwatch = this.$watch('list.length', function(nv) {
+      if (nv) {
+        if (this.hasProdList) {
+          this.selected = this.list.filter(item => this.prodList.some(p => p.orderId === item._id))
+          this.enlarge = false
+        }
+        unwatch()
+      }
+    })
+  },
   mounted: function() {
     this.$nextTick(() => {
       // if (this.seq) this.$store.dispatch('order/film/sync')
@@ -496,4 +518,12 @@ export default {
 }
 </script>
 
-<style scoped></style>
+<style>
+body .p-paginator .p-dropdown {
+  float: left;
+}
+
+body .p-paginator .p-paginator-current {
+  float: right;
+}
+</style>

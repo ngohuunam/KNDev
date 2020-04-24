@@ -9,6 +9,7 @@ module.exports = {
 
   rules: {
     'arrow-parens': [2, 'as-needed', { requireForBlockBody: false }],
+    'vue/no-parsing-error': ['error', { 'invalid-first-character-of-tag-name': false }],
     // 'space-before-function-paren': ['error', 'always'],
     // "no-console": process.env.NODE_ENV === "production" ? "error" : "off",
     // "no-debugger": process.env.NODE_ENV === "production" ? "error" : "off"

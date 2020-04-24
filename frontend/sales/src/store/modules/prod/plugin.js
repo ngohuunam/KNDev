@@ -1,4 +1,4 @@
-import { objectDeep, year } from '../../../tools'
+import { objectDeep, year } from '../../../utils'
 const ProdPlugin = store => {
   const {
     commit,

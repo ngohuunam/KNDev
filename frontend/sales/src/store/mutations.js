@@ -1,5 +1,5 @@
 import Vue from 'vue'
-import { objectDeep } from '../tools'
+import { objectDeep } from '../utils'
 
 export const persitState = (state, { key }) => {
   window.localStorage.setItem(key, JSON.stringify(state[key]))

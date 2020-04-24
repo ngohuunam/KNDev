@@ -8,6 +8,19 @@ Vue.component('DataTable', DataTable)
 
 import Column from 'primevue/column'
 Vue.component('Column', Column)
+const NewColumn = Vue.component('Column').extend({
+  props: {
+    filterMatchMode: {
+      type: String,
+      default: 'contains',
+    },
+    sortable: {
+      type: Boolean,
+      default: true,
+    },
+  },
+})
+Vue.component('NewColumn', NewColumn)
 
 import ColumnGroup from 'primevue/columngroup'
 Vue.component('ColumnGroup', ColumnGroup)
@@ -19,8 +32,11 @@ import Calendar from 'primevue/calendar'
 Vue.component('Calendar', Calendar)
 const NewCalendar = Vue.component('Calendar').extend({
   props: {
-    value: null,
     showIcon: {
+      type: Boolean,
+      default: true,
+    },
+    hideOnDateTimeSelect: {
       type: Boolean,
       default: true,
     },

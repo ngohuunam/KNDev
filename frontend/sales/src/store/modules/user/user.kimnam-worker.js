@@ -2,6 +2,7 @@ import { dbName, opts, objectDeep, initDb } from './options'
 
 // import { year, isObjEmpty } from '../../tools'
 const { console } = self
+const life = 1000
 
 console.log(self)
 
@@ -84,9 +85,9 @@ const updateSubcribe = changeEvent => {
     value = _pathObj[key]
     console.log('update$ key:', key)
     console.log('update$ value:', value)
-    // if (type.includes('dropped') || type.includes('change-check')) setTimeout(() => commit('setStateDeep', { dotPath: `user.state.${path}`, key, value }), 3000)
+    // if (type.includes('dropped') || type.includes('change-check')) setTimeout(() => commit('setStateDeep', { dotPath: `user.state.${path}`, key, value }), life)
     // else commit('setStateDeep', { dotPath: `user.state.${path}`, key, value })
-    setTimeout(() => commit('setStateDeep', { dotPath: `user.state.${path}`, key, value }), 3000)
+    setTimeout(() => commit('setStateDeep', { dotPath: `user.state.${path}`, key, value }), life)
   }
 }
 
@@ -133,7 +134,7 @@ const iconError = 'pi pi-info color-red'
 const setMultiRowIcon = (dotPath, iconObj) => commit('mergeStateDeep', { dotPath, key: 'row', value: iconObj })
 const setMultiRowIconSuccess = (dotPath, successIconObj, emptyIconObj) => {
   setMultiRowIcon(dotPath, successIconObj)
-  setTimeout(() => setMultiRowIcon(dotPath, emptyIconObj), 3000)
+  setTimeout(() => setMultiRowIcon(dotPath, emptyIconObj), life)
 }
 const multiRowCheckSaveError = (dotPath, type, e, errorIconOnj) => {
   console.log(`(allRowCheck) type ${type} error:`, e)
@@ -159,8 +160,7 @@ const query = ({ year, db, col, query }) => {
     .catch(e => saveError('(load)', e))
 }
 
-const allRowCheck = ({ year, db, col, list, type }) => {
-  const path = `${db}.${col}`
+const allRowCheck = ({ year, path, list, type }) => {
   const colPath = `${year}.${path}`
   const uiPath = `${colPath}.ui`
   const dotPath = `${path}.icon`
@@ -193,8 +193,8 @@ const allRowCheck = ({ year, db, col, list, type }) => {
     .catch(e => multiRowCheckSaveError(dotPath, type, e, _errorIcon))
 }
 
-const rowCheck = ({ year, db, col, _id, type }) => {
-  const storePath = `${db}.${col}`
+const rowCheck = ({ year, path, _id, type }) => {
+  const storePath = path
   const uiPath = `${year}.${storePath}.ui`
   setRowIconLoading(storePath, _id)
   rxUser
@@ -215,8 +215,7 @@ const setCellIcons = (dotPath, obj, icon) => {
   }
 }
 
-const allChangeCheck = ({ year, db, col }) => {
-  const path = `${db}.${col}`
+const allChangeCheck = ({ year, path }) => {
   const colPath = `${year}.${path}`
   const uiPath = `${colPath}.ui`
   const dotPath = `${path}.icon`
@@ -244,11 +243,11 @@ const allChangeCheck = ({ year, db, col }) => {
     })
     .then(() => {
       setCellIcons(dotPath, checked, iconSuccess)
-      setTimeout(() => setCellIcons(dotPath, checked, ''), 3000)
+      setTimeout(() => setCellIcons(dotPath, checked, ''), life)
     })
     .catch(e => {
       console.log(`(allChangeCheck) error:`, e)
-      commit('pushToasts', { severity: 'error', summary: 'SAVE ERROR', detail: `Check all change Err: ${e.message}`, life: 3000 })
+      commit('pushToasts', { severity: 'error', summary: 'SAVE ERROR', detail: `Check all change Err: ${e.message}`, life: 10000 })
       setCellIcons(dotPath, checked, iconError)
     })
 }
@@ -268,11 +267,11 @@ const changeCheck = ({ _id, field, year, path }) => {
     })
     .then(() => {
       commit('checkAndSetStateDeepNested', { dotPath, keyCheck: _id, field, key: 'cell', value: iconSuccess })
-      setTimeout(() => commit('checkAndSetStateDeepNested', { dotPath, keyCheck: _id, field, key: 'cell', value: '' }), 3000)
+      setTimeout(() => commit('checkAndSetStateDeepNested', { dotPath, keyCheck: _id, field, key: 'cell', value: '' }), life)
     })
     .catch(e => {
       console.log(`(changeCheck) error:`, e)
-      commit('pushToasts', { severity: 'error', summary: 'SAVE ERROR', detail: `${_id} err: ${e.message}`, life: 3000 })
+      commit('pushToasts', { severity: 'error', summary: 'SAVE ERROR', detail: `${_id} err: ${e.message}`, life: 10000 })
       commit('checkAndSetStateDeepNested', { dotPath, keyCheck: _id, field, key: 'cell', value: iconError })
     })
 }
@@ -313,7 +312,7 @@ const setRowIconLoading = (path, _id) => setRowIcon(path, _id, iconLoading)
 const setRowIconError = (path, _id) => setRowIcon(path, _id, iconError)
 const setRowIconSuccess = (path, _id) => {
   setRowIcon(path, _id, iconSuccess)
-  setTimeout(() => setRowIcon(path, _id, ''), 3000)
+  setTimeout(() => setRowIcon(path, _id, ''), life)
 }
 const rowCheckSaveError = (path, _id, type, e) => {
   console.log(`(rowCheck) type ${type} error:`, e)

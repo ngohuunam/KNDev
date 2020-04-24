@@ -23,7 +23,7 @@ export default {
   },
   mounted: function() {},
   beforeDestroy: function() {
-    this.$store.commit('order/film/setState', { key: 'converted', data: null })
+    this.$store.commit('order/film/setStates', { keys: ['converted', 'loading'], datas: [null, false] })
   },
 }
 </script>

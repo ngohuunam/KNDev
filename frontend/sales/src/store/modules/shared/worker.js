@@ -127,14 +127,14 @@ export class Worker {
       const lastUpdate = _$doc.logs[0].update
       const updatedKeys = Object.values(lastUpdate).flatMap(keysObj => Object.keys(keysObj))
       console.log('update$ updatedKeys:', updatedKeys)
-      _checkKeys.map(key => {
+      updatedKeys.map(key => {
         // if (doc[key] !== _$doc[key]) {
         //   const _change = { old: doc[key], new: _$doc[key], logs: filter_rev(_$doc.logs, doc._rev) }
         //   payload.changes[key] = _change
         //   console.log(`${_$doc._id} - ${key} change:`, _change)
         //   _needUpdateUserState = true
         // }
-        if (updatedKeys.includes(key)) {
+        if (_checkKeys.includes(key)) {
           // if (Array.isArray(_$doc[key])) key = key + 'Names'
           const _change = { old: doc[key], new: _$doc[key], logs: filter_rev(_$doc.logs, doc._rev) }
           payload.changes[key] = _change

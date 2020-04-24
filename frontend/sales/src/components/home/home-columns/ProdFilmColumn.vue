@@ -90,7 +90,7 @@
       <!-------------------- < Column: Selection > --------------------->
       <Column selectionMode="multiple" bodyStyle="padding: 0" headerStyle="width: 2.5em"></Column>
       <!-------------------- < Column: Product's Name > --------------------->
-      <Column field="name" :header="enlarge ? 'Product\'s Name' : 'Name'" :headerStyle="enlarge ? 'width: 18%' : ''" filterMatchMode="contains" :sortable="true">
+      <NewColumn field="name" :header="enlarge ? 'Product\'s Name' : 'Name'" bodyStyle="text-align: left;">
         <template #filter>
           <InputText type="text" v-model="filters['name']" class="p-column-filter" />
         </template>
@@ -104,9 +104,9 @@
           </div>
           <!-- <span>{{ slotProps.data.foreignTitle }} </span> -->
         </template>
-      </Column>
+      </NewColumn>
       <!-------------------- < Column: Film > --------------------->
-      <Column v-if="enlarge" field="orderId" header="Film" filterMatchMode="contains" :sortable="true">
+      <NewColumn v-if="enlarge" field="orderId" header="Film" bodyStyle="text-align: left;">
         <template #filter>
           <InputText type="text" v-model="filters['orderId']" class="p-column-filter" />
         </template>
@@ -120,9 +120,9 @@
           />
           <span v-else> {{ data[field].replace(/_/g, ' ') }} </span>
         </template>
-      </Column>
+      </NewColumn>
       <!-------------------- < Column: Status > --------------------->
-      <Column v-if="enlarge" field="status" header="Status" filterMatchMode="in" :sortable="true">
+      <NewColumn v-if="enlarge" field="status" header="Status" filterMatchMode="in">
         <template #filter>
           <InputText type="text" v-model="filters['status']" class="p-column-filter" />
           <!-- <MultiSelect v-model="filters['status']" :options="orders" optionLabel="status" optionValue="status" placeholder="All" class="p-column-filter"></MultiSelect> -->
@@ -137,9 +137,15 @@
           />
           <span v-else> {{ data[field] }} </span>
         </template>
-      </Column>
+      </NewColumn>
+      <!-------------------- < Column: Process > --------------------->
+      <NewColumn v-if="enlarge" field="process" header="Process">
+        <template #filter>
+          <InputText type="text" v-model="filters['process']" class="p-column-filter" />
+        </template>
+      </NewColumn>
       <!-------------------- < Column: Plans > --------------------->
-      <Column field="plans" header="Plans" filterMatchMode="contains" :sortable="true">
+      <NewColumn field="plans" header="Plans">
         <template #filter>
           <InputText type="text" v-model="filters['plans']" class="p-column-filter" />
         </template>
@@ -153,9 +159,9 @@
           />
           <span v-else> {{ data[field].join(', ') }} </span>
         </template>
-      </Column>
+      </NewColumn>
       <!-------------------- < Column: Jobs > --------------------->
-      <Column field="jobs" header="Jobs" filterMatchMode="contains" :sortable="true">
+      <NewColumn field="jobs" header="Jobs">
         <template #filter>
           <InputText type="text" v-model="filters['jobs']" class="p-column-filter" />
         </template>
@@ -169,18 +175,18 @@
           />
           <span v-else> {{ data[field].join(', ') }} </span>
         </template>
-      </Column>
+      </NewColumn>
       <!-------------------- < Column: Create At > --------------------->
-      <Column v-if="enlarge" field="createdAt" header="Create" headerStyle="width: 10%" filterMatchMode="contains" :sortable="true">
+      <NewColumn v-if="enlarge" field="createdAt" header="Create" headerStyle="width: 10%">
         <template #filter>
           <InputText type="text" v-model="filters['createdAt']" class="p-column-filter" />
         </template>
         <template #body="{ data, column: { field } }">
           <span> {{ $tToString(data[field], true, '') }} </span>
         </template>
-      </Column>
+      </NewColumn>
       <!-------------------- < Column: End At > --------------------->
-      <Column v-if="enlarge" field="endAt" header="End" headerStyle="width: 10%" filterMatchMode="contains" :sortable="true">
+      <NewColumn v-if="enlarge" field="endAt" header="End" headerStyle="width: 10%">
         <template #filter>
           <InputText type="text" v-model="filters['endAt']" class="p-column-filter" />
         </template>
@@ -194,9 +200,9 @@
           />
           <span v-else> {{ $tToString(data[field], true, '') }} </span>
         </template>
-      </Column>
+      </NewColumn>
       <!-------------------- < Column: Finish At > --------------------->
-      <Column v-if="enlarge" field="finishAt" header="Finish" headerStyle="width: 10%" filterMatchMode="contains" :sortable="true">
+      <NewColumn v-if="enlarge" field="finishAt" header="Finish" headerStyle="width: 10%">
         <template #filter>
           <InputText type="text" v-model="filters['finishAt']" class="p-column-filter" />
         </template>
@@ -210,9 +216,9 @@
           />
           <span v-else> {{ $tToString(data[field], true, '') }} </span>
         </template>
-      </Column>
+      </NewColumn>
       <!-------------------- < Column: Details > --------------------->
-      <Column v-if="enlarge" field="details" header="Details" headerStyle="width: 18%" filterMatchMode="contains" :sortable="true">
+      <NewColumn v-if="enlarge" field="details" header="Details">
         <template #filter>
           <InputText type="text" v-model="filters['details']" class="p-column-filter" />
         </template>
@@ -226,7 +232,7 @@
           />
           <span v-else> {{ data[field] }} </span>
         </template>
-      </Column>
+      </NewColumn>
       <!-------------------- < Footer > --------------------->
       <template v-if="messages.length" #footer>
         <NewMessage v-for="({ text, severity }, i) in messages" :key="i" @close-message="closeMessage" :index="i" :severity="severity">{{ text }}</NewMessage>
@@ -278,7 +284,7 @@ export default {
       const payload = { type: 'new', year: this.year, db: 'prod', col: 'film', _id: this.rowClickData.data._id }
       if (this.rowClickData.data.dropped) payload.type = 'dropped'
       this.$store.commit('user/Worker', { name: 'rowCheck', payload })
-      this.$store.commit('user/Worker', { name: 'changeCheck', payload: { _id: this.rowClickData.data.orderId, field: 'products', year: this.year, path: `order.film` } })
+      this.$store.commit('user/Worker', { name: 'changeCheck', payload: { _id: this.rowClickData.data.orderId, field: 'products', year: this.year, path: 'order.film' } })
     },
     checkChange(e, _id, field) {
       console.log('checkChange field:', field)
@@ -294,7 +300,7 @@ export default {
         {
           label: 'Check',
           icon: 'pi pi-thumbs-up',
-          command: () => this.$store.commit('user/Worker', { name: 'changeCheck', payload: { _id, field, year: this.year, path: `prod.film` } }),
+          command: () => this.$store.commit('user/Worker', { name: 'changeCheck', payload: { _id, field, year: this.year, path: 'prod.film' } }),
         },
       ]
       this.menuModel = this.menuCellCheckChangeModel
@@ -315,16 +321,16 @@ export default {
       }
     },
     add() {
-      this.$emit('open-dialog', 'newProdForm', 'Create', 'Add new Product', this.rowClickData.data)
+      this.$emit('open-dialog', 'addPlanForm', 'Create', 'Add new Plan', this.rowClickData.data)
     },
     edit() {
       console.log(this.rowClickData)
     },
     allRowCheck(type) {
-      this.$store.commit('user/Worker', { name: 'allRowCheck', payload: { type, year: this.year, db: 'order', col: 'film', list: this.list } })
+      this.$store.commit('user/Worker', { name: 'allRowCheck', payload: { year: this.year, path: 'order.film', list: this.list, type } })
     },
     allChangedCheck() {
-      this.$store.commit('user/Worker', { name: 'allChangeCheck', payload: { year: this.year, db: 'order', col: 'film' } })
+      this.$store.commit('user/Worker', { name: 'allChangeCheck', payload: { year: this.year, path: 'order.film' } })
     },
     deleteThis() {
       this.tempSelected = [this.rowClickData.data]
@@ -367,7 +373,7 @@ export default {
   watch: {},
   computed: {
     ui() {
-      return this.$store.getters['prod/film/ui']
+      return this.$store.getters.ui('prod.film')
     },
     enlarge: {
       get() {
@@ -378,7 +384,7 @@ export default {
       },
     },
     loadBtnProp() {
-      let prop = { label: 'Load', icon: 'pi pi-download', disabled: false }
+      let prop = { label: 'Load', icon: 'pi pi-download', disabled: true }
       // if (!this.selected.length && !this.hasJobList) prop = { label: 'No Select', icon: 'pi pi-download', disabled: true }
       // else if (this.selected.length && !this.selectedProdsHasJob) prop = { label: 'No Job', icon: 'pi pi-ban', disabled: true }
       // else if (!this.selected.length && this.hasJobList) prop = { label: 'Clear', icon: 'pi pi-upload', disabled: false }

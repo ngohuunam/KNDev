@@ -13,7 +13,7 @@ export const randomNewOrderFilm = (construct, toString) => {
   const endTime = randomDate()
   const endAt = randomDate(1, endTime, toString)
   const foreignTitle = randomName()
-  const _id = foreignTitle.toProperCase().replace(/\s/g, '.')
+  const _id = foreignTitle.to_id()
   return {
     ...construct,
     ...{ _id, foreignTitle, vietnameseTitle: randomName(), team: randomTeam(), premiereDate: randomDate(3, endTime, toString), endAt },

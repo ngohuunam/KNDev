@@ -29,7 +29,7 @@
 
       <template #footer>
         <BlockUI v-if="dialogComponent" :blocked="loading">
-          <Button v-if="confirmBtnLabel === 'Create'" label="Force Create" icon="pi pi-angle-double-up" @click="forceCreate" />
+          <!-- <Button v-if="confirmBtnLabel === 'Create'" label="Force Create" icon="pi pi-angle-double-up" @click="forceCreate" /> -->
           <Button v-if="confirmBtnLabel === 'Save'" label="Back" icon="pi pi-angle-double-left" @click="backDialog" />
           <Button :label="confirmBtnLabel" :icon="buttonIcon" @click="dialogConfirm" class="p-button-success" />
           <Button label="Cancel" icon="pi pi-times" @click="closeDialog" class="p-button-danger" />
@@ -49,6 +49,7 @@ import OrderFilmNewOrderConfirm from '@/components/home/home-dialog/OrderFilmNew
 import OrderFilmNewOrderSForm from '@/components/home/home-dialog/OrderFilmNewOrderSForm.vue'
 import OrderFilmNewProdForm from '@/components/home/home-dialog/OrderFilmNewProdForm.vue'
 import OrderFilmNewProdConfirm from '@/components/home/home-dialog/OrderFilmNewProdConfirm.vue'
+import AddPlanForm from '@/components/home/home-dialog/AddPlanForm.vue'
 
 export default {
   name: 'Home',
@@ -61,6 +62,7 @@ export default {
     newOrdersForm: OrderFilmNewOrderSForm,
     newProdForm: OrderFilmNewProdForm,
     newProdConfirm: OrderFilmNewProdConfirm,
+    addPlanForm: AddPlanForm,
   },
   data: () => ({
     dialogComponent: null,
@@ -87,6 +89,7 @@ export default {
       else this.openDialog('newOrderForm', 'Create', 'Add new film')
     },
     openDialog(comp, label, header, props, width, disableKeyTab) {
+      console.log(comp)
       this.compProps = props
       this.disableKeyTab = disableKeyTab
       this.dialogWidth = width || '400px'

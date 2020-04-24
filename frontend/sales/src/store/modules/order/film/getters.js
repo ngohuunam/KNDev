@@ -1,4 +1,4 @@
-import { tToString, year } from '@/tools'
+import { tToString, year } from '../../../../utils'
 
 export const ui = (state, getters, { user }) => user.state[year].order.film.ui
 

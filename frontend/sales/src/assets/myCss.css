@@ -183,3 +183,14 @@ p {
 .r-hide {
   visibility: collapse !important;
 }
+.child-cell {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.child-cell > div {
+  margin: 4px 4px 4px 0px;
+}
+.child-cell > div:last-child {
+  margin: 4px 0px 4px 0px;
+}

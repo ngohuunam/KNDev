@@ -66,6 +66,7 @@ export default {
   beforeDestroy: function() {
     this.willDelete = []
     this.selected = []
+    this.$store.commit('order/film/setState', { key: 'loading', data: false })
   },
 }
 </script>

@@ -1,4 +1,4 @@
-import { objectDeep } from '../../../tools'
+import { objectDeep } from '../../../utils'
 const UserPlugin = store => {
   const {
     commit,
