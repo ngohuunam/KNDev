@@ -13,9 +13,10 @@ export default {
   data: () => ({}),
   methods: {
     confirm() {
+      const { name, orderId, note } = this.converted
       this.$store.dispatch('order/film/Worker', {
         name: 'add',
-        payload: { parent_id: this.converted.orderId, child: 'products', value: this.converted.name, note: this.converted.note },
+        payload: { parent_id: orderId, child: 'products', value: name, note },
       })
       this.$store.dispatch('prod/film/Worker', { name: 'insert', payload: this.converted })
     },

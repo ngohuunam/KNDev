@@ -3,28 +3,81 @@
     <DataTable
       :value="list"
       dataKey="_id"
-      :selection.sync="tempSelected"
+      :selection.sync="selected"
       :filters="filters"
       :rowHover="true"
       :loading="loading"
       loadingIcon=""
       :rowClass="rowClass"
       @row-click="onRowClick"
+      paginator
+      :rows="10"
+      paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+      :rowsPerPageOptions="[10, 25, 50]"
+      currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+      removableSort
     >
       <!-------------------- < Header > --------------------->
       <template #header>
         <div class="table-header-container">
           <div style="text-align: left">
-            <Button :label="enlarge ? 'New Prod' : ''" icon="pi pi-plus" @click="create" class="margin-right" />
-            <Button :label="enlarge ? 'Some New Prod' : ''" icon="pi pi-bars" @click="creates" class="margin-right" />
-            <Button v-if="selected.length" :label="loadBtnProp.label" :icon="loadBtnProp.icon" @click="load" :disabled="loadBtnProp.disabled" class="margin-right" />
-            <Button v-if="selected.length" :label="enlarge ? 'Delete Prods' : ''" icon="pi pi-minus" @click="confirmDel" class="p-button-danger margin-right" />
+            <!-------------------- < Button Insert > --------------------->
+            <Button :label="enlarge ? 'Insert' : ''" icon="pi pi-plus" @click="create" class="margin-right" v-tooltip.top="'Insert'" />
+            <!-------------------- < Button Insert Multi > --------------------->
+            <Button :label="enlarge ? 'Insert multi' : ''" icon="pi pi-bars" @click="creates" class="margin-right" v-tooltip.top="'Insert multi'" />
+            <!-------------------- < Button Load > --------------------->
+            <Button
+              :label="loadBtnProp.label"
+              :icon="btnIcon('allChangedCheck', loadBtnProp.icon)"
+              @click="load"
+              :disabled="loadBtnProp.disabled"
+              class="margin-right"
+              v-tooltip.top="loadBtnProp.tooltip"
+            />
+            <!-------------------- < Button Delete > --------------------->
+            <Button
+              v-if="selected.length"
+              :label="enlarge ? 'Delete Selected' : ''"
+              icon="pi pi-minus"
+              @click="confirmDel"
+              class="p-button-danger margin-right"
+              v-tooltip.top="'Delete Selected'"
+            />
             <!-- <ToggleButton v-if="!enlarge" v-model="enlarge" @change="onToggleEnlarge" onIcon="pi pi-angle-left" offIcon="pi pi-angle-right" /> -->
             <InputText v-if="enlarge" v-model="filters['global']" placeholder="Search" style="width: 20%" class="margin-right" />
-            <Button v-if="hasChanged" :label="enlarge ? 'Sth Changed' : ''" :icon="btnIcon('allChangedCheck', 'pi-star')" @click="allChangedCheck" class="margin-right" />
-            <Button v-if="hasNew" :label="enlarge ? 'New Prod' : ''" :icon="btnIcon('allNewCheck', 'pi-file-o')" @click="allRowCheck('new')" class="margin-right" />
-            <Button v-if="hasDropped" :label="enlarge ? 'Dropped Prod' : ''" :icon="btnIcon('allDroppedCheck', 'pi-file-o')" @click="allRowCheck('dropped')" class="margin-right" />
-            <ToggleButton :onLabel="enlarge ? 'Collapse' : ''" offLabel=" " v-model="enlarge" @change="onToggleEnlarge" onIcon="pi pi-angle-left" offIcon="pi pi-angle-right" />
+            <Button
+              v-if="hasChanged"
+              :label="enlarge ? 'Some properties Changed' : ''"
+              :icon="btnIcon('allChangedCheck', 'pi-star')"
+              @click="allChangedCheck"
+              class="margin-right"
+              v-tooltip.top="'Some properties Changed'"
+            />
+            <Button
+              v-if="hasNew"
+              :label="enlarge ? 'Some New' : ''"
+              :icon="btnIcon('allNewCheck', 'pi-file-o')"
+              @click="allRowCheck('new')"
+              class="margin-right"
+              v-tooltip.top="'Some New'"
+            />
+            <Button
+              v-if="hasDropped"
+              :label="enlarge ? 'Some Dropped' : ''"
+              :icon="btnIcon('allDroppedCheck', 'pi-file-o')"
+              @click="allRowCheck('dropped')"
+              class="margin-right"
+              v-tooltip.top="'Some Dropped'"
+            />
+            <Button :label="enlarge ? 'Resync' : ''" :icon="btnIcon('reSync', 'pi-refresh')" @click="reSync" class="margin-right" v-tooltip.top="'Resync'" />
+            <ToggleButton
+              :onLabel="enlarge ? 'Collapse' : ''"
+              offLabel=" "
+              v-model="enlarge"
+              onIcon="pi pi-angle-left"
+              offIcon="pi pi-angle-right"
+              v-tooltip.top="'Toggle collapse'"
+            />
             <InputText v-if="!enlarge" v-model="filters['global']" placeholder="Search" style="width: 100%" class="margin-top" />
           </div>
         </div>
@@ -36,8 +89,8 @@
       </template>
       <!-------------------- < Column: Selection > --------------------->
       <Column selectionMode="multiple" bodyStyle="padding: 0" headerStyle="width: 2.5em"></Column>
-      <!-------------------- < Column: Name > --------------------->
-      <Column field="name" header="Name" :headerStyle="enlarge ? 'width: 18%' : ''" filterMatchMode="contains" :sortable="true">
+      <!-------------------- < Column: Product's Name > --------------------->
+      <Column field="name" :header="enlarge ? 'Product\'s Name' : 'Name'" :headerStyle="enlarge ? 'width: 18%' : ''" filterMatchMode="contains" :sortable="true">
         <template #filter>
           <InputText type="text" v-model="filters['name']" class="p-column-filter" />
         </template>
@@ -49,33 +102,72 @@
             </span>
             <span> {{ name }} </span>
           </div>
+          <!-- <span>{{ slotProps.data.foreignTitle }} </span> -->
         </template>
       </Column>
-      <!-------------------- < Column: Order > --------------------->
+      <!-------------------- < Column: Film > --------------------->
       <Column v-if="enlarge" field="orderId" header="Film" filterMatchMode="contains" :sortable="true">
         <template #filter>
           <InputText type="text" v-model="filters['orderId']" class="p-column-filter" />
         </template>
+        <template #body="{ data: { _id }, data, column: { field } }">
+          <Button
+            v-if="cellBtnVisible(_id, field)"
+            v-tooltip.top="cellQuickLog(_id, field)"
+            :icon="cellIcon(_id, field)"
+            :label="data[field]"
+            @click="checkChange($event, _id, field)"
+          />
+          <span v-else> {{ data[field].replace(/_/g, ' ') }} </span>
+        </template>
       </Column>
       <!-------------------- < Column: Status > --------------------->
-      <Column v-if="enlarge" field="status" header="Status" filterMatchMode="contains" :sortable="true">
+      <Column v-if="enlarge" field="status" header="Status" filterMatchMode="in" :sortable="true">
         <template #filter>
           <InputText type="text" v-model="filters['status']" class="p-column-filter" />
           <!-- <MultiSelect v-model="filters['status']" :options="orders" optionLabel="status" optionValue="status" placeholder="All" class="p-column-filter"></MultiSelect> -->
         </template>
         <template #body="{ data: { _id }, data, column: { field } }">
-          <Button v-if="cellBtnVisible(_id, field)" :icon="cellIcon(_id, field)" :label="data[field]" @click="checkChange($event, _id, field)" />
+          <Button
+            v-if="cellBtnVisible(_id, field)"
+            v-tooltip.top="cellQuickLog(_id, field)"
+            :icon="cellIcon(_id, field)"
+            :label="data[field]"
+            @click="checkChange($event, _id, field)"
+          />
           <span v-else> {{ data[field] }} </span>
         </template>
       </Column>
-      <!-------------------- < Column: Job Names > --------------------->
-      <Column field="jobNames" header="Job Names" filterMatchMode="contains" :sortable="true">
+      <!-------------------- < Column: Plans > --------------------->
+      <Column field="plans" header="Plans" filterMatchMode="contains" :sortable="true">
         <template #filter>
-          <InputText type="text" v-model="filters['jobNames']" class="p-column-filter" />
+          <InputText type="text" v-model="filters['plans']" class="p-column-filter" />
         </template>
         <template #body="{ data: { _id }, data, column: { field } }">
-          <Button v-if="cellBtnVisible(_id, field)" :icon="cellIcon(_id, field)" :label="data[field]" @click="checkChange($event, _id, field)" />
-          <span v-else> {{ data[field] }} </span>
+          <Button
+            v-if="cellBtnVisible(_id, field)"
+            v-tooltip.top="cellQuickLog(_id, field)"
+            :icon="cellIcon(_id, field)"
+            :label="data[field].join(', ')"
+            @click="checkChange($event, _id, field)"
+          />
+          <span v-else> {{ data[field].join(', ') }} </span>
+        </template>
+      </Column>
+      <!-------------------- < Column: Jobs > --------------------->
+      <Column field="jobs" header="Jobs" filterMatchMode="contains" :sortable="true">
+        <template #filter>
+          <InputText type="text" v-model="filters['jobs']" class="p-column-filter" />
+        </template>
+        <template #body="{ data: { _id }, data, column: { field } }">
+          <Button
+            v-if="cellBtnVisible(_id, field)"
+            v-tooltip.top="cellQuickLog(_id, field)"
+            :icon="cellIcon(_id, field)"
+            :label="data[field].join(', ')"
+            @click="checkChange($event, _id, field)"
+          />
+          <span v-else> {{ data[field].join(', ') }} </span>
         </template>
       </Column>
       <!-------------------- < Column: Create At > --------------------->
@@ -93,7 +185,13 @@
           <InputText type="text" v-model="filters['endAt']" class="p-column-filter" />
         </template>
         <template #body="{ data: { _id }, data, column: { field } }">
-          <Button v-if="cellBtnVisible(_id, field)" :icon="cellIcon(_id, field)" :label="data[field]" @click="checkChange($event, _id, field)" />
+          <Button
+            v-if="cellBtnVisible(_id, field)"
+            v-tooltip.top="cellQuickLog(_id, field)"
+            :icon="cellIcon(_id, field)"
+            :label="data[field]"
+            @click="checkChange($event, _id, field)"
+          />
           <span v-else> {{ $tToString(data[field], true, '') }} </span>
         </template>
       </Column>
@@ -103,8 +201,30 @@
           <InputText type="text" v-model="filters['finishAt']" class="p-column-filter" />
         </template>
         <template #body="{ data: { _id }, data, column: { field } }">
-          <Button v-if="cellBtnVisible(_id, field)" :icon="cellIcon(_id, field)" :label="data[field]" @click="checkChange($event, _id, field)" />
+          <Button
+            v-if="cellBtnVisible(_id, field)"
+            v-tooltip.top="cellQuickLog(_id, field)"
+            :icon="cellIcon(_id, field)"
+            :label="data[field]"
+            @click="checkChange($event, _id, field)"
+          />
           <span v-else> {{ $tToString(data[field], true, '') }} </span>
+        </template>
+      </Column>
+      <!-------------------- < Column: Details > --------------------->
+      <Column v-if="enlarge" field="details" header="Details" headerStyle="width: 18%" filterMatchMode="contains" :sortable="true">
+        <template #filter>
+          <InputText type="text" v-model="filters['details']" class="p-column-filter" />
+        </template>
+        <template #body="{ data: { _id }, data, column: { field } }">
+          <Button
+            v-if="cellBtnVisible(_id, field)"
+            v-tooltip.top="cellQuickLog(_id, field)"
+            :icon="cellIcon(_id, field)"
+            :label="data[field]"
+            @click="checkChange($event, _id, field)"
+          />
+          <span v-else> {{ data[field] }} </span>
         </template>
       </Column>
       <!-------------------- < Footer > --------------------->
@@ -122,12 +242,13 @@ import { mapState } from 'vuex'
 
 export default {
   name: 'ProdFilmColumn',
+  props: ['_enlarge'],
   components: {},
   data() {
     return {
       filters: {},
       selectedProdsHasJob: false,
-      enlarge: true,
+      // enlarge: true,
       socketError: 'Disconnected',
       rowClickData: null,
       menuModel: [],
@@ -136,7 +257,7 @@ export default {
         { label: ``, icon: 'pi pi-dollar' },
         { separator: true },
         { separator: true },
-        { label: 'Add product', icon: 'pi pi-fw pi-upload', command: () => this.addProd() },
+        { label: 'Add plan', icon: 'pi pi-fw pi-upload', command: () => this.add() },
         { label: 'View', icon: 'pi pi-fw pi-search', command: () => this.edit() },
         { label: 'Delete', icon: 'pi pi-fw pi-times', command: () => this.deleteThis() },
       ],
@@ -145,10 +266,19 @@ export default {
     }
   },
   methods: {
+    reSync() {
+      this.$store.dispatch('order/film/reSync', this.ui)
+    },
+    cellQuickLog(_id, field) {
+      const _change = this.ui[_id].changes[field]
+      const log = _change.logs[0]
+      return `${log.by.slice(0, log.by.indexOf('@'))} - ${this.$tToString(log.at, true)}`
+    },
     rowCheck() {
       const payload = { type: 'new', year: this.year, db: 'prod', col: 'film', _id: this.rowClickData.data._id }
       if (this.rowClickData.data.dropped) payload.type = 'dropped'
       this.$store.commit('user/Worker', { name: 'rowCheck', payload })
+      this.$store.commit('user/Worker', { name: 'changeCheck', payload: { _id: this.rowClickData.data.orderId, field: 'products', year: this.year, path: `order.film` } })
     },
     checkChange(e, _id, field) {
       console.log('checkChange field:', field)
@@ -184,7 +314,7 @@ export default {
         this.$refs.cm.show(originalEvent)
       }
     },
-    addProd() {
+    add() {
       this.$emit('open-dialog', 'newProdForm', 'Create', 'Add new Product', this.rowClickData.data)
     },
     edit() {
@@ -201,13 +331,11 @@ export default {
       this.confirmDel()
     },
     load() {
-      this.$store.commit('load', { type: 'array_of__id', from: 'order.film.selected', dotPath: 'prod.film', key: 'table', prop: '_id' })
+      this.$store.commit('prod/film/Worker', { name: 'load', payload: { orderIds: this.selected.map(item => item._id) } })
+      if (this.enlarge && this.selected.length) this.enlarge = false
     },
     closeMessage(idx) {
       this.$store.commit('prod/film/spliceMess', idx)
-    },
-    onToggleEnlarge() {
-      this.$emit('toggle-enlarge')
     },
     create() {
       this.$emit('open-dialog', 'newOrderForm', 'Create', 'Add new film')
@@ -236,24 +364,25 @@ export default {
       return this.ui[_id] && this.ui[_id].new && !this.ui[_id].dropped && typeof this.ui[_id].changes[field] === 'object'
     },
   },
-  watch: {
-    tempSelected(v) {
-      this.selected = v
-    },
-  },
+  watch: {},
   computed: {
     ui() {
       return this.$store.getters['prod/film/ui']
     },
-    // tableList() {
-    //   return this.$store.getters['prod/film/tableList']
-    // },
+    enlarge: {
+      get() {
+        return this._enlarge
+      },
+      set(v) {
+        this.$emit('toggle-enlarge', v)
+      },
+    },
     loadBtnProp() {
       let prop = { label: 'Load', icon: 'pi pi-download', disabled: false }
-      if (!this.selected.length && !this.hasJobList) prop = { label: 'No Select', icon: 'pi pi-download', disabled: true }
-      else if (this.selected.length && !this.selectedProdsHasJob) prop = { label: 'No Prod', icon: 'pi pi-ban', disabled: true }
-      else if (!this.selected.length && this.hasJobList) prop = { label: 'Clear', icon: 'pi pi-upload', disabled: false }
-      if (!this.enlarge) prop.label = ''
+      // if (!this.selected.length && !this.hasJobList) prop = { label: 'No Select', icon: 'pi pi-download', disabled: true }
+      // else if (this.selected.length && !this.selectedProdsHasJob) prop = { label: 'No Job', icon: 'pi pi-ban', disabled: true }
+      // else if (!this.selected.length && this.hasJobList) prop = { label: 'Clear', icon: 'pi pi-upload', disabled: false }
+      // if (!this.enlarge) prop.label = ''
       return prop
     },
     selected: {
@@ -274,6 +403,9 @@ export default {
     hasChanged() {
       return this.list.some(({ _id }) => this.ui[_id] && this.$isObjEmpty(this.ui[_id].changes) === false && Object.values(this.ui[_id].changes).some(ch => typeof ch === 'object'))
     },
+    // hasJobList() {
+    //   return this.jobList.length > 0
+    // },
     messages: {
       get() {
         return this.$store.state.prod.film.messages
@@ -286,8 +418,7 @@ export default {
       list: state => state.prod.film.list,
       loading: state => state.prod.film.loading,
       icon: state => state.prod.film.icon,
-      hasJobList: state => state.job.film.list.length > 0,
-      // seq: state => state.prod.film.seq,
+      jobList: state => state?.job?.film?.list,
       year: state => state.year,
     }),
   },

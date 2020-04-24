@@ -1,3 +1,5 @@
+import { objectDeep } from '../../../utils'
+
 export default {
   rxdb: true,
   prototypes: {
@@ -39,6 +41,18 @@ const MODIFIER = {
   },
   $set: function(target, fields) {
     Object.entries(fields).map(([field, value]) => (target[field] = value))
+  },
+  $assign: function(target, fields) {
+    Object.entries(fields).map(([field, value]) => (target[field] = { ...(target[field] || {}), ...value }))
+  },
+  /* updateObj: { $assignDeep: { products: {key: 'prod name', value: ''} }} */
+  $assignDeep: function(target, fields) {
+    Object.entries(fields).map(([path, key_value]) => {
+      let field = objectDeep(path)
+      field = field || {}
+      const { key, value } = key_value
+      field[key] = value
+    })
   },
   /* updateObj: { $spliceAt: { products: 0 }} */
   // $spliceAt: function(target, fields) {

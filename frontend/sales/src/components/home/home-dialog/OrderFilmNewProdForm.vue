@@ -59,10 +59,9 @@ export default {
   methods: {
     checkId() {
       if (this.newProd.name) {
-        const _newId = `${this.cp._id}:${this.newProd.name.to_id()}`
-        if (this.cp.products.some(fp => fp === _newId)) return _newId + ' EXISTED'
+        if (this.cp.products.some(name => name === this.newProd.name)) return this.newProd.name + ' EXISTED'
         else {
-          this.newProd._id = _newId
+          this.newProd._id = `${this.cp._id}:${this.newProd.name.to_id()}`
           this.newProd.orderId = this.cp._id
           this.newProd.orderRev = this.cp._rev
           this.newProd.note = this.$randomSentence()

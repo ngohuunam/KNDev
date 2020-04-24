@@ -27,16 +27,14 @@ const UserPlugin = store => {
         payload.state = objectDeep(type, store.state)
         myWorker.postMessage(payload)
         break
+      case 'persit':
+        delete payload.password
+        window.localStorage.setItem('user', JSON.stringify(payload))
+        break
     }
   }
   myWorker.onmessageerror = e => console.error('user myWorker onmessageerror', e)
   worker.onerror = e => console.error('user worker onerror', e)
-
-  store.watch(
-    ({ user }) => user,
-    newVal => window.localStorage.setItem('user', JSON.stringify(newVal)),
-    { deep: true },
-  )
 
   store.subscribe(({ type, payload }) => {
     if (type.startsWith('user/Worker')) {
@@ -45,7 +43,6 @@ const UserPlugin = store => {
       myWorker.postMessage(payload)
     }
   })
-  if (worker) commit('pushState', { state: 'worker', value: 'user' })
   if (worker) commit('pushState', { state: 'worker', value: worker.port ? 'Shared - user' : 'user' })
 }
 

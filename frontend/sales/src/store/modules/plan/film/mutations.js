@@ -3,6 +3,7 @@ import { prepareInsert } from '../../../../utils'
 
 export const create = (state, note) => {
   const _newOrder = { ...state.new, ...note }
+  console.log('note', note)
   state.converted = prepareInsert.order.film(_newOrder)
 }
 

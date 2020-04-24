@@ -5,7 +5,7 @@
       dataKey="_id"
       :selection.sync="selected"
       :filters="filters"
-      :rowHover="true"
+      rowHover
       :loading="loading"
       loadingIcon=""
       @row-select="onRowSelect"
@@ -14,10 +14,10 @@
       :rowClass="rowClass"
       @row-click="onRowClick"
       paginator
-      :rows="5"
-      paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-      :rowsPerPageOptions="[5, 10, 25, 50]"
-      currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+      :rows="10"
+      paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport"
+      :rowsPerPageOptions="[10, 25, 50]"
+      currentPageReportTemplate="{first}-{last}/{totalRecords}"
       removableSort
     >
       <!-------------------- < Header > --------------------->
@@ -39,7 +39,7 @@
             <Button
               :label="loadBtnProp.label"
               :icon="btnIcon('allChangedCheck', loadBtnProp.icon)"
-              @click="load"
+              @click="load([])"
               :disabled="loadBtnProp.disabled"
               class="margin-right"
               v-tooltip.top="loadBtnProp.tooltip"
@@ -117,14 +117,13 @@
           <InputText type="text" v-model="filters['foreignTitle']" class="p-column-filter" />
         </template>
         <template #body="{ data: { _id, foreignTitle, dropped } }">
-          <div style="position: relative">
+          <div style="text-align: left; position: relative">
             <span v-if="icon.row[_id] || rowError(_id, dropped)" class="icon-loading">
               <i v-if="icon.row[_id]" :class="`${icon.row[_id]}`" />
               <i v-if="rowError(_id, dropped)" class="pi pi-info color-red" />
             </span>
             <span> {{ foreignTitle }} </span>
           </div>
-          <!-- <span>{{ slotProps.data.foreignTitle }} </span> -->
         </template>
       </Column>
       <!-------------------- < Column: NKC > --------------------->
@@ -165,15 +164,20 @@
         <template #filter>
           <InputText type="text" v-model="filters['products']" class="p-column-filter" />
         </template>
-        <template #body="{ data: { _id }, data, column: { field } }">
-          <Button
-            v-if="cellBtnVisible(_id, field)"
-            v-tooltip.top="cellQuickLog(_id, field)"
-            :icon="cellIcon(_id, field)"
-            :label="data[field].join(', ')"
-            @click="checkChange($event, _id, field)"
-          />
-          <span v-else> {{ data[field].join(', ') }} </span>
+        <template #body="{ data: { _id, logs }, data, column: { field } }">
+          <div style="display: flex; flex-wrap: wrap;">
+            <div v-for="(child_name, i) in data[field]" :key="i">
+              <Button
+                class="margin-right margin-bot"
+                v-if="childBtnVisible(_id, child_name, 'prod', 'film')"
+                v-tooltip.top="childQuickLog(logs, child_name)"
+                :icon="childIcon(_id, child_name, 'prod', 'film')"
+                :label="child_name"
+                @click="childCheck($event, _id, child_name, 'prod', 'film')"
+              />
+              <span v-else> {{ child_name }} </span>
+            </div>
+          </div>
         </template>
       </Column>
       <!-------------------- < Column: Create At > --------------------->
@@ -218,7 +222,7 @@
         </template>
       </Column>
       <!-------------------- < Column: Vietnamese Title > --------------------->
-      <Column v-if="enlarge" field="vietnameseTitle" header="Vietnamese Title" headerStyle="width: 18%" filterMatchMode="contains" :sortable="true">
+      <Column v-if="enlarge" field="vietnameseTitle" header="Vietnamese Title" headerStyle="width: 18%" bodyStyle="text-align: left" filterMatchMode="contains" :sortable="true">
         <template #filter>
           <InputText type="text" v-model="filters['vietnameseTitle']" class="p-column-filter" />
         </template>
@@ -262,9 +266,9 @@ export default {
         { label: ``, icon: 'pi pi-dollar' },
         { separator: true },
         { separator: true },
-        { label: 'Add product', icon: 'pi pi-fw pi-upload', command: () => this.addProd() },
+        { label: 'Add product', icon: 'pi pi-fw pi-upload', command: () => this.add() },
         { label: 'View', icon: 'pi pi-fw pi-search', command: () => this.edit() },
-        { label: 'Delete', icon: 'pi pi-fw pi-times', command: () => this.deleteThis() },
+        { label: 'Delete', icon: 'pi pi-fw pi-times', command: () => this.delete() },
       ],
       menuRowCheckModel: [{ label: 'Check', icon: 'pi pi-thumbs-up', command: () => this.rowCheck() }],
       menuCellCheckChangeModel: [],
@@ -278,6 +282,26 @@ export default {
       const payload = { type: 'new', year: this.year, db: 'order', col: 'film', _id: this.rowClickData.data._id }
       if (this.rowClickData.data.dropped) payload.type = 'dropped'
       this.$store.commit('user/Worker', { name: 'rowCheck', payload })
+    },
+    childQuickLog(logs, child_name) {
+      const log = logs.find(_log => _log.type === 'Add' && _log.update?.$unshift?.products === child_name)
+      return log ? `${log.by.slice(0, log.by.indexOf('@'))} - ${this.$tToString(log.at, true)}` : 'Error'
+    },
+    childCheck(e, _id, child_name, db, col) {
+      const child_id = _id.concat(':').concat(child_name.to_id())
+      this.menuModel = [
+        {
+          label: 'Load',
+          icon: 'pi pi-download',
+          command: () => this.load([child_id]),
+        },
+        {
+          label: 'Check',
+          icon: 'pi pi-thumbs-up',
+          command: () => this.$store.commit('user/Worker', { name: 'rowCheck', payload: { type: 'new', year: this.year, db, col, _id: child_id } }),
+        },
+      ]
+      this.$refs.cm.show(e)
     },
     cellQuickLog(_id, field) {
       const _change = this.ui[_id].changes[field]
@@ -318,7 +342,7 @@ export default {
         this.$refs.cm.show(originalEvent)
       }
     },
-    addProd() {
+    add() {
       this.$emit('open-dialog', 'newProdForm', 'Add', 'Add new Product', this.rowClickData.data)
     },
     edit() {
@@ -330,13 +354,16 @@ export default {
     allChangedCheck() {
       this.$store.commit('user/Worker', { name: 'allChangeCheck', payload: { year: this.year, db: 'order', col: 'film' } })
     },
-    deleteThis() {
+    delete() {
       this.selected = [this.rowClickData.data]
       this.confirmDel()
     },
-    load() {
-      this.$store.commit('prod/film/Worker', { name: 'load', payload: { orderIds: this.selected.map(item => item._id) } })
-      if (this.enlarge) this.enlarge = false
+    load(more) {
+      const _ids = this.selected.flatMap(item => item.products.map(name => item._id.concat(':').concat(name.to_id()))).concat(more || [])
+      const queryObj = { _id: { $in: _ids } }
+      this.$store.commit('prod/film/Worker', { name: 'query', payload: { queryObj } })
+      this.$store.commit('user/Worker', { name: 'query', payload: { year: this.year, db: 'prod', col: 'film', query: queryObj } })
+      if (this.enlarge && this.selected.length) this.enlarge = false
     },
     closeMessage(idx) {
       this.$store.commit('order/film/spliceMess', idx)
@@ -345,7 +372,7 @@ export default {
       this.$emit('open-dialog', 'newOrderForm', 'Insert', 'Add new film')
     },
     creates() {
-      this.$emit('open-dialog', 'newOrdersForm', 'Insert', 'Add some new films', null, '1200px', true)
+      this.$emit('open-dialog', 'newOrdersForm', 'Insert', 'Add some new films', null, '1280px', true)
     },
     confirmDel() {
       this.$emit('open-dialog', 'deleteConfirm', this.selected.length > 1 ? 'Delete All' : 'Delete', 'Confirm Delete - This action is undone')
@@ -360,21 +387,37 @@ export default {
       console.log('onRowSelectAll: ', e)
     },
     rowClass({ dropped, _id }) {
-      // return data.dropped ? (this.ui[data._id] && this.ui[data._id].dropped ? 'r-hide' : 'r-deleted') : this.ui[data._id] && this.ui[data._id].new ? '' : 'r-new'
-      return dropped ? 'r-deleted' : this.ui[_id] && this.ui[_id].new ? '' : 'r-new'
+      const ui_id = this.ui[_id]
+      return dropped ? 'r-deleted' : ui_id && ui_id.new ? '' : 'r-new'
     },
     rowError(_id, dropped) {
-      const err = dropped && this.ui[_id] && this.ui[_id].dropped
+      const ui_id = this.ui[_id]
+      const err = dropped && ui_id && ui_id.dropped
       return err > 0
     },
     btnIcon(name, icon) {
       return this.icon.header[name] ? 'pi pi-spin pi-spinner' : 'pi ' + icon
     },
     cellIcon(_id, field) {
-      return this.icon.cell[_id] && this.icon.cell[_id][field] ? this.icon.cell[_id][field] : ''
+      const cell_id = this.icon.cell[_id]
+      return cell_id && cell_id[field] ? cell_id[field] : ''
     },
     cellBtnVisible(_id, field) {
-      return this.ui[_id] && this.ui[_id].new && !this.ui[_id].dropped && typeof this.ui[_id].changes[field] === 'object'
+      const ui_id = this.ui[_id]
+      if (!ui_id) return false
+      const { dropped, changes } = ui_id
+      return ui_id.new && !dropped && typeof changes[field] === 'object'
+    },
+    childBtnVisible(_id, child_name, db, col) {
+      const child_id = _id.concat(':').concat(child_name.to_id())
+      const ui = this.$store.getters.ui(db, col)
+      const ui_id = ui[child_id]
+      return !ui_id || !ui_id.new
+    },
+    childIcon(_id, child_name, db, col) {
+      const child_id = _id.concat(':').concat(child_name.to_id())
+      const icon = this.$store.getters.icon(db, col)
+      return icon.row[child_id]
     },
   },
   watch: {
@@ -384,7 +427,7 @@ export default {
   },
   computed: {
     ui() {
-      return this.$store.getters['order/film/ui']
+      return this.$store.getters.ui('order', 'film')
     },
     enlarge: {
       get() {

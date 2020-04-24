@@ -1,7 +1,7 @@
-const orderSchema = {
+const planSchema = {
   film: {
-    title: 'Order - film schema',
-    description: 'describes a film order',
+    title: 'Plan - schema',
+    description: 'describes a plan',
     version: 0,
     type: 'object',
     properties: {
@@ -9,15 +9,10 @@ const orderSchema = {
         type: 'string',
         primary: true,
       },
-      client: {
+      collection: {
         type: 'string',
         final: true,
         default: 'Film',
-      },
-      team: {
-        type: 'string',
-        default: '',
-        check: true,
       },
       createdAt: {
         type: 'number',
@@ -26,9 +21,14 @@ const orderSchema = {
       },
       createdBy: {
         type: 'string',
-        index: true,
         final: true,
         default: 0,
+      },
+      startAt: {
+        type: 'number',
+        index: true,
+        default: 0,
+        check: true,
       },
       endAt: {
         type: 'number',
@@ -38,27 +38,13 @@ const orderSchema = {
       },
       finishAt: {
         type: 'number',
-        index: true,
         default: 0,
         check: true,
       },
-      foreignTitle: {
+      belongTo: {
         type: 'string',
-        index: true,
         final: true,
         default: '',
-      },
-      vietnameseTitle: {
-        type: 'string',
-        index: true,
-        default: '',
-        check: true,
-      },
-      premiereDate: {
-        type: 'number',
-        index: true,
-        default: 1609420532000,
-        check: true,
       },
       status: {
         type: 'string',
@@ -66,21 +52,13 @@ const orderSchema = {
         default: 'Created',
         check: true,
       },
-      products: {
+      jobs: {
         type: 'array',
-        item: {
-          type: 'string',
-        },
         default: [],
-        child: true,
-        check: true,
-      },
-      plans: {
-        type: 'array',
         item: {
-          type: 'string',
+          type: 'object',
+          properties: {},
         },
-        default: [],
         child: true,
         check: true,
       },
@@ -98,7 +76,7 @@ const orderSchema = {
       },
     },
     compoundIndexes: [
-      ['endAt', 'premiereDate', 'createdAt'],
+      ['endAt', 'startAt'],
       // ['endAt', 'premiereDate', 'status'],
       // ['endAt', 'createdAt', 'premiereDate'],
       // ['endAt', 'status', 'premiereDate'],
@@ -117,4 +95,4 @@ const orderSchema = {
   },
 }
 
-export default orderSchema
+export default planSchema

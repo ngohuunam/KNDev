@@ -1,14 +1,15 @@
 <template>
   <div>
-    <DataTable :value="orders" dataKey="_id" editMode="cell">
+    <DataTable :value="orders" dataKey="_id" editMode="row" :editingRows.sync="editingRows" @row-edit-init="onRowEditInit" @row-edit-cancel="onRowEditCancel">
       <!-------------------- < Column: Remove Order > --------------------->
       <Column headerStyle="width: 2.6em; text-align: center" bodyStyle="text-align: center; overflow: visible; padding: 4px 0">
         <template #body="{index}">
           <Button type="button" icon="pi pi-minus" class="p-button-danger margin-right" @click="remove(index)"></Button>
         </template>
       </Column>
+      <Column :rowEditor="true" headerStyle="width:6em" bodyStyle="text-align:center"></Column>
       <!-------------------- < Column: Foreign Title > --------------------->
-      <Column field="foreignTitle" header="Foreign Title">
+      <Column field="foreignTitle" header="Foreign Title" headerStyle="width: 13%" bodyStyle="text-align: left">
         <template #editor="{data, column: {field} }">
           <InputText v-model="data[field]" />
         </template>
@@ -23,7 +24,7 @@
         </template>
       </Column>
       <!-------------------- < Column: Team > --------------------->
-      <Column field="team" header="Team">
+      <Column field="team" header="Team" headerStyle="width: 8%">
         <template #editor="slotProps">
           <Dropdown v-model="slotProps.data.team" :options="options" />
         </template>
@@ -40,8 +41,8 @@
       <!-------------------- < Column: NKC > --------------------->
       <Column field="premiereDate" header="NKC">
         <template #editor="{data, column: {field} }">
-          <!-- <Calendar v-model="slotProps.data.premiereDate" dateFormat="dd/mm/yy" style="width: 100%" /> -->
-          <InputMask v-model="data[field]" mask="99/99/2029" slotChar="dd/mm/yyyy" />
+          <NewCalendar v-model="data[field]" style="width: 100%" />
+          <!-- <InputMask v-model="data[field]" mask="99/99/2029" slotChar="dd/mm/yyyy" /> -->
         </template>
         <template #body="{data, column: {field}, index }">
           <span v-if="!data[field] && !errors[index][field]" style="color: gray;">
@@ -56,8 +57,8 @@
       <!-------------------- < Column: End Date > --------------------->
       <Column field="endAt" header="End Date">
         <template #editor="{data, column: {field} }">
-          <!-- <Calendar v-model="slotProps.data.endAt" dateFormat="dd/mm/yy" style="width: 100%" showTime /> -->
-          <InputMask v-model="data[field]" mask="99/99/2029 99:99" slotChar="dd/mm/yyyy hh:mm" />
+          <NewCalendar v-model="data[field]" style="width: 100%" showTime />
+          <!-- <InputMask v-model="data[field]" mask="99/99/2029 99:99" slotChar="dd/mm/yyyy hh:mm" /> -->
         </template>
         <template #body="{data, column: {field}, index }">
           <span v-if="!data[field] && !errors[index][field]" style="color: gray;">
@@ -70,7 +71,7 @@
         </template>
       </Column>
       <!-------------------- < Column: Vietnamese Title > --------------------->
-      <Column field="vietnameseTitle" header="Vietnamese Title">
+      <Column field="vietnameseTitle" header="Vietnamese Title" headerStyle="width: 13%">
         <template #editor="{data, column: {field} }">
           <InputText v-model="data[field]" />
         </template>
@@ -80,7 +81,7 @@
         </template>
       </Column>
       <!-------------------- < Column: Note > --------------------->
-      <Column field="note" header="Note">
+      <Column field="note" header="Note" headerStyle="width: 8%">
         <template #editor="{data, column: {field} }">
           <InputText v-model="data[field]" />
         </template>
@@ -97,7 +98,8 @@
 
 <script>
 // import { order } from '@/assets/defaultState'
-import { dateToUnix } from '@/tools'
+import { dateToUnix, team } from '@/utils'
+import Vue from 'vue'
 
 // const randomOrderId = () => Date.now() + Math.floor(Math.random() * 100 + 1)
 // const randomNewOrder = () => ({ ...order.film.new, ...{ _id: randomOrderId(), note: '' } })
@@ -106,13 +108,23 @@ export default {
   name: 'OrderFilmNewOrderSForm',
   components: {},
   props: {},
-  data: () => ({
-    options: ['CJHK', 'Disney', 'Local', 'UIP', 'WB'],
-    log: '',
-    orders: [],
-    errors: [],
-  }),
+  data() {
+    return {
+      options: [],
+      log: '',
+      orders: [],
+      errors: [],
+      editingRows: [],
+      originalRows: {},
+    }
+  },
   methods: {
+    onRowEditInit({ index }) {
+      this.originalRows[index] = { ...this.orders[index] }
+    },
+    onRowEditCancel({ index }) {
+      Vue.set(this.orders, index, this.originalRows[index])
+    },
     parseDateTime(data, index, field, hasTime) {
       if (data instanceof Date) return data
       const _unix = dateToUnix(data, hasTime)
@@ -185,6 +197,7 @@ export default {
     },
   },
   created: function() {
+    this.options = team.slice(0)
     this.add()
   },
   beforeDestroy: function() {

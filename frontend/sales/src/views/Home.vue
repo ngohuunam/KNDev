@@ -7,7 +7,7 @@
         <OrderFilmColumn @toggle-enlarge="v => (orderFilmColumnEnlarge = v)" :_enlarge="orderFilmColumnEnlarge" @open-dialog="openDialog" />
       </div>
       <div v-if="hasProdFilmTable" :class="prodFilmColumnClass">
-        <ProdFilmColumn @toggle-enlarge="toggleProdFilmColumnEnlarge" @open-dialog="openDialog" />
+        <ProdFilmColumn @toggle-enlarge="v => (prodFilmColumnEnlarge = v)" :_enlarge="prodFilmColumnEnlarge" @open-dialog="openDialog" />
       </div>
     </div>
     <NewDialog

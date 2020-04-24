@@ -2,6 +2,7 @@ const socket_io = require('socket.io')
 const { secret, couchdb } = require('./setting')
 const nano = require('nano')(couchdb)
 const staffs = nano.use('staffs')
+const processes = nano.use('processes')
 const { verify } = require('jsonwebtoken')
 const { initLogger } = require('./logger')
 const skLogger = initLogger('shared/socketio')
@@ -39,7 +40,7 @@ io.use(auth)
 
 const sales_home = io.of('/sales/home')
 sales_home.use(auth)
-sales_home.on('connect', socket => {
+sales_home.on('connect', async socket => {
   skLogger.info(`${socket.id} - ip: ${socket.handshake.address} - user: ${socket.user._id} connected'`)
   console.log(`${socket.id} - ip: ${socket.handshake.address} - user: ${socket.user._id} connected'`)
   socket.join('order.film', () => {
@@ -48,7 +49,13 @@ sales_home.on('connect', socket => {
   })
   const newNamespace = socket.nsp
   // broadcast to all clients in the given sub-namespace
-  newNamespace.emit('message', socket.id)
+  const { rows } = await processes.list({ include_docs: true })
+  try {
+    const processesList = rows.map(row => row.doc)
+    newNamespace.emit('setState', { key: 'processes', data: processesList })
+  } catch (err) {
+    skLogger.error(err)
+  }
   // console.log('newNamespace: ', newNamespace)
 })
 sales_home.on('error', err => {

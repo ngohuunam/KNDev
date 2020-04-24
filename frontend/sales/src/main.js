@@ -17,6 +17,40 @@ Vue.component('InputText', InputText)
 
 import Calendar from 'primevue/calendar'
 Vue.component('Calendar', Calendar)
+const NewCalendar = Vue.component('Calendar').extend({
+  props: {
+    value: null,
+    showIcon: {
+      type: Boolean,
+      default: true,
+    },
+    monthNavigator: {
+      type: Boolean,
+      default: true,
+    },
+    yearNavigator: {
+      type: Boolean,
+      default: true,
+    },
+    yearRange: {
+      type: String,
+      default: '2020:2030',
+    },
+    showOnFocus: {
+      type: Boolean,
+      default: false,
+    },
+    showButtonBar: {
+      type: Boolean,
+      default: true,
+    },
+    manualInput: {
+      type: Boolean,
+      default: false,
+    },
+  },
+})
+Vue.component('NewCalendar', NewCalendar)
 
 import MultiSelect from 'primevue/multiselect'
 Vue.component('MultiSelect', MultiSelect)
@@ -170,11 +204,11 @@ import VueSocketIOExt from 'vue-socket.io-extended'
 import io from 'socket.io-client'
 import * as globalInstance from './globalInstance'
 
-console.log('store', store)
+// console.log('store', store)
 const { user } = store.state
 const { dept, page, token } = user
 const url = `${window.location.origin}/${dept}/${page}?token=${token}`
-console.log('url', url)
+// console.log('url', url)
 
 const socket = io(url, {
   // WARNING: in that case, there is no fallback to long-polling

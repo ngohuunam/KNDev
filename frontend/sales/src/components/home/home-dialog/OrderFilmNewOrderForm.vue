@@ -1,13 +1,12 @@
 <template>
-  <div>
-    <div class="p-grid p-fluid" v-for="item in labels" :key="item.label">
+  <div style="text-align: left;">
+    <div class="p-grid p-fluid" v-for="(item, i) in labels" :key="i">
       <div class="p-col-4" style="margin: auto;">
         <label>{{ item.label }}</label>
       </div>
       <div class="p-col-8">
         <InputText v-if="item.inputType === 'text'" v-model="newOrder[item.key]" />
-        <Calendar v-else-if="item.inputType === 'calendar-full'" v-model="newOrder[item.key]" dateFormat="dd/mm/yy" />
-        <Calendar v-else-if="item.inputType === 'calendar'" :showTime="true" v-model="newOrder[item.key]" dateFormat="dd/mm/yy" />
+        <NewCalendar v-else-if="item.inputType === 'calendar'" :showTime="item.showTime" v-model="newOrder[item.key]" />
         <Dropdown v-else-if="item.inputType === 'dropdown'" v-model="newOrder[item.key]" :options="item.options" />
       </div>
     </div>
@@ -81,8 +80,11 @@ export default {
     },
   },
   computed: {
+    state() {
+      return this.$store.state.order.film
+    },
     labels() {
-      return this.$store.state.order.film.labels
+      return this.state.labels
     },
     dialogMess: {
       get() {
@@ -97,7 +99,7 @@ export default {
     },
     newOrder: {
       get() {
-        return this.$store.state.order.film.new
+        return this.state.new
       },
       set(value) {
         this.$store.commit('order/film/setState', { key: 'new', data: value })
@@ -105,11 +107,9 @@ export default {
     },
   },
   created() {
-    if (!this.newOrder) this.newOrder = this.$randomNewOrderFilm(this.construct)
+    this.newOrder = this.newOrder || this.$randomNewOrderFilm(this.construct)
   },
-  beforeDestroy() {
-    this.newOrder = null
-  },
+  beforeDestroy() {},
 }
 </script>
 

@@ -46,6 +46,7 @@ const prodSchema = {
       },
       finishAt: {
         type: 'number',
+        index: true,
         default: 0,
         check: true,
       },
@@ -60,15 +61,27 @@ const prodSchema = {
         default: '',
         check: true,
       },
+      process: {
+        type: 'string',
+        default: '',
+      },
       jobs: {
         type: 'array',
+        item: {
+          type: 'string',
+        },
         default: [],
         child: true,
+        check: true,
       },
       plans: {
         type: 'array',
+        item: {
+          type: 'string',
+        },
         default: [],
         child: true,
+        check: true,
       },
       dropped: {
         type: 'number',
@@ -78,7 +91,6 @@ const prodSchema = {
         type: 'array',
         item: {
           type: 'object',
-          properties: {},
         },
         default: [],
       },

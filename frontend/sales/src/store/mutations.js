@@ -1,6 +1,10 @@
 import Vue from 'vue'
 import { objectDeep } from '../tools'
 
+export const persitState = (state, { key }) => {
+  window.localStorage.setItem(key, JSON.stringify(state[key]))
+}
+
 export const setState = (state, { key, data }) => {
   state[key] = data
 }
@@ -63,6 +67,11 @@ export const filterToasts = (state, detail) => {
 export const SOCKET_RELOAD = () => {
   console.log('RELOAD')
   location.reload(true)
+}
+
+export const SOCKET_SETSTATE = (state, payload) => {
+  console.log('SOCKET_SETSTATE', payload)
+  setState(state, payload)
 }
 
 export const delLocalInfo = async () => {

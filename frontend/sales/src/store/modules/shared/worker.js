@@ -41,13 +41,11 @@ export class Worker {
   // }
   commitList(colName) {
     console.log(`(commitList) list.${colName}`, this.list[colName])
-    this.commit('setStates', { keys: ['loading', 'list'], datas: [false, this.list[colName]] }, colName)
+    return Promise.resolve(this.commit('setStates', { keys: ['loading', 'list'], datas: [false, this.list[colName]] }, colName))
   }
   commitListAll() {
     console.log('(commitListAll) list', this.list)
-    for (const colName in this.list) {
-      this.commit('setStates', { keys: ['loading', 'list'], datas: [false, this.list[colName]] }, colName)
-    }
+    return Promise.all(Object.entries(this.list).map(([colName, list]) => Promise.resolve(this.commit('setStates', { keys: ['loading', 'list'], datas: [false, list] }, colName))))
   }
   init(opts, queryParams, needPullList) {
     console.log('(init) opts', opts)
@@ -155,7 +153,7 @@ export class Worker {
       .insert(doc)
       .then(() => {
         this.commit('setState', { key: 'new', data: null }, colName)
-        this.commitCloseDialog('Create')
+        return this.commitCloseDialog('Create')
       })
       .catch(e => this.handleError.insert(e, doc._id))
   }

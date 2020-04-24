@@ -20,9 +20,6 @@ export default {
     value() {
       return this.$store.getters['order/film/newOrderConfirmTableProperties']
     },
-    newOrderLabels() {
-      return this.$store.state.order.film.labels
-    },
   },
   mounted: function() {},
   beforeDestroy: function() {

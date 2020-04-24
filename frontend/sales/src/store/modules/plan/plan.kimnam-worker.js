@@ -1,5 +1,6 @@
 import { Worker } from '../shared/worker'
-import { dbName, opts, preInsert } from './options'
+import { dbName, opts } from './options'
+import { prepareInsert } from '../../../utils'
 
 const { console } = self
 
@@ -41,35 +42,39 @@ const onMessError = e => {
   console.error('onmessageerror', e)
 }
 
-class ProdWorker extends Worker {
-  constructor(userId, token, dbName, opts, commit, commitRoot, preInsert) {
-    super(userId, token, dbName, opts, commit, commitRoot, preInsert)
+class OrderWorker extends Worker {
+  constructor(userId, token, dbName, opts, commit, commitRoot) {
+    super(userId, token, dbName, opts, commit, commitRoot)
+    this.repare = prepareInsert[this.dbName]
   }
-  // load({ _ids }, colName) {
-  //   this.commit('setState', { key: 'loading', data: false }, colName)
-  //   const queryObj = { _ids: { $in: _ids } }
-  //   return this.query({ queryObj }, colName)
-  // }
-  query({ queryObj }, colName) {
-    this.commit('setState', { key: 'loading', data: false }, colName)
-    console.log('(query) queryObj', queryObj)
-    if (queryObj) return this.pullList(colName, queryObj).then(() => this.commitList(colName))
+  add({ parent_id, child, value, note }, colName) {
+    console.log(child)
+    this.RxCol[colName]
+      .findOne(parent_id)
+      .update({ update: { $unshift: { [child]: value } }, type: 'Add', note })
+      .then(() => this.commitCloseDialog('Add'))
+      .catch(e => console.error(e))
+  }
+
+  reSync({ ui }, colName) {
+    const query = ui ? opts[colName].createQuery(ui) : this.queries[colName]
+    console.log('(resync) query', query)
+    this.sync(query, colName).then(() => {
+      this.commitRoot('mergeStateDeep', { dotPath: `order.film.icon`, key: 'header', value: { reSync: false } })
+      this.commit('setState', { key: 'loading', data: false }, colName)
+    })
   }
 }
 
-const init = (_id, token, queryParams, lastQueries) => {
-  worker = new ProdWorker(_id, token, dbName, commit, commitRoot, preInsert)
-  worker.init(opts, queryParams).then(() => {
-    if (lastQueries) {
-      Object.entries(lastQueries).forEach(([colName, queryObj]) => worker.query({ queryObj }, colName))
-    }
-  })
+const init = (_id, token, queryParams) => {
+  worker = new OrderWorker(_id, token, dbName, commit, commitRoot)
+  worker.init(opts, queryParams, true).then(() => worker.commitListAll())
 }
 
 let countInterval = 0
 
-const getStatus = ({ _id, token, colNames, queryParams, lastQueries }) => {
-  if (!worker) init(_id, token, queryParams, lastQueries)
+const getStatus = ({ _id, token, colNames, queryParams }) => {
+  if (!worker) init(_id, token, queryParams)
   else if (worker && worker.state === 'ready') colNames.forEach(colName => worker.commitList(colName))
   else if (worker && worker.state === 'init') {
     if (countInterval < 11) {

@@ -1,6 +1,6 @@
 import { team, produce, randomName } from '.'
 
-export const prods = ['Brochure', 'Poster', 'Flyer', 'Ticket', 'Envelope', 'Book', 'Invitation', 'Backdrop', 'Banner', '3 D Booth', 'Namecard', 'Other']
+export const prods = ['Brochure', 'Poster', 'Flyer', 'Ticket', 'Envelope', 'Book', 'Invitation', 'Backdrop', 'Banner', '3D Booth', 'Namecard', 'Other']
 
 export const randomNo = (count, start) => Math.floor(Math.random() * count) + start || 0
 export const randomTeam = () => team[randomNo(5, 0)]
@@ -13,7 +13,7 @@ export const randomNewOrderFilm = (construct, toString) => {
   const endTime = randomDate()
   const endAt = randomDate(1, endTime, toString)
   const foreignTitle = randomName()
-  const _id = foreignTitle.toProperCase().replace(/\s/g, '')
+  const _id = foreignTitle.toProperCase().replace(/\s/g, '.')
   return {
     ...construct,
     ...{ _id, foreignTitle, vietnameseTitle: randomName(), team: randomTeam(), premiereDate: randomDate(3, endTime, toString), endAt },

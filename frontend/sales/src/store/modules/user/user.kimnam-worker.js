@@ -39,73 +39,59 @@ const commit = (type, payload) => postMess({ action: 'commit', type, payload })
 const updateSubcribe = changeEvent => {
   console.log('rxUser update$: ', changeEvent)
   const _user = changeEvent.data.v
+  postMess({ action: 'persit', payload: _user })
   const { state } = _user
-  const { type, path, storePath, _id, field } = _user.state.last
-  let _pathObj = objectDeep(path, state)
-  console.log('update$ _id:', _id)
-  console.log('update$ type:', type)
-  console.log('update$ path:', path)
-  console.log('update$ storePath:', storePath)
-  console.log('update$ field:', field)
-  console.log('update$ _pathObj:', _pathObj)
-  let key, value
-  switch (type) {
-    case 'dropped':
-      /* _pathObj === uiPath */
-      commit(`${storePath.split('.').join('/')}/Worker`, { name: 'reSync', payload: { ui: _pathObj } })
-    // falls through
+  if (state.last) {
+    const { type, path, storePath, _id, field } = state.last
+    let _pathObj = objectDeep(path, state)
+    console.log('update$ _id:', _id)
+    console.log('update$ type:', type)
+    console.log('update$ path:', path)
+    console.log('update$ storePath:', storePath)
+    console.log('update$ field:', field)
+    console.log('update$ _pathObj:', _pathObj)
+    let key, value
+    switch (type) {
+      case 'dropped':
+        /* _pathObj === uiPath */
+        commit(`${storePath.split('.').join('/')}/Worker`, { name: 'reSync', payload: { ui: _pathObj } })
+      // falls through
 
-    case 'new':
-      setRowIconSuccess(storePath, _id)
-    // falls through
+      case 'new':
+        setRowIconSuccess(storePath, _id)
+      // falls through
 
-    case 'change':
-      /* _pathObj === uiPath */
-      key = _id
-      break
+      case 'change':
+        /* _pathObj === uiPath */
+        key = _id
+        break
 
-    case 'change-check':
-      /* _pathObj === changesPath */
-      key = field
-      break
+      case 'change-check':
+        /* _pathObj === changesPath */
+        key = field
+        break
 
-    case 'dropped-all':
-      commit(`${storePath.split('.').join('/')}/Worker`, { name: 'reSync', payload: { ui: _pathObj.ui } })
-    // falls through
+      case 'dropped-all':
+        commit(`${storePath.split('.').join('/')}/Worker`, { name: 'reSync', payload: { ui: _pathObj.ui } })
+      // falls through
 
-    case 'change-check-all':
-    case 'new-all':
-      /* _pathObj === colPath */
-      key = 'ui'
-      break
+      case 'change-check-all':
+      case 'new-all':
+        /* _pathObj === colPath */
+        key = 'ui'
+        break
+    }
+    value = _pathObj[key]
+    console.log('update$ key:', key)
+    console.log('update$ value:', value)
+    // if (type.includes('dropped') || type.includes('change-check')) setTimeout(() => commit('setStateDeep', { dotPath: `user.state.${path}`, key, value }), 3000)
+    // else commit('setStateDeep', { dotPath: `user.state.${path}`, key, value })
+    setTimeout(() => commit('setStateDeep', { dotPath: `user.state.${path}`, key, value }), 3000)
   }
-  value = _pathObj[key]
-  console.log('update$ key:', key)
-  console.log('update$ value:', value)
-  // if (type.includes('dropped') || type.includes('change-check')) setTimeout(() => commit('setStateDeep', { dotPath: `user.state.${path}`, key, value }), 3000)
-  // else commit('setStateDeep', { dotPath: `user.state.${path}`, key, value })
-  setTimeout(() => commit('setStateDeep', { dotPath: `user.state.${path}`, key, value }), 3000)
 }
 
-// self.onconnect = e => {
-//   console.dir(e)
-//   const port = e.ports[0]
-//   console.dir(port)
-//   ports.push(port)
-
-//   port.onmessage = ({ data }) => {
-//     console.log('port.onmessage data: ', data)
-//     const { name, payload } = data
-//     if (func[name]) func[name](payload)
-//   }
-
-//   port.onmessageerror = e => {
-//     console.error('sw port onmessageerror', e)
-//   }
-// }
-
 const user = () => {
-  const _user = rxUser.toJSON()
+  const _user = rxUser.toJSON(true)
   delete _user.password
   return _user
 }
@@ -126,9 +112,14 @@ const init = (token, _id) =>
           .then(_rxDoc => {
             rxUser = _rxDoc
             console.log('rxUser:', rxUser)
-            commit('setState', { key: 'user', data: user() })
+            const data = user()
+            commit('setState', { key: 'user', data })
+            postMess({ action: 'persit', payload: data })
           })
         rxCol.update$.subscribe(updateSubcribe)
+        rxCol.postSave(data => {
+          postMess({ action: 'persit', payload: data })
+        }, true)
         sync.denied$.subscribe(docData => console.log('denied$: ', docData))
         sync.error$.subscribe(error => console.log('error$: ', error))
       })
@@ -148,6 +139,24 @@ const multiRowCheckSaveError = (dotPath, type, e, errorIconOnj) => {
   console.log(`(allRowCheck) type ${type} error:`, e)
   commit('pushToasts', { severity: 'error', summary: 'SAVE ERROR', detail: `Err: ${e.message}`, life: 10000 })
   setMultiRowIcon(dotPath, errorIconOnj)
+}
+const saveError = (type, e) => {
+  console.log(`(saveError) type ${type} error:`, e)
+  commit('pushToasts', { severity: 'error', summary: 'SAVE ERROR', detail: `Err: ${e.message}`, life: 10000 })
+}
+
+const query = ({ year, db, col, query }) => {
+  const storePath = `${db}.${col}`
+  const colPath = `${year}.${storePath}`
+  rxUser
+    .atomicUpdate(oldData => {
+      const state = preUpdate(oldData)
+      const ui = objectDeep(colPath, state)
+      ui.query = query
+      state.last = null
+      return oldData
+    })
+    .catch(e => saveError('(load)', e))
 }
 
 const allRowCheck = ({ year, db, col, list, type }) => {
@@ -312,4 +321,4 @@ const rowCheckSaveError = (path, _id, type, e) => {
   setRowIconError(path, _id)
 }
 
-const func = { init, getStatus, rowCheck, allRowCheck, change, changeCheck, allChangeCheck }
+const func = { init, getStatus, rowCheck, allRowCheck, change, changeCheck, allChangeCheck, query }
