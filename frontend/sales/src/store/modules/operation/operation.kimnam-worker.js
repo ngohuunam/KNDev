@@ -1,10 +1,8 @@
 import { Worker } from '../shared/worker'
 import { dbName, opts } from './options'
-import { prepareInsert } from '../../../utils'
+// import { prepareInsert } from '../../../utils'
 
 const { console } = self
-
-console.log(self)
 
 const ports = []
 let postMess, worker
@@ -42,10 +40,10 @@ const onMessError = e => {
   console.error('onmessageerror', e)
 }
 
-class OrderWorker extends Worker {
+class PlanWorker extends Worker {
   constructor(userId, token, dbName, opts, commit, commitRoot) {
     super(userId, token, dbName, opts, commit, commitRoot)
-    this.repare = prepareInsert[this.dbName]
+    // this.repare = prepareInsert[this.dbName]
   }
   add({ parent_id, child, value, note }, colName) {
     console.log(child)
@@ -55,20 +53,11 @@ class OrderWorker extends Worker {
       .then(() => this.commitCloseDialog('Add'))
       .catch(e => console.error(e))
   }
-
-  reSync({ ui }, colName) {
-    const query = ui ? opts[colName].createQuery(ui) : this.queries[colName]
-    console.log('(resync) query', query)
-    this.sync(query, colName).then(() => {
-      this.commitRoot('mergeStateDeep', { dotPath: `order.film.icon`, key: 'header', value: { reSync: false } })
-      this.commit('setState', { key: 'loading', data: false }, colName)
-    })
-  }
 }
 
 const init = (_id, token, queryParams) => {
-  worker = new OrderWorker(_id, token, dbName, commit, commitRoot)
-  worker.init(opts, queryParams, true).then(() => worker.commitListAll())
+  worker = new PlanWorker(_id, token, dbName, commit, commitRoot)
+  worker.init(opts, queryParams).then(() => worker.commitListAll())
 }
 
 let countInterval = 0

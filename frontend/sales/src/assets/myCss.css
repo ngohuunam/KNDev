@@ -194,3 +194,13 @@ p {
 .child-cell > div:last-child {
   margin: 4px 0px 4px 0px;
 }
+.table-tree-table {
+  padding: 0 !important;
+  border: none !important;
+}
+.table-tree-table:first-child {
+  border-left: 1px solid #c8c8c8;
+}
+.table-tree-table:last-child {
+  border-right: 1px solid #c8c8c8;
+}

@@ -1,5 +1,13 @@
 <template>
   <div class="about">
-    <h1>This is an about page</h1>
+    <PlanningMonth />
   </div>
 </template>
+
+<script>
+import PlanningMonth from '@/components/planning/PlanningMonth.vue'
+
+export default {
+  components: { PlanningMonth },
+}
+</script>

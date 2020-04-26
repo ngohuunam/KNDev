@@ -32,6 +32,10 @@ import Calendar from 'primevue/calendar'
 Vue.component('Calendar', Calendar)
 const NewCalendar = Vue.component('Calendar').extend({
   props: {
+    dateFormat: {
+      type: String,
+      default: 'dd/mm/yy',
+    },
     showIcon: {
       type: Boolean,
       default: true,
@@ -79,13 +83,15 @@ const NewToast = Vue.component('Toast').extend({
   name: 'NewToast',
   methods: {
     remove(message) {
-      let index = -1
-      for (let i = 0; i < this.messages.length; i++) {
-        if (this.messages[i] === message) {
-          index = i
-          break
-        }
-      }
+      console.log(message)
+      let index = this.messages.findIndex(mess => mess === message)
+      // const len = this.messages.length
+      // for (let i = 0; i < len; ++i) {
+      //   if (this.messages[i] === message) {
+      //     index = i
+      //     break
+      //   }
+      // }
       this.messages.splice(index, 1)
       this.$emit('close', message.detail)
     },
@@ -204,6 +210,9 @@ Vue.directive('tooltip', Tooltip)
 
 // import OverlayPanel from 'primevue/overlaypanel'
 // Vue.component('OverlayPanel', OverlayPanel)
+
+import TreeTable from 'primevue/treetable'
+Vue.component('TreeTable', TreeTable)
 
 import 'primevue/resources/themes/nova-light/theme.css'
 import 'primevue/resources/primevue.min.css'

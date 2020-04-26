@@ -1,5 +1,5 @@
 import { initDb, pullData, preInsert as _preInsert } from '.'
-import { queryBy_id, filter_rev, year } from '../../../tools'
+import { queryBy_id, filter_rev, year, isObjEmpty } from '../../../utils'
 
 export class Worker {
   constructor(userId, token, dbName, commit, commitRoot, preInsert) {
@@ -30,15 +30,6 @@ export class Worker {
       },
     }
   }
-  // postMessage(msg) {
-  //   this.ports.map(port => port.postMessage(msg))
-  // }
-  // commit(type, payload, colName) {
-  //   this.postMess({ action: 'commit', type: `${this.dbName}/${colName}/${type}`, payload })
-  // }
-  // commitRoot(type, payload) {
-  //   this.postMess({ action: 'commit', type, payload })
-  // }
   commitList(colName) {
     console.log(`(commitList) list.${colName}`, this.list[colName])
     return Promise.resolve(this.commit('setStates', { keys: ['loading', 'list'], datas: [false, this.list[colName]] }, colName))
@@ -54,11 +45,13 @@ export class Worker {
       Object.values(opts).map(opt => {
         const { colName, checkKeys } = opt
         this.endpoint[colName] = opt.endpoint
-        this.sort[colName] = opt.sort
-        this.childs[colName] = opt.childs
-        this.queries[colName] = opts[colName].createQuery(queryParams[colName])
-        opt.query = this.queries[colName]
-        console.log(`${this.dbName} ${colName} init query`, opt.query)
+        this.sort[colName] = opt.sort || {}
+        this.childs[colName] = opt.childs || []
+        if (queryParams && isObjEmpty(queryParams) === false) {
+          this.queries[colName] = opts[colName].createQuery(queryParams[colName])
+          opt.query = this.queries[colName]
+          console.log(`${this.dbName} ${colName} init query`, opt.query)
+        }
         return initDb(this.dbName, opt, this.token)
           .then(({ rxCol, sync }) => {
             this.RxCol[colName] = rxCol
@@ -75,7 +68,7 @@ export class Worker {
                 .sort(opt.sort)
                 .exec()
                 .then(rxDocs => {
-                  this.list[colName] = rxDocs.map(rxDoc => rxDoc.toJSON())
+                  this.list[colName] = rxDocs.map(rxDoc => rxDoc.toJSON(true))
                   this.commit('setState', { key: 'loading', data: false }, colName)
                   return (this.state = 'ready')
                 })
@@ -93,7 +86,7 @@ export class Worker {
       .find(query || this.queries[colName])
       .sort(sort || this.sort[colName])
       .exec()
-      .then(rxDocs => (this.list[colName] = rxDocs.map(rxDoc => rxDoc.toJSON())))
+      .then(rxDocs => (this.list[colName] = rxDocs.map(rxDoc => rxDoc.toJSON(true))))
       .catch(e => this.handleError.state(e, 'pullList error'))
   }
 
@@ -104,7 +97,7 @@ export class Worker {
           .find(queries[colName] || this.queries[colName])
           .sort(sort || this.sort[colName])
           .exec()
-          .then(rxDocs => (this.list[colName] = rxDocs.map(rxDoc => rxDoc.toJSON())))
+          .then(rxDocs => (this.list[colName] = rxDocs.map(rxDoc => rxDoc.toJSON(true))))
           .catch(e => this.handleError.state(e, 'pullListAll error')),
       ),
     )
@@ -128,14 +121,7 @@ export class Worker {
       const updatedKeys = Object.values(lastUpdate).flatMap(keysObj => Object.keys(keysObj))
       console.log('update$ updatedKeys:', updatedKeys)
       updatedKeys.map(key => {
-        // if (doc[key] !== _$doc[key]) {
-        //   const _change = { old: doc[key], new: _$doc[key], logs: filter_rev(_$doc.logs, doc._rev) }
-        //   payload.changes[key] = _change
-        //   console.log(`${_$doc._id} - ${key} change:`, _change)
-        //   _needUpdateUserState = true
-        // }
         if (_checkKeys.includes(key)) {
-          // if (Array.isArray(_$doc[key])) key = key + 'Names'
           const _change = { old: doc[key], new: _$doc[key], logs: filter_rev(_$doc.logs, doc._rev) }
           payload.changes[key] = _change
           console.log(`${_$doc._id} - ${key} change:`, _change)

@@ -1,13 +1,11 @@
 <template>
   <div style="text-align: left;">
-    <div class="p-grid p-fluid" v-for="(item, i) in labels" :key="i">
+    <div class="p-grid p-fluid" v-for="({ label, comp, key, options, showTime }, i) in labels" :key="i">
       <div class="p-col-4" style="margin: auto;">
-        <label>{{ item.label }}</label>
+        <label>{{ label }}</label>
       </div>
       <div class="p-col-8">
-        <InputText v-if="item.inputType === 'text'" v-model="newOrder[item.key]" />
-        <NewCalendar v-else-if="item.inputType === 'calendar'" :showTime="item.showTime" v-model="newOrder[item.key]" />
-        <Dropdown v-else-if="item.inputType === 'dropdown'" v-model="newOrder[item.key]" :options="item.options" />
+        <component :is="comp" v-model="newOrder[key]" :options="options" :showTime="showTime" />
       </div>
     </div>
     <!-- <div class="p-grid p-fluid"> -->
@@ -50,7 +48,9 @@ export default {
   name: 'OrderFilmNewOrderForm',
   components: {},
   data() {
-    return { note: '' }
+    return {
+      note: '',
+    }
   },
   methods: {
     checkExisted() {

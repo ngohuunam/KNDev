@@ -1,11 +1,28 @@
 import { team, produce, randomName } from '.'
 
 export const prods = ['Brochure', 'Poster', 'Flyer', 'Ticket', 'Envelope', 'Book', 'Invitation', 'Backdrop', 'Banner', '3D Booth', 'Namecard', 'Other']
+export const staffs = ['Diễn', 'Hiền', 'Khang', 'Nam', 'Other']
+export const planTypes = ['Serial', 'Parallel', 'Pausable', 'Cancelable', 'Holdable']
 
 export const randomNo = (count, start) => Math.floor(Math.random() * count) + start || 0
 export const randomTeam = () => team[randomNo(5, 0)]
 export const randomProd = () => prods[randomNo(12, 0)]
 export const randomManufactureType = () => produce[randomNo(5, 0)]
+
+export const randomProcess = (process, startAt) => {
+  process.source =
+    'https://www.' +
+    randomName()
+      .toLowerCase()
+      .replace(/\s/g, '') +
+    '.com/source'
+  process.target = randomSentence()
+  process.description = randomSentence()
+  process.main = staffs[randomNo(5, 0)]
+  process.support = staffs.filter(name => name !== process.main)[randomNo(4, 0)]
+  process.type = [planTypes[randomNo(1, 0)]].concat(planTypes.slice(2, randomNo(5, 2)))
+  process.end = randomDate(4, startAt)
+}
 
 export const randomNewProdFilm = construct => ({ ...construct, ...{ name: randomProd(), type: randomManufactureType(), endAt: randomDate(5) } })
 

@@ -10,7 +10,9 @@
 export default {
   name: 'OrderFilmNewProdConfirm',
   components: {},
-  data: () => ({}),
+  data() {
+    return {}
+  },
   methods: {
     confirm() {
       const { name, orderId, note } = this.converted
@@ -19,6 +21,7 @@ export default {
         payload: { parent_id: orderId, child: 'products', value: name, note },
       })
       this.$store.dispatch('prod/film/Worker', { name: 'insert', payload: this.converted })
+      this.$store.dispatch('operation/plan/Worker', { name: 'insert', payload: this.converted })
     },
   },
   computed: {
