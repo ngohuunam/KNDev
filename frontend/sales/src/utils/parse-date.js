@@ -45,7 +45,7 @@ export const dateToUnix = (dateStr, hasTime) => {
 export const unixTime = time => (time ? (typeof time === 'string' ? dateToUnix(time) : time.getTime()) : 0)
 
 export const tToString = (timestamp, addTime, nullString, yFormat) => {
-  const _yFormat = yFormat ? yFormat : '2-digit'
+  const _yFormat = yFormat || 'numeric'
   const _opt = { day: '2-digit', month: '2-digit', year: _yFormat }
   const _optAddTime = { day: '2-digit', month: '2-digit', year: _yFormat, hour: '2-digit', minute: '2-digit' }
   if (timestamp instanceof Date) return timestamp.toLocaleDateString('vi', addTime ? _optAddTime : _opt)

@@ -89,6 +89,13 @@ const MODIFIER = {
       target[field].unshift(value)
     })
   },
+  /* updateObj: { $concat: { products: ['a', 'b']}} */
+  $concat: function(target, fields) {
+    Object.entries(fields).map(([field, value]) => {
+      checkArray(target, field, '$concat')
+      target[field] = target[field].concat(value)
+    })
+  },
 }
 
 const checkArray = (target, field, op) => {

@@ -1,22 +1,6 @@
 <template>
   <div>
-    <DataTable
-      :value="list"
-      dataKey="_id"
-      :selection.sync="selected"
-      :filters="filters"
-      :rowHover="true"
-      :loading="loading"
-      loadingIcon=""
-      :rowClass="rowClass"
-      @row-click="onRowClick"
-      paginator
-      :rows="10"
-      paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-      :rowsPerPageOptions="[10, 25, 50]"
-      currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
-      removableSort
-    >
+    <NewDataTable :value="list" :selection.sync="selected" :filters="filters" :loading="loading" :rowClass="rowClass" @row-click="onRowClick">
       <!-------------------- < Header > --------------------->
       <template #header>
         <div class="table-header-container">
@@ -106,19 +90,19 @@
         </template>
       </NewColumn>
       <!-------------------- < Column: Film > --------------------->
-      <NewColumn v-if="enlarge" field="orderId" header="Film" bodyStyle="text-align: left;">
+      <NewColumn v-if="enlarge" field="parent" header="Film" bodyStyle="text-align: left;">
         <template #filter>
-          <InputText type="text" v-model="filters['orderId']" class="p-column-filter" />
+          <InputText type="text" v-model="filters['parent']" class="p-column-filter" />
         </template>
         <template #body="{ data: { _id }, data, column: { field } }">
           <Button
             v-if="cellBtnVisible(_id, field)"
             v-tooltip.top="cellQuickLog(_id, field)"
             :icon="cellIcon(_id, field)"
-            :label="data[field]"
+            :label="data[field]._id.replace(/_/g, ' ')"
             @click="checkChange($event, _id, field)"
           />
-          <span v-else> {{ data[field].replace(/_/g, ' ') }} </span>
+          <span v-else> {{ data[field]._id.replace(/_/g, ' ') }} </span>
         </template>
       </NewColumn>
       <!-------------------- < Column: Status > --------------------->
@@ -138,42 +122,40 @@
           <span v-else> {{ data[field] }} </span>
         </template>
       </NewColumn>
-      <!-------------------- < Column: Process > --------------------->
-      <NewColumn v-if="enlarge" field="process" header="Process">
+      <!-------------------- < Column: Processes > --------------------->
+      <NewColumn v-if="enlarge" field="processes" header="Processes" bodyStyle="text-align: left" headerStyle="width: 300px">
         <template #filter>
-          <InputText type="text" v-model="filters['process']" class="p-column-filter" />
+          <InputText type="text" v-model="filters['processes']" class="p-column-filter" />
+        </template>
+        <template #body="{ data: { _id, logs }, data, column: { field } }">
+          <div class="child-cell">
+            <div v-for="(child_name, i) in data[field]" :key="i">
+              <Button
+                v-if="childBtnVisible(_id, child_name, 'operation.plan')"
+                v-tooltip.top="childQuickLog(logs, child_name)"
+                :icon="childIcon(_id, child_name, 'operation.plan')"
+                :label="child_name"
+                @click="childCheck($event, _id, child_name, data[field], field)"
+              />
+              <span v-else> {{ childText(child_name, i, data[field].length) }} </span>
+            </div>
+          </div>
         </template>
       </NewColumn>
-      <!-------------------- < Column: Plans > --------------------->
-      <NewColumn field="plans" header="Plans">
+      <!-------------------- < Column: Plan > --------------------->
+      <NewColumn field="plan" header="Plan">
         <template #filter>
-          <InputText type="text" v-model="filters['plans']" class="p-column-filter" />
+          <InputText type="text" v-model="filters['plan']" class="p-column-filter" />
         </template>
         <template #body="{ data: { _id }, data, column: { field } }">
           <Button
             v-if="cellBtnVisible(_id, field)"
             v-tooltip.top="cellQuickLog(_id, field)"
             :icon="cellIcon(_id, field)"
-            :label="data[field].join(', ')"
+            :label="data[field]"
             @click="checkChange($event, _id, field)"
           />
-          <span v-else> {{ data[field].join(', ') }} </span>
-        </template>
-      </NewColumn>
-      <!-------------------- < Column: Jobs > --------------------->
-      <NewColumn field="jobs" header="Jobs">
-        <template #filter>
-          <InputText type="text" v-model="filters['jobs']" class="p-column-filter" />
-        </template>
-        <template #body="{ data: { _id }, data, column: { field } }">
-          <Button
-            v-if="cellBtnVisible(_id, field)"
-            v-tooltip.top="cellQuickLog(_id, field)"
-            :icon="cellIcon(_id, field)"
-            :label="data[field].join(', ')"
-            @click="checkChange($event, _id, field)"
-          />
-          <span v-else> {{ data[field].join(', ') }} </span>
+          <span v-else> {{ data[field] }} </span>
         </template>
       </NewColumn>
       <!-------------------- < Column: Create At > --------------------->
@@ -230,7 +212,7 @@
             :label="data[field]"
             @click="checkChange($event, _id, field)"
           />
-          <span v-else> {{ data[field] }} </span>
+          <span v-else> {{ data[field].material }} </span>
         </template>
       </NewColumn>
       <!-------------------- < Footer > --------------------->
@@ -238,74 +220,26 @@
         <NewMessage v-for="({ text, severity }, i) in messages" :key="i" @close-message="closeMessage" :index="i" :severity="severity">{{ text }}</NewMessage>
       </template>
       <template #empty><div class="text-center">No records found.</div></template>
-    </DataTable>
+    </NewDataTable>
     <ContextMenu :model="menuModel" ref="cm" />
   </div>
 </template>
 
 <script>
 import { mapState } from 'vuex'
+import columnMixin from '../../../mixin/column-mixin'
 
 export default {
   name: 'ProdFilmColumn',
   props: ['_enlarge'],
+  mixins: [columnMixin],
   components: {},
   data() {
     return {
-      filters: {},
       selectedProdsHasJob: false,
-      // enlarge: true,
-      socketError: 'Disconnected',
-      rowClickData: null,
-      menuModel: [],
-      tempSelected: [],
-      menuModelNormal: [
-        { label: ``, icon: 'pi pi-dollar' },
-        { separator: true },
-        { separator: true },
-        { label: 'Add plan', icon: 'pi pi-fw pi-upload', command: () => this.add() },
-        { label: 'View', icon: 'pi pi-fw pi-search', command: () => this.edit() },
-        { label: 'Delete', icon: 'pi pi-fw pi-times', command: () => this.deleteThis() },
-      ],
-      menuRowCheckModel: [{ label: 'Check', icon: 'pi pi-thumbs-up', command: () => this.rowCheck() }],
-      menuCellCheckChangeModel: [],
     }
   },
   methods: {
-    reSync() {
-      this.$store.dispatch('order/film/reSync', this.ui)
-    },
-    cellQuickLog(_id, field) {
-      const _change = this.ui[_id].changes[field]
-      const log = _change.logs[0]
-      return `${log.by.slice(0, log.by.indexOf('@'))} - ${this.$tToString(log.at, true)}`
-    },
-    rowCheck() {
-      const payload = { type: 'new', year: this.year, db: 'prod', col: 'film', _id: this.rowClickData.data._id }
-      if (this.rowClickData.data.dropped) payload.type = 'dropped'
-      this.$store.commit('user/Worker', { name: 'rowCheck', payload })
-      this.$store.commit('user/Worker', { name: 'changeCheck', payload: { _id: this.rowClickData.data.orderId, field: 'products', year: this.year, path: 'order.film' } })
-    },
-    checkChange(e, _id, field) {
-      console.log('checkChange field:', field)
-      const _change = this.ui[_id].changes[field]
-      const _logs = _change.logs.map(log => ({
-        label: `${log.type}${log.name ? ` - ${log.name}` : ''} - ${log.by.slice(0, log.by.indexOf('@'))} - ${this.$tToString(log.at, true)}${log.note ? ` - ${log.note}` : ''}`,
-      }))
-      this.menuCellCheckChangeModel = [
-        { label: `Old: ${_change.old}`, icon: 'pi pi-minus-circle' },
-        { label: `New: ${_change.new}`, icon: 'pi pi-check-circle' },
-        { label: `Logs`, icon: 'pi pi-list', items: _logs },
-        { separator: true },
-        {
-          label: 'Check',
-          icon: 'pi pi-thumbs-up',
-          command: () => this.$store.commit('user/Worker', { name: 'changeCheck', payload: { _id, field, year: this.year, path: 'prod.film' } }),
-        },
-      ]
-      this.menuModel = this.menuCellCheckChangeModel
-      this.$refs.cm.show(e)
-    },
     onRowClick({ originalEvent, data, index }) {
       const {
         target: {
@@ -315,74 +249,47 @@ export default {
       } = originalEvent
       if (!classList.contains('p-checkbox-box') && !pClassList.contains('p-checkbox-box')) {
         this.rowClickData = { data, index }
-        this.menuModelNormal[0].label = 'Prod Name: '.concat(data.name)
-        this.menuModel = data.dropped || !this.ui[data._id] || !this.ui[data._id].new ? this.menuRowCheckModel : this.menuModelNormal
+        if (data.dropped || !this.ui[data._id] || !this.ui[data._id].new) this.menuModel = [{ label: 'Check', icon: 'pi pi-thumbs-up', command: () => this.rowCheck('products') }]
+        else {
+          this.menuModelNormal[0].label = data.name.slice(0)
+          if (data.processes.length) this.menuModelNormal[3] = { label: 'Add plan', icon: 'pi pi-upload', command: e => this.add(e, 'plan') }
+          else
+            this.menuModelNormal[3] = {
+              label: 'Add Process',
+              icon: 'pi pi-upload',
+              items: this.$store.state.standards.reduce(
+                (pre, { type, db, cols, _id, label, properties }) => [
+                  ...pre,
+                  ...(type === 'procs' && db === 'prod' && ['film', data.tag].every(tag => cols.includes(tag))
+                    ? [{ label, _id, properties, icon: 'pi pi-sort-numeric-down', command: e => this.add(e, 'process') }]
+                    : []),
+                ],
+                [],
+              ),
+            }
+
+          this.menuModel = this.menuModelNormal
+        }
         this.$refs.cm.show(originalEvent)
       }
     },
-    add() {
-      this.$emit('open-dialog', 'addPlanForm', 'Create', 'Add new Plan', this.rowClickData.data)
-    },
-    edit() {
-      console.log(this.rowClickData)
-    },
-    allRowCheck(type) {
-      this.$store.commit('user/Worker', { name: 'allRowCheck', payload: { year: this.year, path: 'order.film', list: this.list, type } })
-    },
-    allChangedCheck() {
-      this.$store.commit('user/Worker', { name: 'allChangeCheck', payload: { year: this.year, path: 'order.film' } })
-    },
-    deleteThis() {
-      this.tempSelected = [this.rowClickData.data]
-      this.confirmDel()
-    },
-    load() {
-      this.$store.commit('prod/film/Worker', { name: 'load', payload: { orderIds: this.selected.map(item => item._id) } })
-      if (this.enlarge && this.selected.length) this.enlarge = false
-    },
-    closeMessage(idx) {
-      this.$store.commit('prod/film/spliceMess', idx)
-    },
-    create() {
-      this.$emit('open-dialog', 'newOrderForm', 'Create', 'Add new film')
-    },
-    creates() {
-      this.$emit('open-dialog', 'newOrdersForm', 'Create', 'Add some new films', null, '1200px', true)
-    },
-    confirmDel() {
-      this.$emit('open-dialog', 'deleteConfirm', this.selected.length > 1 ? 'Delete All' : 'Delete', 'Confirm Delete - This action is undone')
-    },
-    rowClass({ dropped, _id }) {
-      // return data.dropped ? (this.ui[data._id] && this.ui[data._id].dropped ? 'r-hide' : 'r-deleted') : this.ui[data._id] && this.ui[data._id].new ? '' : 'r-new'
-      return dropped ? 'r-deleted' : this.ui[_id] && this.ui[_id].new ? '' : 'r-new'
-    },
-    rowError(_id, dropped) {
-      const err = dropped && this.ui[_id] && this.ui[_id].dropped
-      return err > 0
-    },
-    btnIcon(name, icon) {
-      return this.icon.header[name] ? 'pi pi-spin pi-spinner' : 'pi ' + icon
-    },
-    cellIcon(_id, field) {
-      return this.icon.cell[_id] && this.icon.cell[_id][field] ? this.icon.cell[_id][field] : ''
-    },
-    cellBtnVisible(_id, field) {
-      return this.ui[_id] && this.ui[_id].new && !this.ui[_id].dropped && typeof this.ui[_id].changes[field] === 'object'
+    add({ item }, type) {
+      console.log(item)
+      console.log(type)
+      if (type === 'process') {
+        const { properties: processes } = item
+        const parent_id = this.rowClickData.data._id
+        const value = processes.map(prop => prop.key)
+        this.$store.dispatch('prod/film/Worker', {
+          name: 'adds',
+          payload: { parent_id, child: 'processes', value, note: '' },
+        })
+        this.$store.dispatch('operation/plan/inserts', { _id: parent_id, processes })
+      }
     },
   },
   watch: {},
   computed: {
-    ui() {
-      return this.$store.getters.ui('prod.film')
-    },
-    enlarge: {
-      get() {
-        return this._enlarge
-      },
-      set(v) {
-        this.$emit('toggle-enlarge', v)
-      },
-    },
     loadBtnProp() {
       let prop = { label: 'Load', icon: 'pi pi-download', disabled: true }
       // if (!this.selected.length && !this.hasJobList) prop = { label: 'No Select', icon: 'pi pi-download', disabled: true }
@@ -400,35 +307,19 @@ export default {
         this.selectedProdsHasJob = values.some(v => v.jobs.length > 0)
       },
     },
-    hasNew() {
-      return this.list.some(({ _id }) => !this.ui[_id] || !this.ui[_id].new)
-    },
-    hasDropped() {
-      return this.list.some(o => o.dropped && this.ui[o._id] && !this.ui[o._id].dropped)
-    },
-    hasChanged() {
-      return this.list.some(({ _id }) => this.ui[_id] && this.$isObjEmpty(this.ui[_id].changes) === false && Object.values(this.ui[_id].changes).some(ch => typeof ch === 'object'))
-    },
-    // hasJobList() {
-    //   return this.jobList.length > 0
-    // },
-    messages: {
-      get() {
-        return this.$store.state.prod.film.messages
-      },
-      set(value) {
-        this.$store.commit('prod/film/pushMess', value)
-      },
+    hasProcesses() {
+      return this.rowClickData?.data.processes.length > 0
     },
     ...mapState({
-      list: state => state.prod.film.list,
-      loading: state => state.prod.film.loading,
-      icon: state => state.prod.film.icon,
-      jobList: state => state?.job?.film?.list,
-      year: state => state.year,
+      state: state => state.prod.film,
+      processes: state => state.operation.plan.list,
     }),
   },
-  created: function() {},
+  created: function() {
+    this.dot_path = 'prod.film'
+    this.parent_path = 'order.film'
+    this.slash_path = 'prod/film'
+  },
   mounted: function() {},
 }
 </script>

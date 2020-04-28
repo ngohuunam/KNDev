@@ -1,11 +1,11 @@
 <template>
   <div style="text-align: left;">
-    <div class="p-grid p-fluid" v-for="({ label, comp, key, options, showTime }, i) in labels" :key="i">
+    <div class="p-grid p-fluid" v-for="({ label, comp, key, options, showTime, optionLabel, optionValue }, i) in labels" :key="i">
       <div class="p-col-4" style="margin: auto;">
         <label>{{ label }}</label>
       </div>
       <div class="p-col-8">
-        <component :is="comp" v-model="newOrder[key]" :options="options" :showTime="showTime" />
+        <component :is="comp" v-model="newOrder[key]" :options="options" :showTime="showTime" :optionLabel="optionLabel" :optionValue="optionValue" />
       </div>
     </div>
     <!-- <div class="p-grid p-fluid"> -->
@@ -50,6 +50,15 @@ export default {
   data() {
     return {
       note: '',
+      labels: [
+        { label: 'Foreign Title:', comp: 'InputText', key: 'foreignTitle' },
+        { label: 'Team:', comp: 'Dropdown', key: 'team', options: ['CJHK', 'Disney', 'Local', 'UIP', 'WB'] },
+        { label: 'Premiere Date:', comp: 'NewCalendar', key: 'premiereDate' },
+        { label: 'End Date:', comp: 'NewCalendar', key: 'endAt', showTime: false },
+        { label: 'Vietnamese Title:', comp: 'InputText', key: 'vietnameseTitle' },
+        { label: 'Process:', comp: 'Dropdown', key: 'processes', options: [], optionLabel: 'label', optionValue: 'properties' },
+        { label: 'Products:', comp: 'MultiSelect', key: 'products', options: [], optionLabel: 'label', optionValue: 'properties', placeholder: 'Select Products' },
+      ],
     }
   },
   methods: {
@@ -76,21 +85,21 @@ export default {
         }
       }
     },
-    doCreate() {
-      if (this.newOrder.foreignTitle) {
-        this.$store.commit('order/film/create', { note: this.$randomSentence() })
-        this.$emit('switch-comp', 'newOrderConfirm', 'Save', 'Save new order confirm')
-        this.dialogMess = { text: '', severity: '' }
-      } else this.dialogMess = { text: 'Foreign Title required', severity: 'error' }
-    },
+    // doCreate() {
+    //   if (this.newOrder.foreignTitle) {
+    //     this.$store.commit('order/film/create', { note: this.$randomSentence() })
+    //     this.$emit('switch-comp', 'newOrderConfirm', 'Save', 'Save new order confirm')
+    //     this.dialogMess = { text: '', severity: '' }
+    //   } else this.dialogMess = { text: 'Foreign Title required', severity: 'error' }
+    // },
   },
   computed: {
     state() {
       return this.$store.state.order.film
     },
-    labels() {
-      return this.state.labels
-    },
+    // labels() {
+    //   return this.state.labels
+    // },
     dialogMess: {
       get() {
         return this.$store.state.dialog.message
@@ -107,12 +116,17 @@ export default {
         return this.state.new
       },
       set(value) {
+        console.log(value)
         this.$store.commit('order/film/setState', { key: 'new', data: value })
       },
     },
   },
   created() {
     this.newOrder = this.newOrder || this.$randomNewOrderFilm(this.construct)
+    const _processLabel = this.labels.find(label => label.key === 'processes')
+    _processLabel.options = this.$store.state.standards.filter(({ type, db, cols }) => type === 'procs' && db === 'order' && cols.includes('film'))
+    const _productsLabel = this.labels.find(label => label.key === 'products')
+    _productsLabel.options = this.$store.state.standards.filter(({ type, cols }) => type === 'prod' && cols.includes('film'))
   },
   beforeDestroy() {},
 }

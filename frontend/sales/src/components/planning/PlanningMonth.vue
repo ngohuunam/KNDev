@@ -1,12 +1,25 @@
 <template>
-  <TreeTable :value="values">
-    <Column field="name" header="Name" :expander="true" headerStyle="width: 100px" bodyStyle="padding: 0; text-align: left;"></Column>
-    <Column field="time" :columnKey="day" v-for="day of days" :key="day" :header="day" headerStyle="width: 80px" bodyClass="table-tree-table">
-      <template #body="slotProps">
-        <div :style="`padding: 0.85em 0.857em;${isInDay(slotProps, day)}`" />
-      </template>
-    </Column>
-  </TreeTable>
+  <div class="p-grid">
+    <div class="p-col-2">
+      <Listbox v-model="selected" dataKey="_id" :options="list" :multiple="true" :filter="true" listStyle="text-align: left, max-height: 1500px;" style="width:100%">
+        <template #option="slotProps">
+          <div class="p-clearfix list-item" :style="styles[slotProps.option.status]">
+            <span>{{ slotProps.option._id }}</span>
+          </div>
+        </template>
+      </Listbox>
+    </div>
+    <div class="p-col-10">
+      <TreeTable :value="values">
+        <Column field="name" header="Name" :expander="true" headerStyle="width: 100px" bodyStyle="padding: 0; text-align: left;"></Column>
+        <Column field="time" :columnKey="day" v-for="day of days" :key="day" :header="day" bodyClass="table-tree-table">
+          <template #body="slotProps">
+            <div :style="`padding: 0.85em 0.857em;${isInDay(slotProps, day)}`" />
+          </template>
+        </Column>
+      </TreeTable>
+    </div>
+  </div>
 </template>
 
 <script>
@@ -20,11 +33,12 @@ export default {
       month: 0,
       year: 0,
       values: [],
-      columns: [
+      options: [
         { field: 'name', header: 'Vin', expander: true },
         { field: 'size', header: 'Size' },
         { field: 'type', header: 'Type' },
       ],
+      styles: { Created: 'background-color: #007ad9; color: white' },
     }
   },
   methods: {
@@ -36,20 +50,20 @@ export default {
         node,
         node: {
           data: { time, color },
+          children,
         },
       },
       day,
     ) {
       if (node.root) {
-        const childs = node.children
-        const len = childs.length
+        const len = children.length
         let style
         for (let i = 0; i < len; ++i) {
-          const data = childs[i].data
+          const _data = children[i].data
           const {
             time: { start, end },
-          } = data
-          style = this.checkDay(start, end, data.color, day)
+          } = _data
+          style = this.checkDay(start, end, color, day)
           if (style) break
         }
         return style
@@ -78,6 +92,18 @@ export default {
     this.values = json.root
     console.log('this.values', this.values)
   },
-  computed: {},
+  computed: {
+    list() {
+      return this.$store.state.operation.plan.list
+    },
+    selected: {
+      get() {
+        return this.$store.state.operation.plan.selected
+      },
+      set(values) {
+        this.$store.commit('operation/plan/setState', { key: 'selected', data: values })
+      },
+    },
+  },
 }
 </script>

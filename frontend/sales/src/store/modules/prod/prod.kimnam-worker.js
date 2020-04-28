@@ -1,5 +1,6 @@
 import { Worker } from '../shared/worker'
-import { dbName, opts, preInsert } from './options'
+import { dbName, opts } from './options'
+import { isObjEmpty } from '../../../utils'
 
 const { console } = self
 
@@ -42,8 +43,8 @@ const onMessError = e => {
 }
 
 class ProdWorker extends Worker {
-  constructor(userId, token, dbName, opts, commit, commitRoot, preInsert) {
-    super(userId, token, dbName, opts, commit, commitRoot, preInsert)
+  constructor(userId, token, dbName, commit, commitRoot) {
+    super(userId, token, dbName, commit, commitRoot)
   }
   // load({ _ids }, colName) {
   //   this.commit('setState', { key: 'loading', data: false }, colName)
@@ -53,23 +54,20 @@ class ProdWorker extends Worker {
   query({ queryObj }, colName) {
     this.commit('setState', { key: 'loading', data: false }, colName)
     console.log('(query) queryObj', queryObj)
-    if (queryObj) return this.pullList(colName, queryObj).then(() => this.commitList(colName))
+    console.log('(query) this.RxCol[colName]', this.RxCol[colName])
+    if (queryObj && isObjEmpty(queryObj) === false) return this.pullList(colName, queryObj).then(() => this.commitList(colName))
   }
 }
 
-const init = (_id, token, queryParams, lastQueries) => {
-  worker = new ProdWorker(_id, token, dbName, commit, commitRoot, preInsert)
-  worker.init(opts, queryParams).then(() => {
-    if (lastQueries) {
-      Object.entries(lastQueries).forEach(([colName, queryObj]) => worker.query({ queryObj }, colName))
-    }
-  })
+const init = (userId, token, queryParams, lastQueries) => {
+  worker = new ProdWorker(userId, token, dbName, commit, commitRoot)
+  worker.init(opts, queryParams).then(() => Object.entries(lastQueries).forEach(([colName, queryObj]) => worker.query({ queryObj }, colName)))
 }
 
 let countInterval = 0
 
-const getStatus = ({ _id, token, colNames, queryParams, lastQueries }) => {
-  if (!worker) init(_id, token, queryParams, lastQueries)
+const getStatus = ({ _id: userId, token, colNames, queryParams, lastQueries }) => {
+  if (!worker) init(userId, token, queryParams, lastQueries)
   else if (worker && worker.state === 'ready') colNames.forEach(colName => worker.commitList(colName))
   else if (worker && worker.state === 'init') {
     if (countInterval < 11) {

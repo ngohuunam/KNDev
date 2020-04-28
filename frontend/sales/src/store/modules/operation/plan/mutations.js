@@ -6,6 +6,11 @@ export const setStates = (state, { keys, datas }) => {
   keys.map((key, idx) => (state[key] = datas[idx]))
 }
 
+export const unshift = (state, { key, data }) => {
+  const _state = state[key]
+  _state.unshift(data)
+}
+
 export const pushMess = (state, value) => {
   state.messages.push(value)
 }

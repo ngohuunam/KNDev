@@ -43,8 +43,8 @@ const hotReloadElements = [
   './modules/order',
   './modules/prod',
   './modules/operation',
-  './modules/Home',
-  './modules/Dialog',
+  './modules/home',
+  './modules/dialog',
 ]
 
 if (module.hot) {

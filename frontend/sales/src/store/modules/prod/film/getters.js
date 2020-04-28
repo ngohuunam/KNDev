@@ -18,6 +18,7 @@ export const newProdConfirmTableProperties = ({ converted }) => {
       { name: 'Process', value: converted.process },
       { name: 'Details:', value: htmlStrip(converted.details) },
       { name: 'Deadline', value: tToString(converted.endAt, true, 'Not assign yet', 'numeric') },
+      { name: 'Processes', value: converted.processes.map(process => process.key.toProperCase()).join(', ') },
     ]
   else return []
 }

@@ -1,5 +1,5 @@
-const planSchema = {
-  film: {
+const operationSchema = {
+  plan: {
     title: 'Plan - schema',
     description: 'describes a plan',
     version: 0,
@@ -9,44 +9,106 @@ const planSchema = {
         type: 'string',
         primary: true,
       },
-      type: {
+      label: {
         type: 'string',
         default: '',
       },
-      collection: {
-        type: 'string',
-        default: 'Film',
-      },
-      prod: {
-        type: 'string',
-        default: '',
-      },
-      by: {
-        type: 'string',
-        default: '',
-      },
-      created: {
+      createdAt: {
         type: 'number',
         default: 0,
       },
-      for: {
+      createdBy: {
         type: 'string',
         default: '',
       },
+      level: {
+        type: 'number',
+        default: 0,
+      },
+      source: {
+        type: 'string',
+        default: '',
+        check: true,
+      },
+      target: {
+        type: 'string',
+        default: '',
+        check: true,
+      },
+      require: {
+        type: 'string',
+        default: '',
+        check: true,
+      },
+      description: {
+        type: 'string',
+        default: '',
+        check: true,
+      },
+      main: {
+        type: 'string',
+        default: '',
+        check: true,
+      },
+      support: {
+        type: 'string',
+        default: '',
+        check: true,
+      },
       start: {
+        type: 'number',
+        default: 0,
+        check: true,
+      },
+      aot: {
         type: 'number',
         default: 0,
       },
       end: {
         type: 'number',
         default: 0,
+        check: true,
       },
       finish: {
         type: 'number',
         default: 0,
         check: true,
       },
+      types: {
+        type: 'array',
+        default: [],
+        check: true,
+      },
       status: {
+        type: 'string',
+        default: '',
+        check: true,
+      },
+      priority: {
+        type: 'number',
+        default: 0,
+        check: true,
+      },
+      dropped: {
+        type: 'number',
+        default: 0,
+      },
+      jobs: {
+        type: 'object',
+        default: {},
+        check: true,
+      },
+      tasks: {
+        type: 'object',
+        default: {},
+        check: true,
+      },
+      previous: {
+        type: 'string',
+        default: '',
+        check: true,
+      },
+      next: {
         type: 'string',
         default: '',
         check: true,
@@ -56,26 +118,13 @@ const planSchema = {
         default: 0,
         check: true,
       },
-      dropped: {
-        type: 'number',
-        default: 0,
-      },
       logs: {
         type: 'array',
-        item: {
-          type: 'object',
-          properties: {},
-        },
         default: [],
-      },
-      process: {
-        type: 'object',
-        properties: {},
-        check: true,
       },
     },
     compoundIndexes: [],
   },
 }
 
-export default planSchema
+export default operationSchema

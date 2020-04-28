@@ -6,7 +6,7 @@ import PlanModule from './plan'
 
 export default {
   namespaced: true,
-  modules: { film: PlanModule },
+  modules: { plan: PlanModule },
   state,
   getters,
   actions,

@@ -1,20 +1,21 @@
-import { tToString, year } from '../../../../utils'
+import { tToString } from '../../../../utils'
 
-export const ui = (state, getters, { user }) => user.state[year].order.film.ui
+// export const ui = (state, getters, { user }) => user.state[year].order.film.ui
 
-export const newOrderConfirmTableProperties = ({ converted }) => {
-  if (converted)
-    return [
-      { name: 'ID', value: converted._id },
-      { name: 'Foreign Title', value: converted.foreignTitle },
-      { name: 'Vietnamese Title', value: converted.vietnameseTitle },
-      { name: 'Client', value: converted.client },
-      { name: 'Team', value: converted.team },
-      { name: 'NKC', value: tToString(converted.premiereDate, false, '', 'numeric') },
-      { name: 'Deadline', value: tToString(converted.endAt, true, 'Empty', 'numeric') },
-    ]
-  else return []
-}
+export const newOrderConfirmTableProperties = ({ converted }) =>
+  converted
+    ? [
+        { name: 'ID', value: converted._id },
+        { name: 'Foreign Title', value: converted.foreignTitle },
+        { name: 'Vietnamese Title', value: converted.vietnameseTitle },
+        { name: 'Client', value: converted.client },
+        { name: 'Team', value: converted.team },
+        { name: 'NKC', value: tToString(converted.premiereDate, false, '', 'numeric') },
+        { name: 'Deadline', value: tToString(converted.endAt, true, 'Empty', 'numeric') },
+        { name: 'Processes', value: converted.processes.map(process => process.key.toProperCase()).join(', ') },
+        { name: 'Products', value: converted.products.map(product => product.name.toProperCase()).join(', ') },
+      ]
+    : []
 
 // export const newProdConfirmTableProperties = state => {
 //   if (state.newProdConverted)

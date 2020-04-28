@@ -13,10 +13,15 @@ export default {
   data: () => ({}),
   methods: {
     confirm() {
-      this.$store.dispatch('order/film/Worker', { name: 'insert', payload: { ...this.$store.state.order.film.converted } })
+      this.$store.dispatch('order/film/Worker', { name: 'insert', payload: this.converted })
+      this.$store.dispatch('operation/plan/inserts', this.converted)
+      this.$store.dispatch('prod/film/inserts', this.converted)
     },
   },
   computed: {
+    converted() {
+      return this.$store.state.order.film.converted
+    },
     value() {
       return this.$store.getters['order/film/newOrderConfirmTableProperties']
     },

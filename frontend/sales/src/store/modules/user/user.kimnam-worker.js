@@ -146,9 +146,8 @@ const saveError = (type, e) => {
   commit('pushToasts', { severity: 'error', summary: 'SAVE ERROR', detail: `Err: ${e.message}`, life: 10000 })
 }
 
-const query = ({ year, db, col, query }) => {
-  const storePath = `${db}.${col}`
-  const colPath = `${year}.${storePath}`
+const query = ({ year, path, query }) => {
+  const colPath = `${year}.${path}`
   rxUser
     .atomicUpdate(oldData => {
       const state = preUpdate(oldData)
@@ -257,11 +256,15 @@ const changeCheck = ({ _id, field, year, path }) => {
   commit('checkAndSetStateDeepNested', { dotPath, keyCheck: _id, field, key: 'cell', value: iconLoading })
   rxUser
     .atomicUpdate(oldData => {
-      const uiPath = `${year}.${path}.ui`
-      const changesPath = `${uiPath}.${_id}.changes`
       const state = preUpdate(oldData)
-      let ui_changes = objectDeep(changesPath, state)
-      ui_changes[field] = Date.now()
+      const uiPath = `${year}.${path}.ui`
+      const ui = objectDeep(uiPath, state)
+      ui[_id] = ui[_id] || { new: 0, changes: {}, dropped: 0 }
+      const changesPath = `${uiPath}.${_id}.changes`
+      console.log(`(changeCheck) changesPath:`, changesPath)
+      const changes = ui[_id].changes
+      console.log(`(changeCheck) changes:`, changes)
+      changes[field] = Date.now()
       state.last = { type: 'change-check', path: changesPath, field }
       return oldData
     })

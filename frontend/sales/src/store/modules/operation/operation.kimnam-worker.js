@@ -1,6 +1,5 @@
 import { Worker } from '../shared/worker'
 import { dbName, opts } from './options'
-// import { prepareInsert } from '../../../utils'
 
 const { console } = self
 
@@ -41,29 +40,23 @@ const onMessError = e => {
 }
 
 class PlanWorker extends Worker {
-  constructor(userId, token, dbName, opts, commit, commitRoot) {
-    super(userId, token, dbName, opts, commit, commitRoot)
-    // this.repare = prepareInsert[this.dbName]
-  }
-  add({ parent_id, child, value, note }, colName) {
-    console.log(child)
-    this.RxCol[colName]
-      .findOne(parent_id)
-      .update({ update: { $unshift: { [child]: value } }, type: 'Add', note })
-      .then(() => this.commitCloseDialog('Add'))
-      .catch(e => console.error(e))
+  constructor(userId, token, dbName, commit, commitRoot) {
+    super(userId, token, dbName, commit, commitRoot)
   }
 }
 
-const init = (_id, token, queryParams) => {
-  worker = new PlanWorker(_id, token, dbName, commit, commitRoot)
-  worker.init(opts, queryParams).then(() => worker.commitListAll())
+const init = (userId, token, queryParams) => {
+  worker = new PlanWorker(userId, token, dbName, commit, commitRoot)
+  worker
+    .init(opts, queryParams)
+    .then(() => worker.pullListAll())
+    .then(() => worker.commitListAll())
 }
 
 let countInterval = 0
 
-const getStatus = ({ _id, token, colNames, queryParams }) => {
-  if (!worker) init(_id, token, queryParams)
+const getStatus = ({ _id: userId, token, colNames, queryParams }) => {
+  if (!worker) init(userId, token, queryParams)
   else if (worker && worker.state === 'ready') colNames.forEach(colName => worker.commitList(colName))
   else if (worker && worker.state === 'init') {
     if (countInterval < 11) {

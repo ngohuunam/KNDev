@@ -5,7 +5,6 @@ export const create = (state, newProd) => {
   const _newProd = { ...newProd }
   _newProd.name = _newProd.name.toProperCase()
   _newProd.endAt = _newProd.endAt ? _newProd.endAt.getTime() : 0
-  _newProd.status = 'Created'
   state.converted = _newProd
 }
 

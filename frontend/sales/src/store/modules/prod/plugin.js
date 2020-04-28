@@ -8,7 +8,9 @@ const ProdPlugin = store => {
         _id,
         state: {
           [year]: {
-            prod: { film },
+            prod: {
+              film: { ui: p_ui, query: queryObj },
+            },
             order: {
               film: { ui: o_ui },
             },
@@ -28,8 +30,8 @@ const ProdPlugin = store => {
   }
   const queryParams = {}
   const colNames = ['film']
-  queryParams.film = { prodUi: film.ui, orderUi: o_ui }
-  const lastQueries = { film: film.query }
+  queryParams.film = { prodUi: p_ui, orderUi: o_ui }
+  const lastQueries = { film: queryObj }
   myWorker.postMessage({ name: 'getStatus', payload: { _id, token, colNames, queryParams, lastQueries } })
   myWorker.onmessage = ({ data }) => {
     console.log('prod worker onmessage - data:', data)

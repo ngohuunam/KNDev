@@ -26,7 +26,6 @@ const orderSchema = {
       },
       createdBy: {
         type: 'string',
-        index: true,
         final: true,
         default: 0,
       },
@@ -38,32 +37,42 @@ const orderSchema = {
       },
       finishAt: {
         type: 'number',
-        index: true,
         default: 0,
         check: true,
       },
       foreignTitle: {
         type: 'string',
-        index: true,
         final: true,
         default: '',
       },
       vietnameseTitle: {
         type: 'string',
-        index: true,
         default: '',
         check: true,
       },
       premiereDate: {
         type: 'number',
         index: true,
-        default: 1609420532000,
+        default: 0,
         check: true,
       },
       status: {
         type: 'string',
-        index: true,
         default: 'Created',
+        check: true,
+      },
+      processes: {
+        type: 'array',
+        item: {
+          type: 'string',
+        },
+        default: [],
+        child: true,
+        check: true,
+      },
+      plan: {
+        type: 'string',
+        default: '',
         check: true,
       },
       products: {

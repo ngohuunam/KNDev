@@ -1,7 +1,7 @@
 // import { construct } from './construct'
 export * from './construct'
 import { generateName } from './name'
-export * from './prepare-insert'
+// export * from './prepare-insert'
 export * from './object'
 export * from './parse-date'
 
@@ -13,7 +13,7 @@ const toProperCase = function() {
 
 String.prototype.toProperCase = toProperCase
 String.prototype.to_id = function() {
-  return this.toProperCase().replace(/\s/g, '')
+  return this.toProperCase().replace(/\s/g, '_')
 }
 String.prototype.insert = function(index, string) {
   if (index > 0) return this.substring(0, index) + string + this.substring(index, this.length)

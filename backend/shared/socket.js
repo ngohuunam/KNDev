@@ -2,7 +2,7 @@ const socket_io = require('socket.io')
 const { secret, couchdb } = require('./setting')
 const nano = require('nano')(couchdb)
 const staffs = nano.use('staffs')
-const processes = nano.use('processes')
+const standard = nano.use('standard')
 const { verify } = require('jsonwebtoken')
 const { initLogger } = require('./logger')
 const skLogger = initLogger('shared/socketio')
@@ -49,10 +49,10 @@ sales_home.on('connect', async socket => {
   })
   const newNamespace = socket.nsp
   // broadcast to all clients in the given sub-namespace
-  const { rows } = await processes.list({ include_docs: true })
+  const { rows } = await standard.list({ include_docs: true })
   try {
-    const processesList = rows.map(row => row.doc)
-    newNamespace.emit('setState', { key: 'processes', data: processesList })
+    const data = rows.map(row => row.doc)
+    newNamespace.emit('setState', { key: 'standards', data })
   } catch (err) {
     skLogger.error(err)
   }

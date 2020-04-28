@@ -1,6 +1,6 @@
 import rxSchema from './schema'
 import { objectDeep as objDeep } from '../../../utils'
-import { initDb as initDB } from '../shared'
+import { initDb as initDB } from '../shared/rxdb'
 
 export const dbName = 'dept'
 export const objectDeep = objDeep

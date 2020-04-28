@@ -76,7 +76,7 @@ body .p-button.p-button-icon-only .p-button-text {
   width: 15em;
 }
 .p-contextmenu .p-submenu-list {
-  width: 16em;
+  width: 22em;
 }
 .margin-right {
   margin-right: 4px;
@@ -108,13 +108,9 @@ tr.r-deleted:hover {
   color: grey !important;
 }
 
-/* body .p-paginator .p-dropdown {
-  float: left;
+body .p-listbox .p-listbox-list .p-listbox-item {
+  padding: 0.25 0.857em !important;
 }
-
-body .p-paginator .p-paginator-current {
-  float: right;
-} */
 
 .r-new > td > button,
 .r-new > td > button:hover,
@@ -203,4 +199,11 @@ p {
 }
 .table-tree-table:last-child {
   border-right: 1px solid #c8c8c8;
+}
+.list-item {
+  padding: 4px 6px;
+  display: flex;
+  align-items: center;
+  height: 2em;
+  border-radius: 3px;
 }

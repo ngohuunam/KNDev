@@ -11,6 +11,7 @@ export default {
     { label: 'Premiere Date:', comp: 'NewCalendar', key: 'premiereDate' },
     { label: 'End Date:', comp: 'NewCalendar', key: 'endAt', showTime: false },
     { label: 'Vietnamese Title:', comp: 'InputText', key: 'vietnameseTitle' },
+    { label: 'Process:', comp: 'Dropdown', key: 'process', options: [] },
   ],
   converted: null,
   messages: [],

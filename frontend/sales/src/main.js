@@ -5,6 +5,55 @@ import store from './store'
 
 import DataTable from 'primevue/datatable'
 Vue.component('DataTable', DataTable)
+const NewDataTable = Vue.component('DataTable').extend({
+  props: {
+    dataKey: {
+      type: String,
+      default: '_id',
+    },
+    rows: {
+      type: Number,
+      default: 10,
+    },
+    paginator: {
+      type: Boolean,
+      default: true,
+    },
+    paginatorTemplate: {
+      type: String,
+      default: 'FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown',
+    },
+    rowsPerPageOptions: {
+      type: Array,
+      default: () => [10, 25, 50],
+    },
+    currentPageReportTemplate: {
+      type: String,
+      default: '{first}-{last}/{totalRecords}',
+    },
+    loadingIcon: {
+      type: String,
+      default: '',
+    },
+    removableSort: {
+      type: Boolean,
+      default: true,
+    },
+    rowHover: {
+      type: Boolean,
+      default: true,
+    },
+    scrollable: {
+      type: Boolean,
+      default: true,
+    },
+    scrollHeight: {
+      type: String,
+      default: '300px',
+    },
+  },
+})
+Vue.component('NewDataTable', NewDataTable)
 
 import Column from 'primevue/column'
 Vue.component('Column', Column)
@@ -83,15 +132,7 @@ const NewToast = Vue.component('Toast').extend({
   name: 'NewToast',
   methods: {
     remove(message) {
-      console.log(message)
       let index = this.messages.findIndex(mess => mess === message)
-      // const len = this.messages.length
-      // for (let i = 0; i < len; ++i) {
-      //   if (this.messages[i] === message) {
-      //     index = i
-      //     break
-      //   }
-      // }
       this.messages.splice(index, 1)
       this.$emit('close', message.detail)
     },
@@ -213,6 +254,9 @@ Vue.directive('tooltip', Tooltip)
 
 import TreeTable from 'primevue/treetable'
 Vue.component('TreeTable', TreeTable)
+
+import Listbox from 'primevue/listbox'
+Vue.component('Listbox', Listbox)
 
 import 'primevue/resources/themes/nova-light/theme.css'
 import 'primevue/resources/primevue.min.css'

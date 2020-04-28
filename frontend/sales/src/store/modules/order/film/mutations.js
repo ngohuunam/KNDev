@@ -1,9 +1,9 @@
 import Vue from 'vue'
-import { prepareInsert } from '../../../../utils'
+import { opts } from '../options'
 
 export const create = (state, note) => {
   const _newOrder = { ...state.new, ...note }
-  state.converted = prepareInsert.order.film(_newOrder)
+  state.converted = opts.film.prepare(_newOrder)
 }
 
 export const spliceListBy_id = ({ list }, { _id }) => {

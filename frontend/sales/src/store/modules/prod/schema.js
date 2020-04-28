@@ -14,20 +14,37 @@ const prodSchema = {
         index: true,
         default: '',
       },
-      orderId: {
+      label: {
         type: 'string',
-        index: true,
         default: '',
       },
-      orderDropped: {
-        type: 'number',
-        default: 0,
+      parent: {
+        type: 'object',
+        properties: {
+          _id: {
+            type: 'string',
+            default: '',
+          },
+          _rev: {
+            type: 'string',
+            default: '',
+          },
+          dropped: {
+            type: 'number',
+            default: 0,
+          },
+        },
+        default: { _id: '', _rev: '', dropped: 0 },
         check: true,
       },
       type: {
         type: 'string',
         default: '',
         check: true,
+      },
+      tag: {
+        type: 'string',
+        default: '',
       },
       createdAt: {
         type: 'number',
@@ -46,41 +63,30 @@ const prodSchema = {
       },
       finishAt: {
         type: 'number',
-        index: true,
         default: 0,
         check: true,
       },
       details: {
-        type: 'string',
-        default: '',
+        type: 'object',
         check: true,
       },
       status: {
         type: 'string',
-        index: true,
         default: '',
         check: true,
       },
-      process: {
+      processes: {
+        type: 'array',
+        item: {
+          type: 'string',
+        },
+        default: [],
+        child: true,
+        check: true,
+      },
+      plan: {
         type: 'string',
         default: '',
-      },
-      jobs: {
-        type: 'array',
-        item: {
-          type: 'string',
-        },
-        default: [],
-        child: true,
-        check: true,
-      },
-      plans: {
-        type: 'array',
-        item: {
-          type: 'string',
-        },
-        default: [],
-        child: true,
         check: true,
       },
       dropped: {
@@ -95,7 +101,6 @@ const prodSchema = {
         default: [],
       },
     },
-    required: ['name', 'orderId'],
     compoundIndexes: [
       // ['endAt', 'name'],
       // ['endAt', 'status'],

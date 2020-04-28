@@ -1,13 +1,11 @@
 <template>
   <div>
-    <div class="p-grid p-fluid" v-for="item in labels" :key="item.label">
+    <div class="p-grid p-fluid" v-for="({ label, comp, key, options, showTime, optionLabel, optionValue }, i) in labels" :key="i">
       <div class="p-col-4" style="margin: auto;">
-        <label>{{ item.label }}</label>
+        <label>{{ label }}</label>
       </div>
       <div class="p-col-8">
-        <InputText v-if="item.inputType === 'text'" v-model="newProd[item.key]" :disabled="disabled" />
-        <Calendar v-else-if="item.inputType === 'calendar'" :showTime="item.showTime" v-model="newProd[item.key]" :dateFormat="item.dateFormat" :disabled="disabled" />
-        <Dropdown v-else-if="item.inputType === 'dropdown'" v-model="newProd[item.key]" :options="item.options" :disabled="disabled" />
+        <component :is="comp" v-model="newProd[key]" :options="options" :showTime="showTime" :optionLabel="optionLabel" :optionValue="optionValue" />
       </div>
     </div>
     <NewEditor v-model="newProd.details" NewEditorStyle="height: 60px" :readOnly="disabled">
@@ -54,15 +52,23 @@ export default {
     },
   },
   data() {
-    return { note: '' }
+    return {
+      note: '',
+      labels: [
+        { label: 'Product Name:', comp: 'InputText', key: 'name' },
+        { label: 'Type:', comp: 'Dropdown', key: 'type', options: ['Offset Print', 'Digital Print', 'Social Media', 'Web', 'Other'] },
+        { label: 'End at:', comp: 'NewCalendar', key: 'endAt', showTime: false },
+        { label: 'Processes:', comp: 'Dropdown', key: 'processes', options: [], optionLabel: 'label', optionValue: 'properties' },
+      ],
+    }
   },
   methods: {
     checkExisted() {
       if (this.cp.products.some(name => name === this.newProd.name)) return this.newProd.name + ' existed'
       else {
         this.newProd._id = `${this.cp._id}:${this.newProd.name.to_id()}`
-        this.newProd.orderId = this.cp._id
-        this.newProd.orderRev = this.cp._rev
+        this.newProd.parent._id = this.cp._id
+        this.newProd.parent._rev = this.cp._rev
         this.newProd.note = this.$randomSentence()
         return ''
       }
@@ -86,28 +92,28 @@ export default {
         }
       }
     },
-    doCreate(checked) {
-      if (!checked) {
-        let text = this.checkRequired()
-        if (text) this.dialogMess = { text, severity: 'error' }
-        else {
-          text = this.checkExisted()
-          if (text) this.dialogMess = { text, severity: 'error' }
-          else {
-            this.$store.commit('prod/film/create', this.newProd)
-            this.$emit('switch-comp', 'newProdConfirm', 'Save', 'Save new product confirm', this.cp)
-            this.dialogMess = { text: '', severity: '' }
-          }
-        }
-      }
-    },
+    // doCreate(checked) {
+    //   if (!checked) {
+    //     let text = this.checkRequired()
+    //     if (text) this.dialogMess = { text, severity: 'error' }
+    //     else {
+    //       text = this.checkExisted()
+    //       if (text) this.dialogMess = { text, severity: 'error' }
+    //       else {
+    //         this.$store.commit('prod/film/create', this.newProd)
+    //         this.$emit('switch-comp', 'newProdConfirm', 'Save', 'Save new product confirm', this.cp)
+    //         this.dialogMess = { text: '', severity: '' }
+    //       }
+    //     }
+    //   }
+    // },
   },
   computed: {
-    labels() {
-      const labels = this.$store.state.prod.film.labels.slice(0)
-      labels[labels.length - 1].options = this.$store.state.processes.map(proc => proc._id)
-      return labels
-    },
+    // labels() {
+    //   const labels = this.$store.state.prod.film.labels.slice(0)
+    //   labels[labels.length - 1].options = this.$store.state.processes.map(proc => proc._id)
+    //   return labels
+    // },
     dialogMess: {
       get() {
         return this.$store.state.dialog.message
@@ -130,6 +136,8 @@ export default {
   },
   created() {
     if (!this.newProd) this.newProd = this.$randomNewProdFilm(this.construct)
+    const _processLabel = this.labels.find(label => label.key === 'processes')
+    _processLabel.options = this.$store.state.standards.filter(({ type, db, cols }) => type === 'procs' && db === 'prod' && cols.includes('film'))
   },
   beforeDestroy() {
     this.newProd = null

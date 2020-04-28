@@ -1,4 +1,5 @@
 import schema from './schema'
+import { unixTime } from '../../../utils'
 
 const checkKeys = {}
 const childs = {}
@@ -18,6 +19,24 @@ const film = {
   checkKeys: checkKeys.film,
   childs: childs.film,
   sort: { endAt: 1, premiereDate: 1, createdAt: -1 },
+  prepare: _order => {
+    // const _newOrder = { ...construct(schema.film), ..._order }
+    _order.foreignTitle = _order.foreignTitle.toProperCase()
+    _order._id = _order.foreignTitle.replace(/\s/g, '_')
+    _order.vietnameseTitle = _order.vietnameseTitle.toProperCase()
+    _order.premiereDate = unixTime(_order.premiereDate)
+    _order.endAt = unixTime(_order.endAt)
+    return _order
+  },
+  preInsert: (docObj, user_id) => {
+    docObj.createdAt = Date.now()
+    docObj.createdBy = user_id
+    docObj.status = 'Created'
+    docObj.processes = docObj.processes.map(process => process.key)
+    docObj.products = docObj.products.map(product => product.name)
+    docObj.logs.unshift({ type: 'Insert', _rev: '', at: docObj.createdAt, by: user_id, note: docObj.note })
+    delete docObj.note
+  },
   createQuery: function(ui) {
     const $nin = Object.keys(ui).filter(_id => ui[_id].dropped)
     const sortQueries = Object.keys(this.sort).map(k => ({ [k]: { $gt: null } }))
