@@ -4,7 +4,6 @@ const OperationPlugin = store => {
   const {
     commit,
     state: {
-      // plan,
       user: { token, _id },
     },
   } = store
@@ -16,7 +15,7 @@ const OperationPlugin = store => {
     worker.port.start()
     myWorker = worker.port
   }
-  const colNames = ['plan']
+  const colNames = ['process']
   const queryParams = {}
   myWorker.postMessage({ name: 'getStatus', payload: { token, _id, colNames, queryParams } })
   myWorker.onmessage = ({ data }) => {

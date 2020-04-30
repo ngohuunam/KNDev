@@ -1,25 +1,30 @@
 // import { construct } from './construct'
 export * from './construct'
 import { generateName } from './name'
+import string_proto from './string-proto'
+string_proto()
+// import array_proto from './array-proto'
+// array_proto()
 // export * from './prepare-insert'
 export * from './object'
 export * from './parse-date'
 
-const toProperCase = function() {
-  return this.replace(/([^\W_]+[^\s-]*) */g, function(txt) {
-    return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()
-  })
-}
+export const groupBy = (arr, k) => arr.reduce((acc, item) => ((acc[item[k]] = [...(acc[item[k]] || []), item]), acc), {})
+// const toProperCase = function() {
+//   return this.replace(/([^\W_]+[^\s-]*) */g, function(txt) {
+//     return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()
+//   })
+// }
 
-String.prototype.toProperCase = toProperCase
-String.prototype.to_id = function() {
-  return this.toProperCase().replace(/\s/g, '_')
-}
-String.prototype.insert = function(index, string) {
-  if (index > 0) return this.substring(0, index) + string + this.substring(index, this.length)
+// String.prototype.toProperCase = toProperCase
+// String.prototype.to_id = function() {
+//   return this.toProperCase().replace(/\s/g, '_')
+// }
+// String.prototype.insert = function(index, string) {
+//   if (index > 0) return this.substring(0, index) + string + this.substring(index, this.length)
 
-  return string + this
-}
+//   return string + this
+// }
 
 export const team = ['CJHK', 'Disney', 'Local', 'UIP', 'WB']
 export const produce = ['Offset Print', 'Digital Print', 'Social Media', 'Web', 'Other']
@@ -41,6 +46,15 @@ export const queryBy_id = (id, source) => {
   const _doc = source.find(({ _id }, idx) => {
     _idx = idx
     return _id === id
+  })
+  return { index: _idx, doc: _doc }
+}
+
+export const queryBy_key = (key, compare, source) => {
+  let _idx = -1
+  const _doc = source.find((item, idx) => {
+    _idx = idx
+    return item[key] === compare
   })
   return { index: _idx, doc: _doc }
 }

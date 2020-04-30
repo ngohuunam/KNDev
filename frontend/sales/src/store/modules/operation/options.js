@@ -11,13 +11,13 @@ Object.entries(schema).map(([colName, { properties }]) => {
   })
 })
 // childs[colName] = Object.entries(schema[colName].properties).reduce((pre, [k, v]) => (v.child ? [...pre, ...[k]] : [...pre]), [])
-const plan = {
-  colName: 'plan',
-  endpoint: 'plan_2020',
-  schema: schema.plan,
-  checkKeys: checkKeys.plan,
+const process = {
+  colName: 'process',
+  endpoint: 'process_2020',
+  schema: schema.process,
+  checkKeys: checkKeys.process,
   childs: [],
-  sort: {},
+  sort: { level: 1 },
   prepare: doc => doc,
   preInsert: null,
   createQuery() {
@@ -26,4 +26,4 @@ const plan = {
 }
 
 export const dbName = 'operation'
-export const opts = { plan }
+export const opts = { process }

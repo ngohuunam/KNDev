@@ -15,7 +15,6 @@ export default {
     }
   },
   dot_path: '',
-  year: '',
   slash_path: '',
   parent_path: '',
   methods: {
@@ -158,10 +157,11 @@ export default {
       return this.ui[_id] && this.ui[_id].new && !this.ui[_id].dropped && typeof this.ui[_id].changes[field] === 'object'
     },
   },
-  created() {
-    this.year = this.$store.state.year
-  },
+  created() {},
   computed: {
+    year() {
+      return this.$store.state.year
+    },
     ui() {
       return this.$store.getters.ui(this.dot_path)
     },

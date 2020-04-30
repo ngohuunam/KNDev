@@ -17,13 +17,11 @@
       :style="{ width: dialogWidth }"
       @keyup-enter="dialogConfirm"
       @keyup-escape="closeDialog"
-      :modal="true"
-      :contentStyle="{ overflow: 'visible' }"
-      :closable="false"
+      @hide="dialogHide"
       :disableKeyTab="disableKeyTab"
     >
       <BlockUI v-if="dialogComponent" :blocked="loading">
-        <component :key="confirmBtnLabel" :is="dialogComponent" :ref="compRef" @switch-comp="openDialog" :cp="compProps" />
+        <component :key="confirmBtnLabel" :is="dialogComponent" :ref="compRef" @switch-comp="openDialog" :cp="compProps" @clear-cp="() => (compProps = null)" />
         <NewMessage v-if="dialogMess.text" @close-message="closeMessage" :severity="dialogMess.severity">{{ dialogMess.text }}</NewMessage>
       </BlockUI>
 
@@ -79,6 +77,7 @@ export default {
   mounted: function() {
     // this.$store.dispatch('auth')
   },
+  timeOut: null,
   methods: {
     unblock() {},
     closeMessage() {
@@ -89,6 +88,7 @@ export default {
       else this.openDialog('newOrderForm', 'Create', 'Add new film')
     },
     openDialog(comp, label, header, props, width, disableKeyTab) {
+      clearTimeout(this.timeOut)
       console.log(comp)
       this.compProps = props
       this.disableKeyTab = disableKeyTab
@@ -105,6 +105,14 @@ export default {
       // }, 500)
       this.isOpenDialog = false
       this.dialogMess = { text: '', severity: '' }
+      const payload = { keys: ['new', 'converted'], datas: [null, null] }
+      if (this.compRef.includes('Prod')) this.$store.commit('prod/film/setStates', payload)
+      else if (this.compRef.includes('Order')) this.$store.commit('order/film/setStates', payload)
+    },
+    dialogHide() {
+      this.timeOut = setTimeout(() => {
+        this.dialogComponent = ''
+      }, 500)
     },
     dialogConfirm(e) {
       // console.log(e)
@@ -124,13 +132,13 @@ export default {
     },
   },
   watch: {
-    isOpenDialog: function(value) {
-      if (value === false) {
-        setTimeout(() => {
-          this.dialogComponent = ''
-        }, 500)
-      }
-    },
+    // isOpenDialog: function(value) {
+    //   if (value === false) {
+    //     setTimeout(() => {
+    //       this.dialogComponent = ''
+    //     }, 500)
+    //   }
+    // },
   },
   computed: {
     hasProdFilmTable() {

@@ -1,12 +1,12 @@
-import state from './plan/state'
-import * as mutations from './plan/mutations'
-import * as getters from './plan/getters'
-import * as actions from './plan/actions'
-import PlanModule from './plan'
+import state from './process/state'
+import * as mutations from './process/mutations'
+import * as getters from './process/getters'
+import * as actions from './process/actions'
+import ProcessModule from './process'
 
 export default {
   namespaced: true,
-  modules: { plan: PlanModule },
+  modules: { process: ProcessModule },
   state,
   getters,
   actions,

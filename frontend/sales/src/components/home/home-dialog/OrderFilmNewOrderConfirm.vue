@@ -7,18 +7,25 @@
 </template>
 
 <script>
+import { opts, dbName as db } from '../../../store/modules/order/options'
+
 export default {
   name: 'OrderFilmNewOrderConfirm',
   components: {},
-  data: () => ({}),
+  // data: () => ({}),
   methods: {
     confirm() {
       this.$store.dispatch('order/film/Worker', { name: 'insert', payload: this.converted })
-      this.$store.dispatch('operation/plan/inserts', this.converted)
-      this.$store.dispatch('prod/film/inserts', this.converted)
+      const { colName: col } = opts.film
+      const label = `${this.converted.foreignTitle} >>> `
+      if (this.converted.processes.length) this.$store.dispatch('operation/process/inserts', { source: this.converted, year: this.year, db, col, label })
+      if (this.converted.products.length) this.$store.dispatch('prod/film/inserts', this.converted)
     },
   },
   computed: {
+    year() {
+      return this.$store.state.year
+    },
     converted() {
       return this.$store.state.order.film.converted
     },

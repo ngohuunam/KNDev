@@ -6,6 +6,7 @@ import store from './store'
 import DataTable from 'primevue/datatable'
 Vue.component('DataTable', DataTable)
 const NewDataTable = Vue.component('DataTable').extend({
+  name: 'NewDataTable',
   props: {
     dataKey: {
       type: String,
@@ -58,6 +59,7 @@ Vue.component('NewDataTable', NewDataTable)
 import Column from 'primevue/column'
 Vue.component('Column', Column)
 const NewColumn = Vue.component('Column').extend({
+  name: 'NewColumn',
   props: {
     filterMatchMode: {
       type: String,
@@ -80,6 +82,7 @@ Vue.component('InputText', InputText)
 import Calendar from 'primevue/calendar'
 Vue.component('Calendar', Calendar)
 const NewCalendar = Vue.component('Calendar').extend({
+  name: 'NewCalendar',
   props: {
     dateFormat: {
       type: String,
@@ -124,6 +127,9 @@ Vue.component('NewCalendar', NewCalendar)
 import MultiSelect from 'primevue/multiselect'
 Vue.component('MultiSelect', MultiSelect)
 
+import PanelMenu from 'primevue/panelmenu'
+Vue.component('PanelMenu', PanelMenu)
+
 import ToastService from 'primevue/toastservice'
 Vue.use(ToastService)
 import Toast from 'primevue/toast'
@@ -147,7 +153,21 @@ import Dialog from 'primevue/dialog'
 Vue.component('Dialog', Dialog)
 const NewDialog = Vue.component('Dialog').extend({
   name: 'NewDialog',
-  props: ['disableKeyTab'],
+  props: {
+    disableKeyTab: {
+      type: Boolean,
+      default: false,
+    },
+    modal: {
+      type: Boolean,
+      default: true,
+    },
+    closable: {
+      type: Boolean,
+      default: true,
+    },
+    contentStyle: { overflow: 'visible' },
+  },
   documentKeyupListener: null,
   methods: {
     newOnKeyDown() {},
@@ -255,14 +275,106 @@ Vue.directive('tooltip', Tooltip)
 import TreeTable from 'primevue/treetable'
 Vue.component('TreeTable', TreeTable)
 
+import AccordionTab from 'primevue/accordiontab'
+Vue.component('AccordionTab', AccordionTab)
+
+import Accordion from 'primevue/accordion'
+Vue.component('Accordion', Accordion)
+const NewAccordion = Vue.component('Accordion').extend({
+  name: 'NewAccordion',
+  props: ['highlight'],
+  methods: {
+    onTabClick(event, tab) {
+      if (event.target.className.includes('p-accordion-toggle-icon')) {
+        if (!tab.disabled) {
+          if (!this.multiple && !tab.d_active) {
+            this.tabs.forEach(tab => (tab.d_active = false))
+          }
+
+          const newActiveState = !tab.d_active
+          tab.d_active = newActiveState
+          tab.$emit('update:active', newActiveState)
+          let eventName = newActiveState ? 'tab-open' : 'tab-close'
+          this.$emit(eventName, {
+            originalEvent: event,
+            tab: tab,
+          })
+        }
+      }
+    },
+  },
+})
+Vue.component('NewAccordion', NewAccordion)
+
 import Listbox from 'primevue/listbox'
 Vue.component('Listbox', Listbox)
+const NewListbox = Vue.component('Listbox').extend({
+  name: 'NewListbox',
+  props: {
+    listStyle: {
+      type: String,
+      default: 'text-align: left, max-height: 1500px;',
+    },
+    optionLabel: {
+      type: String,
+      default: '_id',
+    },
+    dataKey: {
+      type: String,
+      default: '_id',
+    },
+    multiple: {
+      type: Boolean,
+      default: true,
+    },
+    filter: {
+      type: Boolean,
+      default: true,
+    },
+  },
+  methods: {
+    onOptionSelectMultiple(event, option) {
+      if (event.target.className.includes('p-accordion-header') || event.target.parentElement.className.includes('p-accordion-header')) {
+        let selected = this.isSelected(option)
+        let valueChanged = false
+        let value = null
+        let metaSelection = this.optionTouched ? false : this.metaKeySelection
+
+        if (metaSelection) {
+          let metaKey = event.metaKey || event.ctrlKey
+
+          if (selected) {
+            if (metaKey) value = this.removeOption(option)
+            else value = [this.getOptionValue(option)]
+
+            valueChanged = true
+          } else {
+            value = metaKey ? this.value || [] : []
+            value = [...value, this.getOptionValue(option)]
+            valueChanged = true
+          }
+        } else {
+          if (selected) value = this.removeOption(option)
+          else value = [...(this.value || []), this.getOptionValue(option)]
+
+          valueChanged = true
+        }
+
+        if (valueChanged) {
+          this.updateModel(event, value)
+        }
+      }
+    },
+  },
+})
+Vue.component('NewListbox', NewListbox)
 
 import 'primevue/resources/themes/nova-light/theme.css'
 import 'primevue/resources/primevue.min.css'
 import 'primeicons/primeicons.css'
 import 'primeflex/primeflex.css'
 import '@/assets/myCss.css'
+import './css/override.css'
 
 Vue.config.productionTip = false
 Vue.config.devtools = true

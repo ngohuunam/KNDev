@@ -1,0 +1,36 @@
+body .p-accordion .p-accordion-header a,
+body .p-accordion .p-accordion-header:hover a,
+body .p-accordion .p-accordion-header.p-highlight a,
+body .p-accordion .p-accordion-header.p-highlight:hover a,
+body .p-accordion .p-accordion-header:not(.p-disabled).p-highlight a,
+body .p-accordion .p-accordion-header:not(.p-disabled).p-highlight:hover a,
+body .p-accordion .p-accordion-header:not(.p-highlight):not(.p-disabled) a,
+body .p-accordion .p-accordion-header:not(.p-highlight):not(.p-disabled):hover a {
+  border: none;
+  color: #333333;
+  background-color: transparent;
+}
+body .p-accordion .p-accordion-header:not(.p-disabled) a:focus {
+  box-shadow: none;
+}
+body .p-accordion .p-accordion-content {
+  border: none;
+  /* border-bottom: 1px solid #c8c8c8; */
+  background-color: transparent;
+  border-radius: 0;
+  padding-left: 2.2em;
+}
+body .p-accordion .p-accordion-header:not(.p-disabled).p-highlight a .p-accordion-toggle-icon,
+body .p-accordion .p-accordion-header:not(.p-disabled).p-highlight:hover a .p-accordion-toggle-icon {
+  color: #848484;
+}
+body .p-accordion .p-accordion-header:not(.p-disabled).p-highlight a .p-accordion-toggle-icon:hover {
+  color: #333333;
+}
+body .p-accordion .p-accordion-tab {
+  margin: 0;
+  border-top: solid 1px lightgray;
+}
+body .p-listbox .p-listbox-header {
+  border: none;
+}

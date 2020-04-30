@@ -139,9 +139,7 @@ export default {
     const _processLabel = this.labels.find(label => label.key === 'processes')
     _processLabel.options = this.$store.state.standards.filter(({ type, db, cols }) => type === 'procs' && db === 'prod' && cols.includes('film'))
   },
-  beforeDestroy() {
-    this.newProd = null
-  },
+  beforeDestroy() {},
 }
 </script>
 

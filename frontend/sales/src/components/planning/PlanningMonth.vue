@@ -1,15 +1,24 @@
 <template>
   <div class="p-grid">
-    <div class="p-col-2">
-      <Listbox v-model="selected" dataKey="_id" :options="list" :multiple="true" :filter="true" listStyle="text-align: left, max-height: 1500px;" style="width:100%">
-        <template #option="slotProps">
-          <div class="p-clearfix list-item" :style="styles[slotProps.option.status]">
+    <div class="p-col-3">
+      <NewListbox v-if="list.length" v-model="selected" :options="list" style="width:100%">
+        <template #option="{option, index}">
+          <!-- <div class="p-clearfix list-item" :style="styles[slotProps.option.status]">
             <span>{{ slotProps.option._id }}</span>
-          </div>
+          </div> -->
+          <NewAccordion>
+            <AccordionTab :header="option.label">
+              <ProcessInput :proc_id="option._id" :index="index" />
+            </AccordionTab>
+          </NewAccordion>
         </template>
-      </Listbox>
+      </NewListbox>
+      <div v-else>
+        <div class="text-center">Loading records...</div>
+        <ProgressBar mode="indeterminate" />
+      </div>
     </div>
-    <div class="p-col-10">
+    <div class="p-col">
       <TreeTable :value="values">
         <Column field="name" header="Name" :expander="true" headerStyle="width: 100px" bodyStyle="padding: 0; text-align: left;"></Column>
         <Column field="time" :columnKey="day" v-for="day of days" :key="day" :header="day" bodyClass="table-tree-table">
@@ -24,15 +33,29 @@
 
 <script>
 import json from '../../utils/json'
+import { groupBy } from '../../utils'
+import ProcessInput from './ProcessInput'
 
 export default {
   name: 'PlanningMonth',
+  components: { ProcessInput },
   data() {
     return {
       days: [],
       month: 0,
       year: 0,
       values: [],
+      // procValues: {},
+      labels: [
+        { label: 'Source:', comp: 'InputText', key: 'source' },
+        { label: 'Target:', comp: 'InputText', key: 'target' },
+        { label: 'Description:', comp: 'InputText', key: 'description' },
+        { label: 'Main Response:', comp: 'Dropdown', key: 'main', options: ['Diễn', 'Hiền', 'Khang', 'Nam', 'Other'] },
+        { label: 'Supporter:', comp: 'Dropdown', key: 'support', options: ['Diễn', 'Hiền', 'Khang', 'Nam', 'Other'] },
+        { label: 'Begin At:', comp: 'NewCalendar', key: 'start', showTime: false, disable: false },
+        { label: 'End At:', comp: 'NewCalendar', key: 'end', showTime: false },
+        { label: 'Type:', comp: 'MultiSelect', key: 'type', options: ['Serial', 'Parallel', 'Pausable', 'Cancelable', 'Holdable'], placeholder: 'Select Types' },
+      ],
       options: [
         { field: 'name', header: 'Vin', expander: true },
         { field: 'size', header: 'Size' },
@@ -88,20 +111,22 @@ export default {
       this.days.push(i)
       ++i
     }
-    console.log('this.days', this.days)
     this.values = json.root
-    console.log('this.values', this.values)
   },
+  watch: {},
   computed: {
+    group() {
+      return groupBy(this.list, 'group')
+    },
     list() {
-      return this.$store.state.operation.plan.list
+      return this.$store.state.operation.process.list
     },
     selected: {
       get() {
-        return this.$store.state.operation.plan.selected
+        return this.$store.state.operation.process.selected
       },
       set(values) {
-        this.$store.commit('operation/plan/setState', { key: 'selected', data: values })
+        this.$store.commit('operation/process/setState', { key: 'selected', data: values })
       },
     },
   },

@@ -226,9 +226,9 @@
           <div class="child-cell">
             <div v-for="(child_name, i) in data[field]" :key="i">
               <Button
-                v-if="childBtnVisible(_id, child_name, 'operation.plan')"
+                v-if="childBtnVisible(_id, child_name, 'operation.process')"
                 v-tooltip.top="childQuickLog(logs, child_name)"
-                :icon="childIcon(_id, child_name, 'operation.plan')"
+                :icon="childIcon(_id, child_name, 'operation.process')"
                 :label="child_name"
                 @click="childCheck($event, _id, child_name, data[field], field)"
               />
@@ -307,12 +307,6 @@ export default {
     },
   },
   computed: {
-    products() {
-      return this.$store.state.prod.film.list
-    },
-    processes() {
-      return this.$store.state.operation.plan.list
-    },
     loadBtnProp() {
       let prop = { label: 'Load', tooltip: 'Load', icon: 'pi pi-download', disabled: false }
       if (!this.selected.length && !this.hasProdList) prop = { label: 'No Select', tooltip: 'No Select', icon: 'pi pi-download', disabled: true }
@@ -335,9 +329,12 @@ export default {
     },
     ...mapState({
       state: state => state.order.film,
+      products: state => state.prod.film.list,
+      processes: state => state.operation.process.list,
     }),
   },
   created: function() {
+    console.log(this.loading)
     this.dot_path = 'order.film'
     this.slash_path = 'order/film'
     const unwatch = this.$watch('list.length', function(nv) {

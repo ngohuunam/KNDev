@@ -1,7 +1,7 @@
 const operationSchema = {
-  plan: {
-    title: 'Plan - schema',
-    description: 'describes a plan',
+  process: {
+    title: 'Process - schema',
+    description: 'describes a process',
     version: 0,
     type: 'object',
     properties: {
@@ -10,6 +10,14 @@ const operationSchema = {
         primary: true,
       },
       label: {
+        type: 'string',
+        default: '',
+      },
+      of: {
+        type: 'object',
+        default: { year: '', db: '', col: '', _id: '' },
+      },
+      group: {
         type: 'string',
         default: '',
       },
@@ -24,6 +32,7 @@ const operationSchema = {
       level: {
         type: 'number',
         default: 0,
+        index: true,
       },
       source: {
         type: 'string',
@@ -58,6 +67,7 @@ const operationSchema = {
       start: {
         type: 'number',
         default: 0,
+        index: true,
         check: true,
       },
       aot: {
@@ -67,6 +77,7 @@ const operationSchema = {
       end: {
         type: 'number',
         default: 0,
+        index: true,
         check: true,
       },
       finish: {
@@ -123,7 +134,7 @@ const operationSchema = {
         default: [],
       },
     },
-    compoundIndexes: [],
+    compoundIndexes: [['priority', 'start', 'group', 'level']],
   },
 }
 

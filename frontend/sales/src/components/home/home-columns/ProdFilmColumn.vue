@@ -131,9 +131,9 @@
           <div class="child-cell">
             <div v-for="(child_name, i) in data[field]" :key="i">
               <Button
-                v-if="childBtnVisible(_id, child_name, 'operation.plan')"
+                v-if="childBtnVisible(_id, child_name, 'operation.process')"
                 v-tooltip.top="childQuickLog(logs, child_name)"
-                :icon="childIcon(_id, child_name, 'operation.plan')"
+                :icon="childIcon(_id, child_name, 'operation.process')"
                 :label="child_name"
                 @click="childCheck($event, _id, child_name, data[field], field)"
               />
@@ -228,6 +228,7 @@
 <script>
 import { mapState } from 'vuex'
 import columnMixin from '../../../mixin/column-mixin'
+import { opts, dbName as db } from '../../../store/modules/order/options'
 
 export default {
   name: 'ProdFilmColumn',
@@ -252,7 +253,7 @@ export default {
         if (data.dropped || !this.ui[data._id] || !this.ui[data._id].new) this.menuModel = [{ label: 'Check', icon: 'pi pi-thumbs-up', command: () => this.rowCheck('products') }]
         else {
           this.menuModelNormal[0].label = data.name.slice(0)
-          if (data.processes.length) this.menuModelNormal[3] = { label: 'Add plan', icon: 'pi pi-upload', command: e => this.add(e, 'plan') }
+          if (data.processes.length) this.menuModelNormal[3] = { label: 'Add process', icon: 'pi pi-upload', command: e => this.add(e, 'process') }
           else
             this.menuModelNormal[3] = {
               label: 'Add Process',
@@ -278,13 +279,15 @@ export default {
       console.log(type)
       if (type === 'process') {
         const { properties: processes } = item
-        const parent_id = this.rowClickData.data._id
+        const { _id, parent, name } = this.rowClickData.data
         const value = processes.map(prop => prop.key)
         this.$store.dispatch('prod/film/Worker', {
           name: 'adds',
-          payload: { parent_id, child: 'processes', value, note: '' },
+          payload: { parent_id: _id, child: 'processes', value, note: '' },
         })
-        this.$store.dispatch('operation/plan/inserts', { _id: parent_id, processes })
+        const { colName: col } = opts.film
+        const label = `${parent._id.replace(/_/g, ' ')} >>> ${name} >>> `
+        this.$store.dispatch('operation/process/inserts', { source: { _id, processes }, year: this.year, db, col, label })
       }
     },
   },
@@ -312,7 +315,7 @@ export default {
     },
     ...mapState({
       state: state => state.prod.film,
-      processes: state => state.operation.plan.list,
+      processes: state => state.operation.process.list,
     }),
   },
   created: function() {
