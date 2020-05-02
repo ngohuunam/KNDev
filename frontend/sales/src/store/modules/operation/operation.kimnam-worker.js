@@ -1,5 +1,7 @@
 import { Worker } from '../shared/worker'
 import { dbName, opts } from './options'
+// import { debounce } from 'debounce'
+// import AwesomeDebouncePromise from 'awesome-debounce-promise'
 
 const { console } = self
 
@@ -43,20 +45,24 @@ class PlanWorker extends Worker {
   constructor(userId, token, dbName, commit, commitRoot) {
     super(userId, token, dbName, commit, commitRoot)
   }
+  insert$(changeEvent, colName) {
+    console.log('(PlanWorker insert$) changeEvent', changeEvent)
+    this.pullList(colName).then(() => this.commitList(colName))
+  }
 }
 
-const init = (userId, token, queryParams) => {
+const init = (userId, token, selectorParams) => {
   worker = new PlanWorker(userId, token, dbName, commit, commitRoot)
   worker
-    .init(opts, queryParams)
+    .init(opts, selectorParams)
     .then(() => worker.pullListAll())
     .then(() => worker.commitListAll())
 }
 
 let countInterval = 0
 
-const getStatus = ({ _id: userId, token, colNames, queryParams }) => {
-  if (!worker) init(userId, token, queryParams)
+const getStatus = ({ _id: userId, token, colNames, selectorParams }) => {
+  if (!worker) init(userId, token, selectorParams)
   else if (worker && worker.state === 'ready') colNames.forEach(colName => worker.commitList(colName))
   else if (worker && worker.state === 'init') {
     if (countInterval < 11) {

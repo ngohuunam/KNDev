@@ -2,7 +2,7 @@ const CompressionPlugin = require('compression-webpack-plugin')
 const WorkerPlugin = require('worker-plugin')
 // const HtmlWebpackPlugin = require('html-webpack-plugin')
 // const HtmlWebpackInlineSourcePlugin = require('html-webpack-inline-source-plugin')
-// const TerserPlugin = require('terser-webpack-plugin')
+const TerserPlugin = require('terser-webpack-plugin')
 
 const publicPath = '/sales/home/'
 
@@ -37,34 +37,20 @@ module.exports = {
     output: {
       filename: '[name].js',
       chunkFilename: '[name].js',
-      globalObject: 'this',
+      // globalObject: 'this',
     },
-    // optimization: {
-    //   minimize: true,
-    //   minimizer: [
-    //     new TerserPlugin({
-    //       cache: true,
-    //       terserOptions: {
-    //         compress: {
-    //           pure_funcs: ['console.log', 'console.info', 'console.debug', 'console.warn'],
-    //           // drop_console: true,
-    //         },
-    //       },
-    //     }),
-    //   ],
-    // },
     performance: {
       hints: false,
     },
     plugins: [
       new WorkerPlugin({ globalObject: 'self', sharedWorker: true, worker: true, filename: '[name].worker.js' }),
-      // new TerserPlugin({
-      //   terserOptions: {
-      //     compress: {
-      //       pure_funcs: ['console.log', 'console.info', 'console.debug', 'console.warn'],
-      //     },
-      //   },
-      // }),
+      new TerserPlugin({
+        terserOptions: {
+          compress: {
+            pure_funcs: ['console.log', 'console.info', 'console.debug', 'console.warn'],
+          },
+        },
+      }),
       // new HtmlWebpackPlugin({
       //   filename: 'index_.html',
       //   title: new Date().toLocaleString('vi'),

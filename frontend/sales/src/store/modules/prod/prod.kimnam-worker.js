@@ -59,15 +59,15 @@ class ProdWorker extends Worker {
   }
 }
 
-const init = (userId, token, queryParams, lastQueries) => {
+const init = (userId, token, selectorParams, lastQueries) => {
   worker = new ProdWorker(userId, token, dbName, commit, commitRoot)
-  worker.init(opts, queryParams).then(() => Object.entries(lastQueries).forEach(([colName, queryObj]) => worker.query({ queryObj }, colName)))
+  worker.init(opts, selectorParams).then(() => Object.entries(lastQueries).forEach(([colName, queryObj]) => worker.query({ queryObj }, colName)))
 }
 
 let countInterval = 0
 
-const getStatus = ({ _id: userId, token, colNames, queryParams, lastQueries }) => {
-  if (!worker) init(userId, token, queryParams, lastQueries)
+const getStatus = ({ _id: userId, token, colNames, selectorParams, lastQueries }) => {
+  if (!worker) init(userId, token, selectorParams, lastQueries)
   else if (worker && worker.state === 'ready') colNames.forEach(colName => worker.commitList(colName))
   else if (worker && worker.state === 'init') {
     if (countInterval < 11) {

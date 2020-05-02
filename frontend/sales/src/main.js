@@ -10,7 +10,7 @@ const NewDataTable = Vue.component('DataTable').extend({
   props: {
     dataKey: {
       type: String,
-      default: '_id',
+      default: '_rev',
     },
     rows: {
       type: Number,
@@ -314,10 +314,6 @@ const NewListbox = Vue.component('Listbox').extend({
     listStyle: {
       type: String,
       default: 'text-align: left, max-height: 1500px;',
-    },
-    optionLabel: {
-      type: String,
-      default: '_id',
     },
     dataKey: {
       type: String,

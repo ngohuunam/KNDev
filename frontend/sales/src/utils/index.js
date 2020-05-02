@@ -8,6 +8,7 @@ string_proto()
 // export * from './prepare-insert'
 export * from './object'
 export * from './parse-date'
+export * from './processes'
 
 export const groupBy = (arr, k) => arr.reduce((acc, item) => ((acc[item[k]] = [...(acc[item[k]] || []), item]), acc), {})
 // const toProperCase = function() {

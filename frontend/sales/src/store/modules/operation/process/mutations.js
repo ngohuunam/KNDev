@@ -1,4 +1,4 @@
-import { queryBy_key } from '../../../../utils'
+// import { queryBy_key } from '../../../../utils'
 import Vue from 'vue'
 
 export const setState = (state, { key, data }) => {
@@ -14,10 +14,16 @@ export const unshift = (state, { key, data }) => {
   _state.unshift(data)
 }
 
-export const replace = (state, { key, prop, compare, data }) => {
+// export const replace = (state, { key, prop, compare, data }) => {
+//   const _state = state[key]
+//   const { index, doc } = queryBy_key(prop, compare, _state)
+//   if (doc) Vue.set(_state, index, data)
+// }
+
+export const replace = (state, { key, data, field }) => {
   const _state = state[key]
-  const { index, doc } = queryBy_key(prop, compare, _state)
-  if (doc) Vue.set(_state, index, data)
+  const idx = _state.findIndex(item => item[field] === data[field])
+  Vue.set(_state, idx, data)
 }
 
 export const replaceAt = (state, { key, index, data }) => {

@@ -18,7 +18,7 @@ const film = {
   schema: schema.film,
   checkKeys: checkKeys.film,
   childs: childs.film,
-  sort: { endAt: 1, premiereDate: 1, createdAt: -1 },
+  sort: [{ endAt: 1 }, { premiereDate: 1 }, { createdAt: -1 }],
   prepare: _order => {
     // const _newOrder = { ...construct(schema.film), ..._order }
     _order.foreignTitle = _order.foreignTitle.toProperCase()
@@ -37,9 +37,9 @@ const film = {
     docObj.logs.unshift({ type: 'Insert', _rev: '', at: docObj.createdAt, by: user_id, note: docObj.note })
     delete docObj.note
   },
-  createQuery: function(ui) {
+  createSelector: function(ui) {
     const $nin = Object.keys(ui).filter(_id => ui[_id].dropped)
-    const sortQueries = Object.keys(this.sort).map(k => ({ [k]: { $gt: null } }))
+    const sortQueries = this.sort.flatMap(obj => Object.keys(obj).map(k => ({ [k]: { $gt: null } })))
     return { $and: [...sortQueries, ...[{ _id: { $nin } }]] }
   },
 }

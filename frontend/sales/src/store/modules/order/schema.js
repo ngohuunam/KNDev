@@ -4,6 +4,7 @@ const orderSchema = {
     description: 'describes a film order',
     version: 0,
     type: 'object',
+    indexes: ['endAt', 'premiereDate', 'status', 'createdAt', ['endAt', 'premiereDate', 'createdAt']],
     properties: {
       _id: {
         type: 'string',
@@ -21,7 +22,6 @@ const orderSchema = {
       },
       createdAt: {
         type: 'number',
-        index: true,
         default: 0,
       },
       createdBy: {
@@ -31,7 +31,6 @@ const orderSchema = {
       },
       endAt: {
         type: 'number',
-        index: true,
         default: 0,
         check: true,
       },
@@ -52,7 +51,6 @@ const orderSchema = {
       },
       premiereDate: {
         type: 'number',
-        index: true,
         default: 0,
         check: true,
       },
@@ -106,23 +104,6 @@ const orderSchema = {
         default: [],
       },
     },
-    compoundIndexes: [
-      ['endAt', 'premiereDate', 'createdAt'],
-      // ['endAt', 'premiereDate', 'status'],
-      // ['endAt', 'createdAt', 'premiereDate'],
-      // ['endAt', 'status', 'premiereDate'],
-      // ['status', 'endAt', 'premiereDate'],
-      // ['status', 'endAt', 'createdAt'],
-      // ['endAt', 'premiereDate', 'createdAt', 'status'],
-      // ['endAt', 'premiereDate', 'status', 'createdAt'],
-      // ['endAt', 'status', 'premiereDate', 'createdAt'],
-      // ['endAt', 'createdAt'],
-      // ['endAt', 'status'],
-      // ['createdAt', 'status'],
-      // ['createdAt', 'endAt'],
-      // ['createdAt', 'premiereDate'],
-      // ['premiereDate', 'status'],
-    ],
   },
 }
 

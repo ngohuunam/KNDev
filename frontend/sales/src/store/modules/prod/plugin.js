@@ -9,7 +9,7 @@ const ProdPlugin = store => {
         state: {
           [year]: {
             prod: {
-              film: { ui: p_ui, query: queryObj },
+              film: { ui: p_ui, selector },
             },
             order: {
               film: { ui: o_ui },
@@ -28,11 +28,11 @@ const ProdPlugin = store => {
     worker.port.start()
     myWorker = worker.port
   }
-  const queryParams = {}
+  const selectorParams = {}
   const colNames = ['film']
-  queryParams.film = { prodUi: p_ui, orderUi: o_ui }
-  const lastQueries = { film: queryObj }
-  myWorker.postMessage({ name: 'getStatus', payload: { _id, token, colNames, queryParams, lastQueries } })
+  selectorParams.film = { prodUi: p_ui, orderUi: o_ui }
+  const lastQueries = { film: { selector } }
+  myWorker.postMessage({ name: 'getStatus', payload: { _id, token, colNames, selectorParams, lastQueries } })
   myWorker.onmessage = ({ data }) => {
     console.log('prod worker onmessage - data:', data)
     const { action, type, payload } = data

@@ -146,13 +146,13 @@ const saveError = (type, e) => {
   commit('pushToasts', { severity: 'error', summary: 'SAVE ERROR', detail: `Err: ${e.message}`, life: 10000 })
 }
 
-const query = ({ year, path, query }) => {
+const query = ({ year, path, selector }) => {
   const colPath = `${year}.${path}`
   rxUser
     .atomicUpdate(oldData => {
       const state = preUpdate(oldData)
       const ui = objectDeep(colPath, state)
-      ui.query = query
+      ui.selector = selector
       state.last = null
       return oldData
     })

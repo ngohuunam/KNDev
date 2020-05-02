@@ -1,98 +1,71 @@
 <template>
   <div class="p-grid">
-    <div class="p-col-3">
-      <NewListbox v-if="list.length" v-model="selected" :options="list" style="width:100%">
-        <template #option="{option, index}">
-          <!-- <div class="p-clearfix list-item" :style="styles[slotProps.option.status]">
-            <span>{{ slotProps.option._id }}</span>
-          </div> -->
-          <NewAccordion>
-            <AccordionTab :header="option.label">
-              <ProcessInput :proc_id="option._id" :index="index" />
-            </AccordionTab>
-          </NewAccordion>
+    <div class="p-col-4">
+      <NewDataTable v-if="table.length" :value="table" :selection.sync="selected" :filters="filters" :scrollable="false">
+        <NewColumn field="label" header="Processes">
+          <template #filter>
+            <InputText type="text" v-model="filters['label']" class="p-column-filter" />
+          </template>
+          <template #body="{data: {label, processes}}">
+            <NewAccordion>
+              <AccordionTab :active.sync="active[label]" :header="label">
+                <ProcessStatus v-for="process in processes" :key="process._rev" :_id="process._id" />
+              </AccordionTab>
+            </NewAccordion>
+          </template>
+        </NewColumn>
+      </NewDataTable>
+      <!-- <NewListbox v-if="list.length" optionLabel="label" v-model="selected" :options="list" style="width:100%">
+        <template #option="{option: process}">
+          <ProcessStatus :_id="process._id" />
         </template>
       </NewListbox>
       <div v-else>
         <div class="text-center">Loading records...</div>
         <ProgressBar mode="indeterminate" />
-      </div>
+      </div> -->
     </div>
     <div class="p-col">
-      <TreeTable :value="values">
-        <Column field="name" header="Name" :expander="true" headerStyle="width: 100px" bodyStyle="padding: 0; text-align: left;"></Column>
-        <Column field="time" :columnKey="day" v-for="day of days" :key="day" :header="day" bodyClass="table-tree-table">
+      <DataTable :value="values">
+        <Column field="group" header="Group" headerStyle="width: 200px" bodyStyle="padding: 0; text-align: left;"></Column>
+        <Column field="rows" :columnKey="i" v-for="(day, i) of days" :key="i" :header="day.getDate()" bodyClass="table-tree-table" headerStyle="text-align: left;">
           <template #body="slotProps">
             <div :style="`padding: 0.85em 0.857em;${isInDay(slotProps, day)}`" />
           </template>
         </Column>
-      </TreeTable>
+      </DataTable>
     </div>
   </div>
 </template>
 
 <script>
-import json from '../../utils/json'
-import { groupBy } from '../../utils'
-import ProcessInput from './ProcessInput'
+import ProcessStatus from './ProcessStatus'
 
 export default {
   name: 'PlanningMonth',
-  components: { ProcessInput },
+  components: { ProcessStatus },
   data() {
     return {
+      expandedRowGroups: null,
+      active: {},
+      filters: {},
       days: [],
       month: 0,
       year: 0,
-      values: [],
-      // procValues: {},
-      labels: [
-        { label: 'Source:', comp: 'InputText', key: 'source' },
-        { label: 'Target:', comp: 'InputText', key: 'target' },
-        { label: 'Description:', comp: 'InputText', key: 'description' },
-        { label: 'Main Response:', comp: 'Dropdown', key: 'main', options: ['Diễn', 'Hiền', 'Khang', 'Nam', 'Other'] },
-        { label: 'Supporter:', comp: 'Dropdown', key: 'support', options: ['Diễn', 'Hiền', 'Khang', 'Nam', 'Other'] },
-        { label: 'Begin At:', comp: 'NewCalendar', key: 'start', showTime: false, disable: false },
-        { label: 'End At:', comp: 'NewCalendar', key: 'end', showTime: false },
-        { label: 'Type:', comp: 'MultiSelect', key: 'type', options: ['Serial', 'Parallel', 'Pausable', 'Cancelable', 'Holdable'], placeholder: 'Select Types' },
-      ],
-      options: [
-        { field: 'name', header: 'Vin', expander: true },
-        { field: 'size', header: 'Size' },
-        { field: 'type', header: 'Type' },
-      ],
-      styles: { Created: 'background-color: #007ad9; color: white' },
     }
   },
   methods: {
-    checkDay({ d: sd, m: sm }, { d: ed, m: em }, color, day) {
-      return sm <= this.month && em >= this.month && sd <= day && ed >= day ? ` background-color: ${color};` : ''
-    },
-    isInDay(
-      {
-        node,
-        node: {
-          data: { time, color },
-          children,
-        },
-      },
-      day,
-    ) {
-      if (node.root) {
-        const len = children.length
-        let style
-        for (let i = 0; i < len; ++i) {
-          const _data = children[i].data
-          const {
-            time: { start, end },
-          } = _data
-          style = this.checkDay(start, end, color, day)
-          if (style) break
-        }
-        return style
+    isInDay(slotProps, day) {
+      // console.log(slotProps)
+      let style = ''
+      const cellTime = day.getTime()
+      const { rows } = slotProps.data
+      const len = rows.length
+      for (let i = 0; i < len; ++i) {
+        const proc = rows[i]
+        if (cellTime >= proc.start && cellTime <= proc.end) return (style = ` background-color: ${proc.color.value};`)
       }
-      const { start, end } = time
-      return this.checkDay(start, end, color, day)
+      return style
     },
     getDaysInMonth: function(month, year) {
       // Here January is 1 based
@@ -108,15 +81,21 @@ export default {
     const noOfDays = this.getDaysInMonth(this.month, this.year)
     let i = 1
     while (i <= noOfDays) {
-      this.days.push(i)
+      this.days.push(new Date(this.year, this.month - 1, i))
       ++i
     }
-    this.values = json.root
   },
   watch: {},
   computed: {
+    table() {
+      return Object.entries(this.group).map(([group, processes]) => ({ group, label: processes[0].groupLabel, processes }))
+    },
+    values() {
+      return this.$store.getters['operation/process/tableValues']
+    },
     group() {
-      return groupBy(this.list, 'group')
+      // return groupBy(this.list, 'group')
+      return this.$store.getters['operation/process/group']
     },
     list() {
       return this.$store.state.operation.process.list

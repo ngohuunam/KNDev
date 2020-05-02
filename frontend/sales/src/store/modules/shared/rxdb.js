@@ -1,6 +1,6 @@
-import { create, plugin } from 'rxdb/plugins/core'
-import RxDBNoValidateModule from 'rxdb/plugins/no-validate'
-import RxDBReplicationModule from 'rxdb/plugins/replication'
+import { createRxDatabase, addRxPlugin } from 'rxdb/plugins/core'
+import { RxDBNoValidatePlugin } from 'rxdb/plugins/no-validate'
+import { RxDBReplicationPlugin } from 'rxdb/plugins/replication'
 import * as PouchdbAdapterHttp from 'pouchdb-adapter-http'
 import PouchdbAdapterIndexeddb from 'pouchdb-adapter-indexeddb'
 import UpdatePlugin from './update'
@@ -8,11 +8,11 @@ import PouchDB from 'pouchdb-core'
 import { fetch } from 'pouchdb-fetch'
 
 const loadPlugins = () => {
-  plugin(RxDBNoValidateModule)
-  plugin(RxDBReplicationModule)
-  plugin(PouchdbAdapterHttp)
-  plugin(PouchdbAdapterIndexeddb)
-  plugin(UpdatePlugin)
+  addRxPlugin(RxDBNoValidatePlugin)
+  addRxPlugin(RxDBReplicationPlugin)
+  addRxPlugin(PouchdbAdapterHttp)
+  addRxPlugin(PouchdbAdapterIndexeddb)
+  addRxPlugin(UpdatePlugin)
 }
 
 export const initDb = (dbName, { colName, schema, methods, endpoint, query }, token) => {
@@ -20,8 +20,6 @@ export const initDb = (dbName, { colName, schema, methods, endpoint, query }, to
     db: {
       name: dbName,
       adapter: 'indexeddb',
-      multiInstance: false,
-      queryChangeDetection: true,
       pouchSettings: {
         auto_compaction: true,
       },
@@ -34,7 +32,7 @@ export const initDb = (dbName, { colName, schema, methods, endpoint, query }, to
     },
   }
   loadPlugins()
-  return create(opt.db)
+  return createRxDatabase(opt.db)
     .then(_rxdb => _rxdb.collection(opt.col))
     .then(rxCol => {
       return pullData(rxCol, endpoint, query, token).then(_opt => {
@@ -46,7 +44,7 @@ export const initDb = (dbName, { colName, schema, methods, endpoint, query }, to
     })
 }
 
-export const pullData = (rxCol, endpoint, query, token) => {
+export const pullData = (rxCol, endpoint, selector, token) => {
   const _sub$ = { e: '', d: '', c: '' }
   const url = `${self.location.origin}/db/${endpoint}`
   const _opt = {
@@ -61,7 +59,7 @@ export const pullData = (rxCol, endpoint, query, token) => {
     direction: { pull: true, push: true },
     options: { live: false, retry: true },
   }
-  if (query) _opt.query = rxCol.find(query)
+  if (selector) _opt.query = rxCol.find({ selector })
   console.log('pullData _opt', _opt)
   return new Promise((resolve, reject) => {
     const syncState = rxCol.sync(_opt)

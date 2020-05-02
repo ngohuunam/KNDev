@@ -122,9 +122,9 @@ export default {
     load(child_ids, childKey, child_dot_path) {
       child_ids = child_ids && child_ids.length ? child_ids.filter(child_id => this[childKey].every(p => p._id !== child_id)) : []
       const _ids = this.selected.flatMap(item => item[childKey].map(name => item._id.concat(':').concat(name.to_id()))).concat(child_ids)
-      const queryObj = { _id: { $in: _ids } }
-      this.$store.commit(child_dot_path.split('.').join('/') + '/Worker', { name: 'query', payload: { queryObj } })
-      this.$store.commit('user/Worker', { name: 'query', payload: { year: this.year, path: child_dot_path, query: queryObj } })
+      const selector = { _id: { $in: _ids } }
+      this.$store.commit(child_dot_path.split('.').join('/') + '/Worker', { name: 'query', payload: { queryObj: { selector } } })
+      this.$store.commit('user/Worker', { name: 'query', payload: { year: this.year, path: child_dot_path, selector } })
       if (this.enlarge && this.selected.length) this.enlarge = false
     },
     closeMessage(idx) {

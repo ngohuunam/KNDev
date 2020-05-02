@@ -1,7 +1,7 @@
-import state from './process/state'
-import * as mutations from './process/mutations'
-import * as getters from './process/getters'
-import * as actions from './process/actions'
+import state from './state'
+import * as mutations from './mutations'
+import * as getters from './getters'
+import * as actions from './actions'
 import ProcessModule from './process'
 
 export default {

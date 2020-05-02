@@ -17,13 +17,13 @@ const film = {
   schema: schema.film,
   checkKeys: checkKeys.film,
   childs: childs.film,
-  sort: { endAt: 1, createdAt: -1 },
+  sort: [{ endAt: 1 }, { createdAt: -1 }],
   prepare: doc => doc,
   preInsert: null,
-  createQuery: function({ prodUi, orderUi }) {
+  createSelector: function({ prodUi, orderUi }) {
     const $nin_prod = Object.keys(prodUi).filter(_id => prodUi[_id].dropped)
     const $nin_order = Object.keys(orderUi).filter(_id => orderUi[_id].dropped)
-    const sortQueries = Object.keys(this.sort).map(k => ({ [k]: { $gt: null } }))
+    const sortQueries = this.sort.flatMap(obj => Object.keys(obj).map(k => ({ [k]: { $gt: null } })))
     return { $and: [...sortQueries, ...[{ 'parent._id': { $nin: $nin_order } }, { _id: { $nin: $nin_prod } }]] }
   },
 }

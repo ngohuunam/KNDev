@@ -9,6 +9,7 @@ body .p-accordion .p-accordion-header:not(.p-highlight):not(.p-disabled):hover a
   border: none;
   color: #333333;
   background-color: transparent;
+  padding: 0.3em 0;
 }
 body .p-accordion .p-accordion-header:not(.p-disabled) a:focus {
   box-shadow: none;
@@ -18,7 +19,7 @@ body .p-accordion .p-accordion-content {
   /* border-bottom: 1px solid #c8c8c8; */
   background-color: transparent;
   border-radius: 0;
-  padding-left: 2.2em;
+  padding: 0 0 0 1em;
 }
 body .p-accordion .p-accordion-header:not(.p-disabled).p-highlight a .p-accordion-toggle-icon,
 body .p-accordion .p-accordion-header:not(.p-disabled).p-highlight:hover a .p-accordion-toggle-icon {
@@ -29,7 +30,7 @@ body .p-accordion .p-accordion-header:not(.p-disabled).p-highlight a .p-accordio
 }
 body .p-accordion .p-accordion-tab {
   margin: 0;
-  border-top: solid 1px lightgray;
+  /* border-top: solid 1px lightgray; */
 }
 body .p-listbox .p-listbox-header {
   border: none;

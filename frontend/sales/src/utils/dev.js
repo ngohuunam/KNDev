@@ -9,7 +9,7 @@ export const randomTeam = () => team[randomNo(5, 0)]
 export const randomProd = () => prods[randomNo(12, 0)]
 export const randomManufactureType = () => produce[randomNo(5, 0)]
 
-export const randomProcess = (process, startAt) => {
+export const randomProcess = (process, startAt, endAt) => {
   process.source =
     'https://www.' +
     randomName()
@@ -20,8 +20,8 @@ export const randomProcess = (process, startAt) => {
   process.description = randomSentence()
   process.main = staffs[randomNo(5, 0)]
   process.support = staffs.filter(name => name !== process.main)[randomNo(4, 0)]
-  process.type = [planTypes[randomNo(1, 0)]].concat(planTypes.slice(2, randomNo(5, 2)))
-  process.end = randomDate(4, startAt)
+  process.types = [planTypes[randomNo(1, 0)]].concat(planTypes.slice(2, randomNo(5, 2)))
+  if (startAt) process.end = endAt || randomDate(4, startAt)
 }
 
 export const randomNewProdFilm = construct => ({ ...construct, ...{ name: randomProd(), type: randomManufactureType(), endAt: randomDate(5) } })

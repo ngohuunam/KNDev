@@ -16,9 +16,15 @@ export default {
   methods: {
     confirm() {
       this.$store.dispatch('order/film/Worker', { name: 'insert', payload: this.converted })
-      const { colName: col } = opts.film
-      const label = `${this.converted.foreignTitle} >>> `
-      if (this.converted.processes.length) this.$store.dispatch('operation/process/inserts', { source: this.converted, year: this.year, db, col, label })
+      if (this.converted.processes.length)
+        this.$store.dispatch('operation/process/inserts', {
+          source: this.converted,
+          year: this.year,
+          db,
+          col: opts.film.colName,
+          label: `${this.converted.foreignTitle} >>> `,
+          groupLabel: this.converted.foreignTitle,
+        })
       if (this.converted.products.length) this.$store.dispatch('prod/film/inserts', this.converted)
     },
   },

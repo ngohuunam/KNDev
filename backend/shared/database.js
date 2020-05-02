@@ -15,10 +15,25 @@ class Database {
     this.db = null
     this.seq = null
     this.feed = null
-    this.eventNew = null
-    this.eventUpdate = null
-    this.eventDelete = null
+    this.event = null
     this.name = null
+  }
+  async init({ endpoint, event }) {
+    try {
+      await nano.db.get(endpoint)
+    } catch (err) {
+      console.log('err.message', err.message)
+      if (err.message.includes('exist'))
+        try {
+          await nano.db.create(endpoint)
+        } catch (err) {
+          console.error(err)
+        }
+    }
+    this.name = endpoint
+    this.db = nano.use(endpoint)
+    this.event = event
+    this.getSeq()
   }
   async getSeq() {
     try {
@@ -27,14 +42,6 @@ class Database {
     } catch (e) {
       throwErr(e, dbLogger)
     }
-  }
-  async init(opt) {
-    this.name = opt.name
-    this.db = nano.use(opt.name)
-    this.eventNew = opt.eventNew
-    this.eventUpdate = opt.eventUpdate
-    this.eventDelete = opt.eventDelete
-    this.getSeq()
   }
   async bulk(ops, user, text) {
     dbLogger.info(`${user._id} - func: ${text} - db: ${this.name} - req: ${JSON.stringify(ops)}`)
@@ -92,10 +99,9 @@ const initDB = async opt => {
   }
 }
 
-const attachDB = (req, res, next, dotPath) => {
+const attachDB = (req, res, next, { db, col }) => {
   try {
-    const _name = dotPath.split('.').reduce((o, i) => o[i], dbOpt)
-    req.db = req.app.locals.dbs[_name]
+    req.db = req.app.locals.dbs[db][col]
     return next()
   } catch (err) {
     next(err)

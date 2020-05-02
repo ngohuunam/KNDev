@@ -13,15 +13,16 @@ Object.entries(schema).map(([colName, { properties }]) => {
 // childs[colName] = Object.entries(schema[colName].properties).reduce((pre, [k, v]) => (v.child ? [...pre, ...[k]] : [...pre]), [])
 const process = {
   colName: 'process',
-  endpoint: 'process_2020',
+  endpoint: 'op_proc_2020',
   schema: schema.process,
   checkKeys: checkKeys.process,
   childs: [],
-  sort: { level: 1 },
+  sort: [{ group: 1 }, { level: 1 }],
   prepare: doc => doc,
   preInsert: null,
-  createQuery() {
-    return {}
+  createSelector() {
+    const sortQueries = this.sort.flatMap(obj => Object.keys(obj).map(k => ({ [k]: { $gt: null } })))
+    return { $and: [...sortQueries] }
   },
 }
 

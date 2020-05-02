@@ -23,8 +23,8 @@ const OrderPlugin = store => {
     myWorker = worker.port
   }
   const colNames = ['film']
-  const queryParams = { film: userDbState.film.ui }
-  myWorker.postMessage({ name: 'getStatus', payload: { token, _id, colNames, queryParams } })
+  const selectorParams = { film: userDbState.film.ui }
+  myWorker.postMessage({ name: 'getStatus', payload: { token, _id, colNames, selectorParams } })
   myWorker.onmessage = ({ data }) => {
     console.log('order worker onmessage - data:', data)
     const { action, type, payload } = data

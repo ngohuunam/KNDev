@@ -1,6 +1,7 @@
 const CompressionPlugin = require('compression-webpack-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const HtmlWebpackInlineSourcePlugin = require('html-webpack-inline-source-plugin')
+// const TerserPlugin = require('terser-webpack-plugin')
 
 module.exports = {
   outputDir: `../../backend/web/pages/login`,
@@ -20,6 +21,13 @@ module.exports = {
       splitChunks: false, // makes there only be 1 js file - leftover from earlier attempts but doesn't hurt
     },
     plugins: [
+      // new TerserPlugin({
+      //   terserOptions: {
+      //     compress: {
+      //       pure_funcs: ['console.log', 'console.info', 'console.debug', 'console.warn'],
+      //     },
+      //   },
+      // }),
       new HtmlWebpackPlugin({
         // filename: 'login.html',
         title: new Date().toLocaleString('vi'),
@@ -27,6 +35,15 @@ module.exports = {
         inlineSource: '.(js|css)$', // embed all javascript and css inline
       }),
       new HtmlWebpackInlineSourcePlugin(HtmlWebpackPlugin),
+      new CompressionPlugin({
+        filename: '[path].gz[query]',
+        algorithm: 'gzip',
+        test: /\.vue$|\.js$|\.css$|\.html$|\.eot$|\.ttf$|\.woff$|\.woff2$|\.ico$/,
+        cache: true,
+        minRatio: 0.8,
+        threshold: 10240,
+        deleteOriginalAssets: false,
+      }),
       new CompressionPlugin({
         filename: '[path].br[query]',
         algorithm: 'brotliCompress',
@@ -38,8 +55,8 @@ module.exports = {
         deleteOriginalAssets: false,
       }),
     ],
-    output: {
-      globalObject: 'this',
-    },
+    // output: {
+    //   globalObject: 'this',
+    // },
   },
 }

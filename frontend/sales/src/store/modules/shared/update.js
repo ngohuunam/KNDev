@@ -27,9 +27,9 @@ export default {
 const do_update = (target, updateObj) => {
   const clone = { ...target }
   Object.entries(updateObj).map(([op, fields]) => {
-    console.log('(update) target', target)
+    // console.log('(update) target', target)
     MODIFIER[op](clone, fields)
-    console.log('(update) clone', clone)
+    // console.log('(update) clone', clone)
   })
   return clone
 }
@@ -40,6 +40,7 @@ const MODIFIER = {
     fields.map(field => (target[field] = Date.now()))
   },
   $set: function(target, fields) {
+    console.log(fields)
     Object.entries(fields).map(([field, value]) => (target[field] = value))
   },
   $assign: function(target, fields) {
@@ -48,7 +49,7 @@ const MODIFIER = {
   /* updateObj: { $assignDeep: { products: {key: 'prod name', value: ''} }} */
   $assignDeep: function(target, fields) {
     Object.entries(fields).map(([path, key_value]) => {
-      let field = objectDeep(path)
+      let field = objectDeep(path, target)
       field = field || {}
       const { key, value } = key_value
       field[key] = value
@@ -90,10 +91,10 @@ const MODIFIER = {
     })
   },
   /* updateObj: { $concat: { products: ['a', 'b']}} */
-  $concat: function(target, fields) {
+  $concat_start: function(target, fields) {
     Object.entries(fields).map(([field, value]) => {
       checkArray(target, field, '$concat')
-      target[field] = target[field].concat(value)
+      target[field] = value.concat(target[field])
     })
   },
 }

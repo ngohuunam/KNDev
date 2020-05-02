@@ -4,6 +4,7 @@ const prodSchema = {
     description: 'describes a film product',
     version: 0,
     type: 'object',
+    indexes: ['endAt', 'createdAt', 'name', 'status', 'orderId', ['endAt', 'createdAt']],
     properties: {
       _id: {
         type: 'string',
@@ -11,7 +12,6 @@ const prodSchema = {
       },
       name: {
         type: 'string',
-        index: true,
         default: '',
       },
       label: {
@@ -48,7 +48,6 @@ const prodSchema = {
       },
       createdAt: {
         type: 'number',
-        index: true,
         default: 0,
       },
       createdBy: {
@@ -57,7 +56,6 @@ const prodSchema = {
       },
       endAt: {
         type: 'number',
-        index: true,
         default: 0,
         check: true,
       },
@@ -101,19 +99,6 @@ const prodSchema = {
         default: [],
       },
     },
-    compoundIndexes: [
-      // ['endAt', 'name'],
-      // ['endAt', 'status'],
-      // ['endAt', 'orderId'],
-      ['endAt', 'createdAt'],
-      // ['createdAt', 'orderId'],
-      // ['createdAt', 'status'],
-      // ['createdAt', 'endAt'],
-      // ['createdAt', 'name'],
-      // ['status', 'orderId'],
-      // ['status', 'endAt'],
-      // ['status', 'name'],
-    ],
   },
 }
 

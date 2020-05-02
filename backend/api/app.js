@@ -23,14 +23,19 @@ app.use(cookieParser())
 // ------
 
 if (!app.locals.dbs) app.locals.dbs = {}
-const dbOpts = [dbOpt.orders.film]
-dbOpts.map(async opt => {
-  try {
-    app.locals.dbs[opt.name] = await initDB(opt)
-  } catch (err) {
-    apiLogger.error(err)
-  }
-})
+try {
+  Object.entries(dbOpt).forEach(([db, cols]) => Object.entries(cols).forEach(async ([col, opt]) => (app.locals.dbs[db] = { [col]: await initDB(opt) })))
+} catch (err) {
+  apiLogger.error(err)
+}
+// const dbOpts = [dbOpt.order.film]
+// dbOpts.map(async opt => {
+//   try {
+//     app.locals.dbs[opt.name] = await initDB(opt)
+//   } catch (err) {
+//     apiLogger.error(err)
+//   }
+// })
 
 // Routes
 // ------

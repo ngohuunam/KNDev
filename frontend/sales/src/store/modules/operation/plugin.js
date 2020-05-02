@@ -16,8 +16,8 @@ const OperationPlugin = store => {
     myWorker = worker.port
   }
   const colNames = ['process']
-  const queryParams = {}
-  myWorker.postMessage({ name: 'getStatus', payload: { token, _id, colNames, queryParams } })
+  const selectorParams = {}
+  myWorker.postMessage({ name: 'getStatus', payload: { token, _id, colNames, selectorParams } })
   myWorker.onmessage = ({ data }) => {
     console.log('operation worker onmessage - data:', data)
     const { action, type, payload } = data

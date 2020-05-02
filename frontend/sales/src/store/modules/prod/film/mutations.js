@@ -1,5 +1,4 @@
 import Vue from 'vue'
-import { queryBy_id, pushSortBy_id } from '@/tools'
 
 export const create = (state, newProd) => {
   const _newProd = { ...newProd }
@@ -52,11 +51,10 @@ export const pushMess = (state, value) => {
   state.messages.push(value)
 }
 
-export const replace = (state, { key, data }) => {
+export const replace = (state, { key, data, field }) => {
   const _state = state[key]
-  const { index, doc } = queryBy_id(data._id, state[key])
-  if (doc) Vue.set(_state, index, data)
-  else pushSortBy_id(_state, data)
+  const idx = _state.findIndex(item => item[field] === data[field])
+  Vue.set(_state, idx, data)
 }
 
 export const spliceMess = (state, idx) => {

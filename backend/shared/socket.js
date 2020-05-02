@@ -49,8 +49,8 @@ sales_home.on('connect', async socket => {
   })
   const newNamespace = socket.nsp
   // broadcast to all clients in the given sub-namespace
-  const { rows } = await standard.list({ include_docs: true })
   try {
+    const { rows } = await standard.list({ include_docs: true })
     const data = rows.map(row => row.doc)
     newNamespace.emit('setState', { key: 'standards', data })
   } catch (err) {

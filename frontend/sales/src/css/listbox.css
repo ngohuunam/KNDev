@@ -10,3 +10,6 @@ body .p-listbox:not(.p-disabled) .p-listbox-item:not(.p-highlight):not(.p-disabl
   color: #333333;
   background-color: transparent;
 }
+body .p-listbox .p-listbox-list-wrapper {
+  overflow: visible;
+}

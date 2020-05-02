@@ -9,6 +9,9 @@ _users
 pouch__all_dbs__
 env
 deploy
+.env
+.env.*
+letsencrypt_2019.md
 
 # local env files
 .env.local

@@ -79,7 +79,7 @@
           <InputText type="text" v-model="filters['name']" class="p-column-filter" />
         </template>
         <template #body="{ data: { _id, name, dropped } }">
-          <div style="position: relative">
+          <div style="text-align: left; position: relative">
             <span v-if="icon.row[_id] || rowError(_id, dropped)" class="icon-loading">
               <i v-if="icon.row[_id]" :class="`${icon.row[_id]}`" />
               <i v-if="rowError(_id, dropped)" class="pi pi-info color-red" />
@@ -228,7 +228,7 @@
 <script>
 import { mapState } from 'vuex'
 import columnMixin from '../../../mixin/column-mixin'
-import { opts, dbName as db } from '../../../store/modules/order/options'
+import { opts, dbName as db } from '../../../store/modules/prod/options'
 
 export default {
   name: 'ProdFilmColumn',
@@ -286,8 +286,9 @@ export default {
           payload: { parent_id: _id, child: 'processes', value, note: '' },
         })
         const { colName: col } = opts.film
-        const label = `${parent._id.replace(/_/g, ' ')} >>> ${name} >>> `
-        this.$store.dispatch('operation/process/inserts', { source: { _id, processes }, year: this.year, db, col, label })
+        const groupLabel = `${parent._id.replace(/_/g, ' ')} >> ${name}`
+        const label = `${groupLabel} >>> `
+        this.$store.dispatch('operation/process/inserts', { source: { _id, processes }, year: this.year, db, col, label, groupLabel })
       }
     },
   },

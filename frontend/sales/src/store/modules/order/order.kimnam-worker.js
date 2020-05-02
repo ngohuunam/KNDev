@@ -58,18 +58,18 @@ class OrderWorker extends Worker {
   }
 }
 
-const init = (_id, token, queryParams) => {
+const init = (_id, token, selectorParams) => {
   worker = new OrderWorker(_id, token, dbName, commit, commitRoot)
   worker
-    .init(opts, queryParams, true)
+    .init(opts, selectorParams, true)
     .then(() => worker.pullListAll())
     .then(() => worker.commitListAll())
 }
 
 let countInterval = 0
 
-const getStatus = ({ _id, token, colNames, queryParams }) => {
-  if (!worker) init(_id, token, queryParams)
+const getStatus = ({ _id, token, colNames, selectorParams }) => {
+  if (!worker) init(_id, token, selectorParams)
   else if (worker && worker.state === 'ready') colNames.forEach(colName => worker.commitList(colName))
   else if (worker && worker.state === 'init') {
     if (countInterval < 11) {

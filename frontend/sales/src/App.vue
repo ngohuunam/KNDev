@@ -4,7 +4,8 @@
     <div v-else>
       <div id="nav">
         <router-link to="/">Home</router-link> |
-        <router-link to="/about">About</router-link>
+        <router-link v-if="processIsReady && !processIsLoading" to="/about">Planning</router-link>
+        <a v-else>{{ processIsLoading ? 'Planning is loading...' : 'Planning is empty' }}</a>
       </div>
       <keep-alive><router-view /></keep-alive>
     </div>
@@ -40,6 +41,12 @@ export default {
     },
     isLoading() {
       return this.$store.state.loading
+    },
+    processIsReady() {
+      return this.$store.state.operation.process.list.length > 0
+    },
+    processIsLoading() {
+      return this.$store.state.operation.process.loading
     },
   },
 }
