@@ -23,7 +23,7 @@
     "primeicons": "^2.0.0",
     "primevue": "^1.3.2",
     "quill": "^1.3.7",
-    "rxdb": "^9.0.0-beta.10",
+    "rxdb": "^13.15.2",
     "rxjs": "^6.5.5",
     "socket.io-client": "^2.3.0",
     "vue": "^2.6.11",
